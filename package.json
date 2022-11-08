@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "vite",
-    "build": "vite build --target esnext && cp -r models dist/models"
+    "build": "vite build && cp -r models dist/models"
   },
   "keywords": [],
   "author": "",
