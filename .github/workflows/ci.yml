@@ -21,7 +21,7 @@ jobs:
       - run: |
           corepack enable
           corepack prepare pnpm@7.14.2 --activate
-          pnpm ci
+          pnpm i
           pnpm build
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
