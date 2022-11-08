@@ -3259,7 +3259,7 @@ void main() {
 float snoise(vec2 v) {
     return snoise(vec3(v, 0.0));
 }
-`,Al=async(o,e)=>{const t=(await new Promise((n,i)=>new Im().load(o,n,()=>{},i))).scene.children[0];return e!==null&&t.scale.multiplyScalar(e/new Un().setFromObject(t).getSize(new L).y),t},Si=new Wp;Si.add(new vm(16777215,.025));const Cl=new Ml(16117434,1.6);Cl.position.set(.3,1,-1);Si.add(Cl);const Ss=await Al("models/balloon.glb",.5);Si.add(Ss);const Ll=await Al("models/sky_pano_-_grand_canyon_yuma_point_lowres.glb",4);Ll.position.setY(-.5);Si.add(Ll);const Rl={time:{value:0}},Ps=new pt(new Ls,new mt({transparent:!0,uniforms:Rl,vertexShader:`out vec2 pos;
+`,Al=async(o,e)=>{const t=(await new Promise((n,i)=>new Im().load(o,n,s=>{document.querySelector("#message").innerText=`Loading ${o} (${s.loaded}/${s.total})`},i))).scene.children[0];return e!==null&&t.scale.multiplyScalar(e/new Un().setFromObject(t).getSize(new L).y),t},Si=new Wp;Si.add(new vm(16777215,.025));const Cl=new Ml(16117434,1.6);Cl.position.set(.3,1,-1);Si.add(Cl);const Ss=await Al("models/balloon.glb",.5);Si.add(Ss);const Ll=await Al("models/sky_pano_-_grand_canyon_yuma_point_lowres.glb",4);Ll.position.setY(-.5);Si.add(Ll);document.querySelector("#message").innerText="Loading models...";await new Promise(o=>setTimeout(o,0));const Rl={time:{value:0}},Ps=new pt(new Ls,new mt({transparent:!0,uniforms:Rl,vertexShader:`out vec2 pos;
 void main() {
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     pos = position.xy;
@@ -3344,4 +3344,4 @@ void main() {
     } else {
         gl_FragColor = texture2D(tDiffuse, vUv);
     }
-}`});Ns.addPass(Or);const Mr=pg();zn.setAnimationLoop(o=>{Rl.time.value=o,Or.uniforms.aspect.value=_i.aspect,Or.uniforms.time.value=o,Ss.rotation.x=Mr(0,o*3e-4)*(1.5/180*Math.PI),Ss.rotation.y=Mr(1,o*3e-4)*(1.5/180*Math.PI),Ss.rotation.z=Mr(2,o*3e-4)*(1.5/180*Math.PI),Ns.render()});new lg(_i,zn.domElement).listenToKeyEvents(window);document.body.appendChild(zn.domElement);
+}`});Ns.addPass(Or);const Mr=pg();zn.setAnimationLoop(o=>{Rl.time.value=o,Or.uniforms.aspect.value=_i.aspect,Or.uniforms.time.value=o,Ss.rotation.x=Mr(0,o*3e-4)*(1.5/180*Math.PI),Ss.rotation.y=Mr(1,o*3e-4)*(1.5/180*Math.PI),Ss.rotation.z=Mr(2,o*3e-4)*(1.5/180*Math.PI),Ns.render()});new lg(_i,zn.domElement).listenToKeyEvents(window);document.body.appendChild(zn.domElement);document.querySelector("#message").style.display="none";
