@@ -43,14 +43,14 @@ const cloudUniforms = {
 const ground = new THREE.Mesh(new THREE.PlaneGeometry(), new THREE.ShaderMaterial({
     transparent: true,
     uniforms: cloudUniforms,
-    vertexShader: `\
+    vertexShader: /* glsl */`\
 out vec2 pos;
 void main() {
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     pos = position.xy;
 }
 `,
-    fragmentShader: `\
+    fragmentShader: /* glsl */`\
 ${snoise}
 
 in vec2 pos;
@@ -90,13 +90,13 @@ const rainPass = new ShaderPass({
         aspect: { value: window.innerWidth / window.innerHeight },
         time: { value: 0.0 },
     },
-    vertexShader: `
+    vertexShader: /* glsl */`
 out vec2 vUv;
 void main() {
     vUv = uv;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }`,
-    fragmentShader: `
+    fragmentShader: /* glsl */`
 uniform sampler2D tDiffuse;
 uniform float aspect;
 uniform float time;
