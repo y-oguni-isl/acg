@@ -15,7 +15,7 @@ float snoise(vec2 v) {
 `
 
 const loadGLTF = async (filepath: string, height: number | null): Promise<THREE.Object3D> => {
-    const obj = (await new Promise<GLTF>((resolve, reject) => new GLTFLoader().load(filepath, resolve, () => { }, reject)))
+    const obj = (await new Promise<GLTF>((resolve, reject) => new GLTFLoader().load(filepath, resolve, (xhr) => { document.querySelector<HTMLDivElement>("#message")!.innerText = `Loading ${filepath} (${xhr.loaded}/${xhr.total})` }, reject)))
         .scene.children[0]
     if (height !== null) {
         obj.scale.multiplyScalar(height / new THREE.Box3().setFromObject(obj).getSize(new THREE.Vector3()).y)
@@ -35,6 +35,9 @@ scene.add(balloon)
 const skybox = await loadGLTF("models/sky_pano_-_grand_canyon_yuma_point_lowres.glb", 4)
 skybox.position.setY(-0.5)
 scene.add(skybox)
+
+document.querySelector<HTMLDivElement>("#message")!.innerText = `Loading models...`
+await new Promise((resolve) => setTimeout(resolve, 0)) // Render DOM
 
 const cloudUniforms = {
     time: { value: 0.0 },
@@ -183,3 +186,5 @@ renderer.setAnimationLoop((time: number): void => {
 new OrbitControls(camera, renderer.domElement).listenToKeyEvents(window)
 
 document.body.appendChild(renderer.domElement)
+
+document.querySelector<HTMLDivElement>("#message")!.style.display = "none"
