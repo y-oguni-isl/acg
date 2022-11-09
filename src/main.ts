@@ -8,6 +8,11 @@ import { createNoise2D } from "simplex-noise"
 // @ts-ignore
 import snoise3DURL from "../node_modules/webgl-noise/src/noise3D.glsl?url"
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
+
+// FIXME: Use a faster snoise(vec1) and snoise(vec2) implementation
+//        It might be better to sample the noise function as a texture beforehand.
+//        https://stackoverflow.com/questions/52176463/threejs-how-to-render-a-texture-with-custom-shaders-including-the-textures-uv-o
+//        https://threejs.org/docs/#api/en/textures/Texture
 const snoise = (await fetch(snoise3DURL).then((r) => r.text())) + `
 float snoise(vec2 v) {
     return snoise(vec3(v, 0.0));
@@ -193,5 +198,14 @@ renderer.setAnimationLoop((time: number): void => {
 new OrbitControls(camera, renderer.domElement).listenToKeyEvents(window)
 
 document.body.appendChild(renderer.domElement)
+
+// Audio
+const playAudio = () => {
+    const audio = document.querySelector<HTMLAudioElement>("#rainAudio")!
+    audio.loop = true
+    audio.play()
+}
+window.addEventListener("click", playAudio)
+playAudio()
 
 document.querySelector<HTMLDivElement>("#message")!.style.display = "none"
