@@ -151,10 +151,6 @@ float dropletVolume(vec2 p) {
 vec2 dropletGradient(vec2 p) {
     float base = dropletVolume(p);
     if (base == 0.0) { return vec2(0.0); }
-    // return vec2(
-    //     dropletVolume(p + vec2(0.0005 * scale, 0.0)) / base - 1.0,
-    //     dropletVolume(p + vec2(0.0, 0.0005 * scale)) / base - 1.0
-    // );
     return vec2(
         base - dropletVolume(p + vec2(0.0005 * scale, 0.0)),
         base - dropletVolume(p + vec2(0.0, 0.0005 * scale))
@@ -162,11 +158,22 @@ vec2 dropletGradient(vec2 p) {
 }
 
 void main() {
-    if (dropletVolume(vUv) > 0.001) {
+    if (dropletVolume(vUv) > 0.01) {
         gl_FragColor = pow(texture2D(tDiffuse, vUv + dropletGradient(vUv) * /* lower = transparent */9.0), vec4(vec3(/* lower = brighter */ 0.9), 1.0));
     } else {
-        gl_FragColor = texture2D(tDiffuse, vUv);
+        gl_FragColor = pow(vec4(
+            texture2D(tDiffuse, vUv + vec2(-0.0028,  0.0028) / vec2(aspect, 1.0)) +
+            texture2D(tDiffuse, vUv + vec2(-0.0040,  0.0000) / vec2(aspect, 1.0)) +
+            texture2D(tDiffuse, vUv + vec2(-0.0028, -0.0028) / vec2(aspect, 1.0)) +
+            texture2D(tDiffuse, vUv + vec2( 0.0000,  0.0040) / vec2(aspect, 1.0)) +
+            texture2D(tDiffuse, vUv) +
+            texture2D(tDiffuse, vUv + vec2( 0.0000, -0.0040) / vec2(aspect, 1.0)) +
+            texture2D(tDiffuse, vUv + vec2( 0.0028,  0.0028) / vec2(aspect, 1.0)) +
+            texture2D(tDiffuse, vUv + vec2( 0.0040,  0.0000) / vec2(aspect, 1.0)) +
+            texture2D(tDiffuse, vUv + vec2( 0.0028, -0.0028) / vec2(aspect, 1.0))
+        ) / 9.0, vec4(vec3(0.7), 1.0));
     }
+    // gl_FragColor = texture2D(tDiffuse, vUv);  // sunny
 }`
 })
 effectComposer.addPass(rainPass)
