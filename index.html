@@ -8,6 +8,14 @@
     <link rel="stylesheet" href="./style.css">
 </head>
 <body class="bg-gray-700">
+    <div class="absolute right-2 top-2 px-4 py-2 text-gray-50 backdrop-blur-3xl drop-shadow-lg" id="options">
+        <template id="optionTemplate">
+            <label class="block select-none">
+                <input type="checkbox" class="mr-1">
+                <span></span>
+            </label>
+        </template>
+    </div>
     <div id="message" class="text-white absolute [top:35%] [left:30%] text-center"></div>
     <audio id="rainAudio" src="./audio/mixkit-light-rain-loop-2393.mp3"></audio>
     <script src="./src/main.ts" type="module"></script>
