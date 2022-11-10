@@ -92,11 +92,14 @@ const effectComposer = new EffectComposer(renderer)
 effectComposer.addPass(new RenderPass(scene, camera))
 effectComposer.addPass(new UnrealBloomPass(new THREE.Vector2(256, 256), 0.2, 0, 0))
 
+const numMouseTrails = 10
+const declareMouseUniform = Array.from(Array(numMouseTrails).keys(), (i) => `uniform vec2 mouse${i};`).join("\n")
 const rainPass = new ShaderPass({
     uniforms: {
         tDiffuse: { value: null },
         aspect: { value: window.innerWidth / window.innerHeight },
         time: { value: 0.0 },
+        ...Object.fromEntries(Array.from(Array(numMouseTrails).keys(), (i) => [`mouse${i}`, { value: new THREE.Vector2(0.5, 0.5) }])),
     },
     vertexShader: /* glsl */`
 out vec2 vUv;
@@ -108,6 +111,8 @@ void main() {
 uniform sampler2D tDiffuse;
 uniform float aspect;
 uniform float time;
+${declareMouseUniform}
+
 in vec2 vUv;
 
 ${snoise}
@@ -117,6 +122,13 @@ ${snoise}
 // https://www.desmos.com/calculator/ejrfpu9pyi
 float dropletY(float x, float a) {
     return mod(x, a) < 1.0 ? sqrt(mod(x, a)) + floor(x/a) : floor(x/a) + 1.0;
+}
+
+// https://iquilezles.org/articles/distfunctions2d/
+float sdSegment( in vec2 p, in vec2 a, in vec2 b ) {
+    vec2 pa = p-a, ba = b-a;
+    float h = clamp( dot(pa,ba)/dot(ba,ba), 0.0, 1.0 );
+    return length( pa - ba*h );
 }
 
 #define PI 3.1415926535897932384626433832795
@@ -177,8 +189,23 @@ void main() {
             texture2D(tDiffuse, vUv + vec2( 0.0040,  0.0000) / vec2(aspect, 1.0)) +
             texture2D(tDiffuse, vUv + vec2( 0.0028, -0.0028) / vec2(aspect, 1.0))
         ) / 9.0, vec4(vec3(0.7), 1.0));
+
+        float opacity = 1.0;
+
+        if (mouse8.x >= 0.0 && mouse9.x >= 0.0 && sdSegment(vUv * vec2(aspect, 1.0), mouse8 * vec2(aspect, 1.0), mouse9 * vec2(aspect, 1.0)) < 0.03) { opacity = 1.0; }
+        if (mouse7.x >= 0.0 && mouse8.x >= 0.0 && sdSegment(vUv * vec2(aspect, 1.0), mouse7 * vec2(aspect, 1.0), mouse8 * vec2(aspect, 1.0)) < 0.03) { opacity = 1.0; }
+        if (mouse6.x >= 0.0 && mouse7.x >= 0.0 && sdSegment(vUv * vec2(aspect, 1.0), mouse6 * vec2(aspect, 1.0), mouse7 * vec2(aspect, 1.0)) < 0.03) { opacity = 1.0; }
+        if (mouse5.x >= 0.0 && mouse6.x >= 0.0 && sdSegment(vUv * vec2(aspect, 1.0), mouse5 * vec2(aspect, 1.0), mouse6 * vec2(aspect, 1.0)) < 0.03) { opacity = 1.0; }
+        if (mouse4.x >= 0.0 && mouse5.x >= 0.0 && sdSegment(vUv * vec2(aspect, 1.0), mouse4 * vec2(aspect, 1.0), mouse5 * vec2(aspect, 1.0)) < 0.03) { opacity = 1.0; }
+        if (mouse3.x >= 0.0 && mouse4.x >= 0.0 && sdSegment(vUv * vec2(aspect, 1.0), mouse3 * vec2(aspect, 1.0), mouse4 * vec2(aspect, 1.0)) < 0.03) { opacity = 0.7; }
+        if (mouse2.x >= 0.0 && mouse3.x >= 0.0 && sdSegment(vUv * vec2(aspect, 1.0), mouse2 * vec2(aspect, 1.0), mouse3 * vec2(aspect, 1.0)) < 0.03) { opacity = 0.5; }
+        if (mouse1.x >= 0.0 && mouse2.x >= 0.0 && sdSegment(vUv * vec2(aspect, 1.0), mouse1 * vec2(aspect, 1.0), mouse2 * vec2(aspect, 1.0)) < 0.03) { opacity = 0.3; }
+        if (mouse0.x >= 0.0 && mouse1.x >= 0.0 && sdSegment(vUv * vec2(aspect, 1.0), mouse0 * vec2(aspect, 1.0), mouse1 * vec2(aspect, 1.0)) < 0.03) { opacity = 0.1; }
+    
+        opacity = max(0.0, opacity);
+    
+        gl_FragColor = mix(texture2D(tDiffuse, vUv), gl_FragColor, opacity);
     }
-    // gl_FragColor = texture2D(tDiffuse, vUv);  // sunny
 }`
 })
 effectComposer.addPass(rainPass)
@@ -188,12 +215,28 @@ const rotationNoise = createNoise2D()
 renderer.setAnimationLoop((time: number): void => {
     cloudUniforms.time.value = time
     rainPass.uniforms.aspect.value = camera.aspect
-    rainPass.uniforms.time.value = time
+    rainPass.uniforms.time.value = time;
     balloon.rotation.x = rotationNoise(0, time * 0.0003) * (1.5 / 180 * Math.PI)
     balloon.rotation.y = rotationNoise(1, time * 0.0003) * (1.5 / 180 * Math.PI)
     balloon.rotation.z = rotationNoise(2, time * 0.0003) * (1.5 / 180 * Math.PI)
     effectComposer.render()
 })
+
+const rotateMouseTrail = () => {
+    for (let i = numMouseTrails - 2; i >= 0; i--) {
+        rainPass.uniforms[`mouse${i + 1}`].value.copy(rainPass.uniforms[`mouse${i}`].value)
+    }
+    rainPass.uniforms.mouse0.value.set(-1.0, -1.0, -1.0)
+}
+
+window.addEventListener("mousemove", (ev) => {
+    (rainPass.uniforms.mouse0.value as THREE.Vector2).set(ev.pageX / window.innerWidth, 1 - ev.pageY / window.innerHeight)
+    if ((rainPass.uniforms.mouse0.value as THREE.Vector2).distanceTo(rainPass.uniforms.mouse1.value as THREE.Vector2) > 0.1) {
+        rotateMouseTrail()
+    }
+})
+
+setInterval(() => { rotateMouseTrail() }, 100)
 
 new OrbitControls(camera, renderer.domElement).listenToKeyEvents(window)
 
