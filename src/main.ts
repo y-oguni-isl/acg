@@ -21,7 +21,7 @@ float snoise(vec2 v) {
 
 const loadGLTF = async (filepath: string, height: number | null): Promise<THREE.Object3D> => {
     const obj = (await new Promise<GLTF>((resolve, reject) => new GLTFLoader().load(filepath, resolve, (xhr) => { document.querySelector<HTMLDivElement>("#message")!.innerText = `Loading ${filepath} (${xhr.loaded}/${xhr.total})` }, reject)))
-        .scene.children[0]
+        .scene.children[0].children[0]
     if (height !== null) {
         obj.scale.multiplyScalar(height / new THREE.Box3().setFromObject(obj).getSize(new THREE.Vector3()).y)
     }
@@ -34,10 +34,11 @@ const directionalLight = new THREE.DirectionalLight(0xf5eeba, 1.6)
 directionalLight.position.set(0.3, 1, -1)
 scene.add(directionalLight)
 
-const balloon = await loadGLTF("models/balloon.glb", 0.5)
-scene.add(balloon)
+const airplane = await loadGLTF("models/low-poly_airplane.glb", 0.2)
+scene.add(airplane)
 
 const skybox = await loadGLTF("models/sky_pano_-_grand_canyon_yuma_point_lowres.glb", 4)
+skybox.rotateX(-Math.PI / 2)
 skybox.position.setY(-0.5)
 scene.add(skybox)
 
@@ -78,7 +79,7 @@ const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.outputEncoding = THREE.sRGBEncoding
 
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10)
-camera.position.set(-0.97, 0.7, 0.25)
+camera.position.set(-1, 0.7, 0)
 
 // Fit canvas to the window
 renderer.setSize(window.innerWidth, window.innerHeight)
@@ -178,17 +179,22 @@ void main() {
     if (dropletVolume(vUv) > 0.01) {
         gl_FragColor = pow(texture2D(tDiffuse, vUv + dropletGradient(vUv) * /* lower = transparent */9.0), vec4(vec3(/* lower = brighter */ 0.9), 1.0));
     } else {
-        gl_FragColor = pow(vec4(
-            texture2D(tDiffuse, vUv + vec2(-0.0028,  0.0028) / vec2(aspect, 1.0)) +
-            texture2D(tDiffuse, vUv + vec2(-0.0040,  0.0000) / vec2(aspect, 1.0)) +
-            texture2D(tDiffuse, vUv + vec2(-0.0028, -0.0028) / vec2(aspect, 1.0)) +
-            texture2D(tDiffuse, vUv + vec2( 0.0000,  0.0040) / vec2(aspect, 1.0)) +
-            texture2D(tDiffuse, vUv) +
-            texture2D(tDiffuse, vUv + vec2( 0.0000, -0.0040) / vec2(aspect, 1.0)) +
-            texture2D(tDiffuse, vUv + vec2( 0.0028,  0.0028) / vec2(aspect, 1.0)) +
-            texture2D(tDiffuse, vUv + vec2( 0.0040,  0.0000) / vec2(aspect, 1.0)) +
-            texture2D(tDiffuse, vUv + vec2( 0.0028, -0.0028) / vec2(aspect, 1.0))
-        ) / 9.0, vec4(vec3(0.7), 1.0));
+        gl_FragColor = texture2D(tDiffuse, vUv);
+
+        // blur
+        // gl_FragColor = vec4(
+        //     texture2D(tDiffuse, vUv + vec2(-0.0028,  0.0028) / vec2(aspect, 1.0)) +
+        //     texture2D(tDiffuse, vUv + vec2(-0.0040,  0.0000) / vec2(aspect, 1.0)) +
+        //     texture2D(tDiffuse, vUv + vec2(-0.0028, -0.0028) / vec2(aspect, 1.0)) +
+        //     texture2D(tDiffuse, vUv + vec2( 0.0000,  0.0040) / vec2(aspect, 1.0)) +
+        //     texture2D(tDiffuse, vUv) +
+        //     texture2D(tDiffuse, vUv + vec2( 0.0000, -0.0040) / vec2(aspect, 1.0)) +
+        //     texture2D(tDiffuse, vUv + vec2( 0.0028,  0.0028) / vec2(aspect, 1.0)) +
+        //     texture2D(tDiffuse, vUv + vec2( 0.0040,  0.0000) / vec2(aspect, 1.0)) +
+        //     texture2D(tDiffuse, vUv + vec2( 0.0028, -0.0028) / vec2(aspect, 1.0))
+        // ) / 9.0;
+
+        gl_FragColor = pow(gl_FragColor, vec4(vec3(0.7), 1.0));
 
         float opacity = 1.0;
 
@@ -216,9 +222,9 @@ renderer.setAnimationLoop((time: number): void => {
     cloudUniforms.time.value = time
     rainPass.uniforms.aspect.value = camera.aspect
     rainPass.uniforms.time.value = time;
-    balloon.rotation.x = rotationNoise(0, time * 0.0003) * (1.5 / 180 * Math.PI)
-    balloon.rotation.y = rotationNoise(1, time * 0.0003) * (1.5 / 180 * Math.PI)
-    balloon.rotation.z = rotationNoise(2, time * 0.0003) * (1.5 / 180 * Math.PI)
+    airplane.rotation.x = rotationNoise(0, time * 0.0003) * (4 / 180 * Math.PI)
+    airplane.rotation.y = Math.PI * 0.5 + rotationNoise(1, time * 0.0003) * (4 / 180 * Math.PI)
+    airplane.rotation.z = rotationNoise(2, time * 0.0003) * (4 / 180 * Math.PI)
     effectComposer.render()
 })
 
