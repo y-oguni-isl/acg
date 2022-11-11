@@ -10,6 +10,16 @@ export const bloomLayer = 1
  * Add bloom effects to objects marked with `obj.layers.enable(bloomLayer)`.
  * Based on three.js/examples/webgl_postprocessing_unreal_bloom_selective
  * https://threejs.org/examples/?q=bloom#webgl_postprocessing_unreal_bloom_selective
+ * 
+ * @example
+ * ```
+ * import { bloomLayer } from './shader/selective_bloom'
+ * 
+ * const ball = new THREE.Mesh(new THREE.IcosahedronGeometry(0.1), new THREE.MeshBasicMaterial({ color: "purple" }))
+ * ball.layers.enable(bloomLayer)
+ * ball.position.set(0.4, 0, 0)
+ * scene.add(ball)
+ * ```
  */
 const createSelectiveBloomPass = (renderer: THREE.WebGLRenderer, renderPass: RenderPass) => {
     const effectComposer = new EffectComposer(renderer)
