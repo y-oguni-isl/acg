@@ -11,6 +11,7 @@ import snoise3DURL from "../node_modules/webgl-noise/src/noise3D.glsl?url"
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 import "./credit"
 import { createRainPass } from './rain'
+import { upgrades } from './upgrades'
 
 // FIXME: Use a faster snoise(vec1) and snoise(vec2) implementation
 //        It might be better to sample the noise function as a texture beforehand.
@@ -55,6 +56,16 @@ scene.add(directionalLight)
 const airplane = !option("airplane") ? new THREE.Object3D() : await loadGLTF("models/low-poly_airplane.glb", 0.05)
 scene.add(airplane)
 
+let controlled = false
+window.addEventListener("keydown", (ev) => { controlled = ev.shiftKey || ev.ctrlKey })
+window.addEventListener("keyup", (ev) => { controlled = ev.shiftKey || ev.ctrlKey })
+window.addEventListener("mousemove", (ev) => {
+    if (controlled) {
+        airplane.position.setZ(Math.min(0.3, Math.max(-0.3, ev.pageX / (window.innerWidth / 2) - 1)))
+        airplane.position.setX(Math.min(0.3, Math.max(-0.3, 1 - ev.pageY / (window.innerHeight / 2))))
+    }
+})
+
 const skybox = !option("skybox") ? new THREE.Object3D() : await loadGLTF("models/sky_pano_-_grand_canyon_yuma_point_lowres.glb", 4)
 skybox.rotateX(-Math.PI / 2)
 skybox.position.setY(-0.5)
@@ -63,13 +74,13 @@ scene.add(skybox)
 document.querySelector("div#message")!.innerText = `Loading models...`
 await new Promise((resolve) => setTimeout(resolve, 0)) // Render DOM
 
-const timeUniform = {
+const fogUniform = {
     time: { value: 0.0 },
 }
 
 const fog = !option("fog") ? new THREE.Object3D() : new THREE.Mesh(new THREE.PlaneGeometry(), new THREE.ShaderMaterial({
     transparent: true,
-    uniforms: timeUniform,
+    uniforms: fogUniform,
     vertexShader: /* glsl */`\
 out vec2 pos;
 void main() {
@@ -93,10 +104,14 @@ fog.scale.setScalar(4)
 fog.position.setY(-0.13)
 scene.add(fog)
 
+const laserUniform = {
+    time: { value: 0.0 },
+    upgrade: { value: 0.0 },
+}
 const laser = !option("laser", false) ? new THREE.Object3D() : new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShaderMaterial({
     blending: THREE.AdditiveBlending,
     transparent: true,
-    uniforms: timeUniform,
+    uniforms: laserUniform,
     vertexShader: /* glsl */`\
 out vec2 pos;
 void main() {
@@ -107,11 +122,22 @@ void main() {
     fragmentShader: /* glsl */`\
 in vec2 pos;
 uniform float time;
+uniform float upgrade;
 
 void main() {
     float opacityY = (sin(pos.y * 30.0 - time * 0.08) + 1.0) / 2.0;
-    float opacityX = max(0.0, 1.0 - abs(pos.x + cos(time * 0.08) * 0.02) * 100.0);
-    gl_FragColor = vec4(0.0, 1.0, 1.0, opacityY * opacityX);
+    float opacityX;
+    opacityX = smoothstep(0.005, 0.0, abs(pos.x));
+    if (upgrade >= 1.0) { opacityX += smoothstep(0.005, 0.0, abs(pos.x - 0.1)); }
+    if (upgrade >= 2.0) { opacityX += smoothstep(0.005, 0.0, abs(pos.x + 0.1)); }
+    if (upgrade >= 3.0) { opacityX += smoothstep(0.005, 0.0, abs(pos.x - 0.05)); }
+    if (upgrade >= 4.0) { opacityX += smoothstep(0.005, 0.0, abs(pos.x + 0.05)); }
+    gl_FragColor = vec4(1.0, 0.3, 1.0, opacityY * opacityX);
+    if (upgrade >= 5.0) {
+        float clippedUpgrade = min(upgrade, 25.0);
+        float opacityX2 = smoothstep(0.005 * (clippedUpgrade - 4.0), 0.005 * (clippedUpgrade - 5.0), abs(pos.x + cos(time * 0.08) * 0.02));
+        gl_FragColor += opacityX2 * vec4(1.0, 1.0, 1.0, opacityY);
+    }
 }
 `
 }))
@@ -148,8 +174,22 @@ if (option("rain")) {
 
 // Main loop
 const rotationNoise = createNoise2D()
+let targetZ = 0.0
+
 renderer.setAnimationLoop((time: number): void => {
-    timeUniform.time.value = time
+    fogUniform.time.value = time
+    laserUniform.time.value = time
+    laserUniform.upgrade.value = upgrades.laser.value
+
+    if (Math.abs(targetZ - airplane.position.z) < 0.01) {
+        targetZ = Math.cos(Math.random() * Math.PI) * 0.3
+    }
+    if (!controlled) {
+        airplane.position.setZ(airplane.position.z * (1 - 0.01 * upgrades.autopilot.value) + targetZ * 0.01 * upgrades.autopilot.value)
+    }
+    laser.position.setX(airplane.position.x + 1)
+    laser.position.setZ(airplane.position.z)
+
     if (rainPass !== null) {
         rainPass.uniforms.aspect.value = camera.aspect
         rainPass.uniforms.time.value = time;

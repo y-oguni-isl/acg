@@ -8,9 +8,21 @@
     <link rel="stylesheet" href="./style.css">
 </head>
 <body class="bg-gray-700">
-    <div class="absolute right-2 top-2 px-4 py-2 text-gray-50 backdrop-blur-3xl drop-shadow-lg" id="options">
+    <div class="absolute left-0 top-0 px-4 py-2 text-gray-50 bg-gray-700 bg-opacity-40 backdrop-blur-3xl drop-shadow-lg select-none" id="upgrades">
+        <h2>Upgrades</h2>
+        <template id="upgradesTemplate">
+            <div class="block hover:cursor-pointer"><!-- progress bar -->
+                <div class="px-2 hover:bg-[linear-gradient(0deg,rgba(255,255,255,1)_0%,rgba(255,255,255,0)_10%)]">
+                    <span class="upgrade-name inline-block w-28"></span>
+                    <span class="upgrade-num float-right"></span>
+                </div>
+            </div>
+        </template>
+    </div>
+    <div class="absolute right-2 top-2 px-4 py-2 text-gray-50 bg-gray-700 bg-opacity-40 backdrop-blur-3xl drop-shadow-lg select-none" id="options">
+        <h2>Rendering</h2>
         <template id="optionTemplate">
-            <label class="block select-none">
+            <label class="block">
                 <input type="checkbox" class="mr-1">
                 <span></span>
             </label>
