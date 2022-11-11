@@ -9,3 +9,5 @@
    pnpm build
    python3 -m http.server --directory dist
    ```
+
+I highly recommend using VSCode for development and installing the extensions listed in .vscode/extensions.json.

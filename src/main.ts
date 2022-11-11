@@ -12,6 +12,7 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 import "./credit"
 import { createRainPass } from './rain'
 import { upgrades } from './upgrades'
+import { bloomLayer, createSelectiveBloomPass } from './selective_bloom'
 
 // FIXME: Use a faster snoise(vec1) and snoise(vec2) implementation
 //        It might be better to sample the noise function as a texture beforehand.
@@ -141,12 +142,12 @@ void main() {
 }
 `
 }))
-laser.name = "laser"
 laser.renderOrder = 1
 laser.rotateY(-Math.PI / 2)
 laser.rotateX(-Math.PI / 2)
 laser.scale.set(0.25, 2, 0)
 laser.position.set(1, 0.01, 0)
+laser.layers.enable(bloomLayer)
 scene.add(laser)
 
 const renderer = new THREE.WebGLRenderer({ antialias: true })
@@ -164,8 +165,12 @@ window.addEventListener("resize", () => {
 })
 
 const effectComposer = new EffectComposer(renderer)
-effectComposer.addPass(new RenderPass(scene, camera))
+const renderPass = new RenderPass(scene, camera)
+effectComposer.addPass(renderPass)
 if (option("unrealbloom")) { effectComposer.addPass(new UnrealBloomPass(new THREE.Vector2(256, 256), 0.2, 0, 0)) }
+
+const selectiveBloomComposer = !option("selective unrealbloom") ? null : createSelectiveBloomPass(renderer, renderPass)
+if (selectiveBloomComposer) { effectComposer.addPass(selectiveBloomComposer.pass) }
 
 let rainPass: ShaderPass | null = null
 if (option("rain")) {
@@ -198,6 +203,7 @@ renderer.setAnimationLoop((time: number): void => {
     airplane.rotation.y = Math.PI * 0.5 + rotationNoise(1, time * 0.0003) * (4 / 180 * Math.PI)
     airplane.rotation.z = rotationNoise(2, time * 0.0003) * (4 / 180 * Math.PI)
 
+    selectiveBloomComposer?.render(camera)
     effectComposer.render()
 })
 
