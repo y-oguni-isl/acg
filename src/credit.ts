@@ -1,16 +1,7 @@
-import audioCredit from "../audio/credit"
-import modelCredit from "../models/credit"
-
 // Credits
-for (const [k, v] of Object.entries({ ...audioCredit, ...modelCredit })) {
-    // <li><h2>{k}</h2>{v}</li>
-    const li = document.createElement("li")
-    const h2 = document.createElement("h2")
-    h2.innerText = k
-    li.append(h2)
-    li.append(v.trim())
-    document.querySelector('#creditDialog > ul')!.append(li)
-}
+fetch("./audio/credit.html").then((res) => res.text()).then((html) => { document.querySelector('#creditDialog > ul')!.insertAdjacentHTML("beforeend", html) })
+fetch("./models/credit.html").then((res) => res.text()).then((html) => { document.querySelector('#creditDialog > ul')!.insertAdjacentHTML("beforeend", html) })
+
 document.querySelector("span#creditButton")!.addEventListener("click", () => {
     document.querySelector('dialog#creditDialog')!.showModal()
 })

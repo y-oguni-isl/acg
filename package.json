@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "vite",
-    "build": "vite build && cp -r models dist/models"
+    "build": "vite build"
   },
   "keywords": [],
   "author": "",
