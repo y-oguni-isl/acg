@@ -109,7 +109,7 @@ const laserUniform = {
     time: { value: 0.0 },
     upgrade: { value: 0.0 },
 }
-const laser = !option("laser", false) ? new THREE.Object3D() : new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShaderMaterial({
+const laser = !option("laser") ? new THREE.Object3D() : new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShaderMaterial({
     blending: THREE.AdditiveBlending,
     transparent: true,
     uniforms: laserUniform,
