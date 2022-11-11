@@ -1,3 +1,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+#creditDialog li { @apply mb-2 whitespace-pre-wrap; }
+#creditDialog h2 { @apply font-bold; }

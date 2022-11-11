@@ -8,6 +8,7 @@ import { createNoise2D } from "simplex-noise"
 // @ts-ignore
 import snoise3DURL from "../node_modules/webgl-noise/src/noise3D.glsl?url"
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
+import "./credit"
 
 // FIXME: Use a faster snoise(vec1) and snoise(vec2) implementation
 //        It might be better to sample the noise function as a texture beforehand.
