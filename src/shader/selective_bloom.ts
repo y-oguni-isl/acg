@@ -11,7 +11,7 @@ export const bloomLayer = 1
  * Based on three.js/examples/webgl_postprocessing_unreal_bloom_selective
  * https://threejs.org/examples/?q=bloom#webgl_postprocessing_unreal_bloom_selective
  */
-export const createSelectiveBloomPass = (renderer: THREE.WebGLRenderer, renderPass: RenderPass) => {
+const createSelectiveBloomPass = (renderer: THREE.WebGLRenderer, renderPass: RenderPass) => {
     const effectComposer = new EffectComposer(renderer)
     effectComposer.renderToScreen = false
     effectComposer.addPass(renderPass)
@@ -50,3 +50,5 @@ void main() {
         pass: additiveBlendingPass,
     }
 }
+
+export default createSelectiveBloomPass

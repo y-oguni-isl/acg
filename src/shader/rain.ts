@@ -3,7 +3,7 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 
 const numMouseTrails = 10
 
-export const createRainPass = (blur: boolean, snoise: string) => {
+const createRainPass = (blur: boolean, snoise: string) => {
     const declareMouseUniform = Array.from(Array(numMouseTrails).keys(), (i) => `uniform vec2 mouse${i};`).join("\n")
 
     const rainBlur = !blur ? "" : /* glsl */`gl_FragColor = vec4(
@@ -146,3 +146,5 @@ void main() {
 
     return pass
 }
+
+export default createRainPass

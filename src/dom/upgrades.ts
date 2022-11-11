@@ -2,7 +2,8 @@ type Upgrade = { state: "hidden", value: 0 } | { state: "???" | "visible", value
 
 const upgradeNames = ["laser", "autopilot"] as const satisfies readonly string[]
 
-export const upgrades = Object.fromEntries(upgradeNames.map((name) => [name, { state: "hidden", value: 0 }])) as Record<typeof upgradeNames[number], Upgrade>
+const upgrades = Object.fromEntries(upgradeNames.map((name) => [name, { state: "hidden", value: 0 }])) as Record<typeof upgradeNames[number], Upgrade>
+export default upgrades
 
 const requirements = {
     laser: 3,
