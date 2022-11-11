@@ -3392,7 +3392,7 @@ uniform float time;
 void main() {
     gl_FragColor = vec4(vec3(73.0, 150.0, 209.0) / 255.0 + snoise(pos * 8.0 + vec2(0.0, 0.0003) * time) * 0.15, 0.8 - smoothstep(0.3, 0.55, length(pos)));
 }
-`})):new We;is.name="fog";is.rotateX(-Math.PI/2);is.scale.setScalar(4);is.position.setY(-.13);jn.add(is);const qr={time:{value:0},upgrade:{value:0}},rn=vn("laser",!1)?new ft(new Ji(1,1),new lt({blending:Ds,transparent:!0,uniforms:qr,vertexShader:`out vec2 pos;
+`})):new We;is.name="fog";is.rotateX(-Math.PI/2);is.scale.setScalar(4);is.position.setY(-.13);jn.add(is);const qr={time:{value:0},upgrade:{value:0}},rn=vn("laser")?new ft(new Ji(1,1),new lt({blending:Ds,transparent:!0,uniforms:qr,vertexShader:`out vec2 pos;
 void main() {
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     pos = position.xy;
