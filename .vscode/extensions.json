@@ -1,5 +1,7 @@
 {
     "recommendations": [
-        "boyswan.glsl-literal"
+        "boyswan.glsl-literal",
+        "bradlc.vscode-tailwindcss",
+        "ms-vscode.vscode-typescript-next"
     ]
 }
