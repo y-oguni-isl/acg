@@ -1,3 +1,4 @@
+import 'typed-query-selector'
 import * as THREE from 'three'
 import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
@@ -22,7 +23,7 @@ float snoise(vec2 v) {
 `
 
 const loadGLTF = async (filepath: string, height: number | null): Promise<THREE.Object3D> => {
-    const obj = (await new Promise<GLTF>((resolve, reject) => new GLTFLoader().load(filepath, resolve, (xhr) => { document.querySelector<HTMLDivElement>("#message")!.innerText = `Loading ${filepath} (${xhr.loaded}/${xhr.total})` }, reject)))
+    const obj = (await new Promise<GLTF>((resolve, reject) => new GLTFLoader().load(filepath, resolve, (xhr) => { document.querySelector("div#message")!.innerText = `Loading ${filepath} (${xhr.loaded}/${xhr.total})` }, reject)))
         .scene.children[0].children[0]
     if (height !== null) {
         obj.scale.multiplyScalar(height / new THREE.Box3().setFromObject(obj).getSize(new THREE.Vector3()).y)
@@ -31,7 +32,7 @@ const loadGLTF = async (filepath: string, height: number | null): Promise<THREE.
 }
 
 const option = (name: string, defaultValue: boolean = true) => {
-    const label = document.querySelector<HTMLTemplateElement>("#optionTemplate")!.content.children[0].cloneNode(true) as HTMLLabelElement
+    const label = document.querySelector("template#optionTemplate")!.content.children[0].cloneNode(true) as HTMLLabelElement
     const input = label.querySelector("input")!
     input.checked = defaultValue ?
         localStorage.getItem(`option.${name}`) !== "false" :
@@ -41,7 +42,7 @@ const option = (name: string, defaultValue: boolean = true) => {
         location.reload()
     })
     label.querySelector("span")!.innerText = name
-    document.querySelector<HTMLDivElement>("#options")!.append(label)
+    document.querySelector("div#options")!.append(label)
     return input.checked
 }
 
@@ -59,7 +60,7 @@ skybox.rotateX(-Math.PI / 2)
 skybox.position.setY(-0.5)
 scene.add(skybox)
 
-document.querySelector<HTMLDivElement>("#message")!.innerText = `Loading models...`
+document.querySelector("div#message")!.innerText = `Loading models...`
 await new Promise((resolve) => setTimeout(resolve, 0)) // Render DOM
 
 const timeUniform = {
@@ -166,11 +167,11 @@ document.body.appendChild(renderer.domElement)
 
 // Audio
 const playAudio = () => {
-    const audio = document.querySelector<HTMLAudioElement>("#rainAudio")!
+    const audio = document.querySelector("audio#rainAudio")!
     audio.loop = true
     audio.play()
 }
 window.addEventListener("click", playAudio)
 playAudio()
 
-document.querySelector<HTMLDivElement>("#message")!.style.display = "none"
+document.querySelector("div#message")!.style.display = "none"

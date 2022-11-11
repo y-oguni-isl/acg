@@ -7,6 +7,7 @@ specifiers:
   simplex-noise: ^4.0.1
   tailwindcss: ^3.2.2
   three: ^0.146.0
+  typed-query-selector: ^2.8.0
   vite: ^3.2.3
   webgl-noise: github:stegu/webgl-noise
 
@@ -20,6 +21,7 @@ devDependencies:
   autoprefixer: 10.4.13_postcss@8.4.18
   postcss: 8.4.18
   tailwindcss: 3.2.2_postcss@8.4.18
+  typed-query-selector: 2.8.0
   vite: 3.2.3
 
 packages:
@@ -751,6 +753,10 @@ packages:
     engines: {node: '>=8.0'}
     dependencies:
       is-number: 7.0.0
+    dev: true
+
+  /typed-query-selector/2.8.0:
+    resolution: {integrity: sha512-jo9NLGQ0b7sT9TK3mxzemATQqTb/uh8TRvcOK6WSwKNewALt3AA8q2m7cdpF/uUbd/cdixaBxCGe6fpzpEWbGw==}
     dev: true
 
   /update-browserslist-db/1.0.10_browserslist@4.21.4:
