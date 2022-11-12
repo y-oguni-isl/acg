@@ -43,6 +43,7 @@ skybox.position.setY(-0.5)
 scene.add(skybox)
 
 const showNewspaper = !renderingOption("newspaper") ? null : await createNewspaperPlayer(scene)
+
 onUpgrade.add((name, prevCount) => {
     if (name === "Autopilot" && prevCount === 0) {
         showNewspaper?.(0)
@@ -85,6 +86,7 @@ if (laser) { scene.add(laser.mesh) }
 const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : (x - a) / (b - a)
 
 {
+    // Make object pools
     const buildBirdModel = async () => {
         const model = await loadGLTF("models/low_polygon_art__white_eagle_bird.glb", 0.1)
         model.rotateX(-Math.PI / 2)
@@ -92,7 +94,8 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
         model.scale.multiplyScalar(0.3)
         return model
     }
-    const birds = new ObjectPool(await buildBirdModel()).withAnimation((positions, originalPositions) => {
+
+    const birds = new ObjectPool(await buildBirdModel()).withVertexAnimation((positions, originalPositions) => {
         for (let i = 0; i < positions.count; i++) {
             const dy = smoothstep(3.5, 17, Math.abs(positions.getX(i))) * 10 * Math.sin(Date.now() * 0.01) * 0.8
             positions.setY(i, originalPositions.getY(i) + dy * 0.7)
@@ -112,11 +115,27 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
     })
     if (renderingOption("hitEffects")) { scene.add(hitEffects) }
 
+    const ufos = (await ObjectPool.fromBuilder(async () => {
+        const ufo = await loadGLTF("models/ufo.glb", 0.2)
+        ufo.rotateX(-Math.PI / 2)
+        ufo.position.set(0.5, 0, 0)
+        return ufo
+    })).onClone((copy) => {
+        onBeforeRender.add((time) => {
+            copy.rotation.set(-Math.PI / 2 + Math.sin(time * 0.01) * 0.05, Math.cos(time * 0.01) * 0.05, 0)
+        })
+    })
+    if (renderingOption("UFO")) { scene.add(ufos) }
+
+    type EnemyName = "Bird" | "UFO"
     const enemies = new Set<{
+        readonly name: EnemyName
+        time: number
         hp: number
         hitEffectZ?: number
         model: ReturnType<typeof birds.allocate>,
         hitEffectModel?: ReturnType<typeof hitEffects.allocate>,
+        onKilled: () => void
     }>()
     const deadEnemies = new Set<{
         time: number
@@ -124,17 +143,48 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
     }>()
 
     let autopilotTarget: (typeof enemies extends Set<infer R> ? R : never) | null = null
+
+    // Main loop
     onUpdate.add((t) => {
         // Spawn enemies
         if (t % 5 === 0) {
             const model = birds.allocate()
             model.position.set(2, 0, (t * 0.06) % 1 - 0.5)
-            enemies.add({ hp: 30, model })
+            enemies.add({
+                name: "Bird", time: 0, hp: 30 * (1 + Math.random()), model, onKilled: () => {
+                    addMoney(1)
+                    const body = deadBirds.allocate()
+                    body.position.copy(model.position)
+                    deadEnemies.add({ time: 0, model: body })
+                }
+            })
+        } else if (t % 31 === 0) {
+            const model = ufos.allocate()
+            model.position.set(2, 0, (t * 0.06) % 1 - 0.5)
+            enemies.add({
+                name: "UFO", time: 0, hp: 300 * (1 + Math.random()), model, onKilled: () => {
+                    addMoney(10)
+                    const body = ufos.allocate()
+                    body.position.copy(model.position)
+                    deadEnemies.add({ time: 0, model: body })
+                }
+            })
         }
 
         // Move enemies
         for (const enemy of [...enemies]) {
-            enemy.model.position.x -= 0.01
+            if (enemy.name === "Bird") {
+                enemy.model.position.x -= 0.01
+            } else {
+                if (enemy.time % 80 <= 3) {
+                    enemy.model.scale.copy(enemy.model.getOriginalScale().multiply(new THREE.Vector3(1, 1 - (enemy.time % 80) / 3, 1)))
+                } else if (enemy.time % 80 === 3 + 1) {
+                    enemy.model.position.x -= 0.35 + Math.random() * 0.2
+                    enemy.model.position.z -= (Math.random() - 0.3) * 0.2
+                } else if (enemy.time % 80 <= 3 + 1 + 3) {
+                    enemy.model.scale.copy(enemy.model.getOriginalScale().multiply(new THREE.Vector3(1, (enemy.time % 80 - (3 + 1)) / 3, 1)))
+                }
+            }
 
             if (Math.abs(enemy.model.position.z - airplane.position.z) < 0.03 && enemy.model.position.x > airplane.position.x) {
                 // Show a hit effect
@@ -153,17 +203,12 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
 
             // Delete the enemy if it is outside screen
             if (enemy.model.position.x < -1 || enemy.hp <= 0) {
-                if (enemy.hp <= 0) {
-                    addMoney(1)
-                    const body = deadBirds.allocate()
-                    body.position.copy(enemy.model.position)
-                    deadEnemies.add({ time: 0, model: body })
-                }
-
+                if (enemy.hp <= 0) { enemy.onKilled() }
                 enemy.model.free()
                 enemy.hitEffectModel?.free()
                 enemies.delete(enemy)
             }
+            enemy.time++
         }
 
         // Animate dead enemies

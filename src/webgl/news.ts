@@ -12,7 +12,7 @@ const createNewspaperPlayer = async (scene: THREE.Scene) => {
         model.scale.multiplyScalar(2)
         model.position.copy(new THREE.Vector3(0.8, 0.5, .5))
         return model
-    })).withAnimation((positions, originalPositions) => {
+    })).withVertexAnimation((positions, originalPositions) => {
         for (let i = 0; i < positions.count; i++) {
             positions.setY(i, originalPositions.getY(i) +
                 Math.sin(positions.getX(i) * Math.PI * 2 + Date.now() * 0.006) * 0.03 +

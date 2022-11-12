@@ -21,15 +21,22 @@
             </template>
         </div>
     </div>
-    <div class="absolute right-1 top-1 px-4 py-2 window" id="options">
-        <h2>Rendering</h2>
-        <template id="optionTemplate">
-            <label class="block">
-                <input type="checkbox" class="mr-1">
-                <span></span>
-            </label>
-        </template>
-        <button class="bg-gray-800 bg-opacity-30 px-4 hover:bg-opacity-60" id="newspaper">newspaper</button>
+    <div class="absolute right-1 top-1">
+        <div class="px-3 pt-1 pb-3 window">
+            <h2>Rendering</h2>
+            <div id="options"></div>
+            <template id="optionTemplate">
+                <label class="block">
+                    <input type="checkbox" class="mr-1">
+                    <span></span>
+                </label>
+            </template>
+            <button class="bg-gray-800 bg-opacity-30 px-4 hover:bg-opacity-60" id="applyRenderingOptions">Apply</button>
+        </div>
+        <div class="px-3 pt-1 pb-3 mt-1 window">
+            <h2>Animation</h2>
+            <button class="bg-gray-800 bg-opacity-30 px-4 hover:bg-opacity-60" id="newspaper">Newspaper</button>
+        </div>
     </div>
     <div class="absolute left-1 bottom-1 px-5 pb-1 window" id="leftBottom">
         <span class="cursor-pointer" id="creditButton">Credit</span>

@@ -1,10 +1,9 @@
 import * as THREE from "three"
 import { onUpgrade } from "../hooks"
+import { upgradeNames } from "../save_data"
 import { dequeueTutorial, enqueueTutorial } from "./tutorial"
 
 type Upgrade = { state: "hidden", value: 0 } | { state: "???" | "visible", value: number, dom: HTMLElement }
-
-export const upgradeNames = ["Laser", "Autopilot", "placeholder0", "placeholder1", "placeholder2", "placeholder3", "placeholder4", "placeholder5", "placeholder6"] as const satisfies readonly string[]
 
 const upgrades = Object.fromEntries(upgradeNames.map((name) => [name, { state: "hidden", value: 0 }])) as Record<typeof upgradeNames[number], Upgrade>
 export default upgrades
@@ -20,6 +19,7 @@ const basePrice = {
     placeholder5: 60 * 15 ** 6,
     placeholder6: 60 * 15 ** 7,
 } satisfies Record<typeof upgradeNames[number], number>
+
 const price = (name: (typeof upgradeNames)[number]) => basePrice[name] * 1.15 ** upgrades[name].value
 
 const maxUpgrades = 25
