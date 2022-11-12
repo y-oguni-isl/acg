@@ -115,12 +115,12 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
     const enemies = new Set<{
         hp: number
         hitEffectZ?: number
-        model: typeof birds extends ObjectPool<infer R> ? R : never,
-        hitEffectModel?: typeof hitEffects extends ObjectPool<infer R> ? R : never,
+        model: ReturnType<typeof birds.allocate>,
+        hitEffectModel?: ReturnType<typeof hitEffects.allocate>,
     }>()
     const deadEnemies = new Set<{
         time: number
-        model: typeof birds extends ObjectPool<infer R> ? R : never
+        model: ReturnType<typeof deadBirds.allocate>
     }>()
 
     let autopilotTarget: (typeof enemies extends Set<infer R> ? R : never) | null = null
@@ -147,7 +147,7 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
                 enemy.hp -= upgrades.Laser.value + 1
             } else if (enemy.hitEffectModel) {
                 // Delete a hit effect
-                hitEffects.free(enemy.hitEffectModel)
+                enemy.hitEffectModel.free()
                 enemy.hitEffectModel = undefined
             }
 
@@ -160,8 +160,8 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
                     deadEnemies.add({ time: 0, model: body })
                 }
 
-                birds.free(enemy.model)
-                if (enemy.hitEffectModel) { hitEffects.free(enemy.hitEffectModel) }
+                enemy.model.free()
+                enemy.hitEffectModel?.free()
                 enemies.delete(enemy)
             }
         }
@@ -172,7 +172,7 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
             body.model.rotateZ(0.1 * (Math.random() - 0.5))
             body.time++
             if (body.time > 100) {
-                deadBirds.free(body.model)
+                body.model.free()
                 deadEnemies.delete(body)
             }
         }
