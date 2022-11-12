@@ -203,17 +203,11 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
 
 const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.outputEncoding = THREE.sRGBEncoding
-
-// Fit canvas to the window
 renderer.setSize(window.innerWidth, window.innerHeight)
-window.addEventListener("resize", () => {
-    camera.aspect = window.innerWidth / window.innerHeight
-    camera.updateProjectionMatrix()
-    renderer.setSize(window.innerWidth, window.innerHeight)
-})
 
 const effectComposer = new EffectComposer(renderer)
 const renderPass = new RenderPass(scene, camera)
+
 effectComposer.addPass(renderPass)
 if (renderingOption("unrealbloom")) { effectComposer.addPass(new UnrealBloomPass(new THREE.Vector2(256, 256), 0.2, 0, 0)) }
 
@@ -224,6 +218,17 @@ let rainPass: ShaderPass | null = null
 if (renderingOption("rain")) {
     effectComposer.addPass(rainPass = createRainPass(renderingOption("rain.blur", false), snoise))
 }
+
+// Fit canvas to the window
+window.addEventListener("resize", () => {
+    // https://stackoverflow.com/a/20434960/10710682 and
+    // https://stackoverflow.com/a/20641695/10710682
+    camera.aspect = window.innerWidth / window.innerHeight
+    camera.updateProjectionMatrix()
+    renderer.setSize(window.innerWidth, window.innerHeight)
+    effectComposer.setSize(window.innerWidth, window.innerHeight)
+    selectiveBloomComposer?.setSize(window.innerWidth, window.innerHeight)
+})
 
 // Main loop
 const rotationNoise = createNoise2D()

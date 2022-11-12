@@ -53,6 +53,7 @@ void main() {
     )
     additiveBlendingPass.needsSwap = true
     return {
+        setSize: (width: number, height: number) => effectComposer.setSize(width, height),
         render: (camera: THREE.Camera) => {
             camera.layers.disableAll()
             camera.layers.enable(bloomLayer)
