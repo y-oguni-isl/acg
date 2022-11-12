@@ -7,7 +7,7 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 export const bloomLayer = 1
 
 /**
- * Add bloom effects to objects marked with `obj.layers.enable(bloomLayer)`.
+ * Creates a shader pass that applies bloom effects to objects marked with `obj.layers.enable(bloomLayer)`.
  * Based on three.js/examples/webgl_postprocessing_unreal_bloom_selective
  * https://threejs.org/examples/?q=bloom#webgl_postprocessing_unreal_bloom_selective
  * 
@@ -45,7 +45,7 @@ in vec2 vUv;
 void main() {
     gl_FragColor = texture2D(texture1, vUv);
     vec4 color2 = texture2D(texture2, vUv);
-    gl_FragColor.rgb = pow(gl_FragColor.rgb + color2.rgb * color2.a, /* TODO: I don't know why but using this filter makes the display darker, so I've corrected it here. */vec3(1.0 / 1.9));
+    gl_FragColor.rgb = pow(gl_FragColor.rgb + color2.rgb * color2.a, /* TODO: I don't know why but using this filter makes the canvas darker, so I've corrected it here. */vec3(1.0 / 1.9));
 }`,
             defines: {},
         }),

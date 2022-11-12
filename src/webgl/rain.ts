@@ -3,6 +3,7 @@ import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 
 const numMouseTrails = 10
 
+/** Returns a shader pass that makes the scene look like you're looking the scene through a glass on a rainy day. */
 const createRainPass = (blur: boolean, snoise: string) => {
     const declareMouseUniform = Array.from(Array(numMouseTrails).keys(), (i) => `uniform vec2 mouse${i};`).join("\n")
 

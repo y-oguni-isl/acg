@@ -6,6 +6,7 @@ import { onBeforeRender } from '../hooks'
 import { newsList } from '../save_data'
 import { domStore } from '../dom'
 
+/** Create a function that plays an animation of falling newspapers. */
 const createNewspaperPlayer = async (scene: THREE.Scene) => {
     const group = (await ObjectPool.fromBuilder(async () => {
         const model = await loadGLTF("models/y2k_newspaper_article.glb", 0.1)

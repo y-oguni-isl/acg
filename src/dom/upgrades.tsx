@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { getState, price, store, subscribe, upgradeNames } from "../save_data"
+import { getState, price, store, upgradeNames } from "../save_data"
 import { useStore } from "zustand"
 import { entries } from "../util"
 
@@ -27,6 +27,7 @@ const buildProgressBarStyle = (name: typeof upgradeNames[number], rowNumber: num
     return `${style.slice(0, -1)})`
 }
 
+/** The list of upgrades shown at the left top corner. */
 const Upgrades = () => {
     const upgrades = useStore(store, (s) => s.upgrades)
     const money = useStore(store, (s) => s.money)

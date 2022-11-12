@@ -1,11 +1,22 @@
 import * as THREE from "three"
+import { onBeforeRender } from "../hooks"
+import { getState } from "../save_data"
 import { bloomLayer } from "./selective_bloom"
 
-const createLaser = () => {
+/** Creates a 3D model of a laser. */
+const createLaser = (source: THREE.Object3D) => {
     const uniforms = {
         time: { value: 0.0 },
         count: { value: 0.0 },
     }
+
+    onBeforeRender.add((time) => {
+        uniforms.time.value = time
+        uniforms.count.value = getState().upgrades.Laser
+        mesh.position.setX(source.position.x + 1)
+        mesh.position.setZ(source.position.z)
+    })
+
     const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShaderMaterial({
         blending: THREE.AdditiveBlending,
         transparent: true,
@@ -50,15 +61,7 @@ void main() {
     mesh.position.set(1, 0.01, 0)
     mesh.layers.enable(bloomLayer)
 
-    return {
-        mesh,
-        render(time: number, count: number, sourceX: number, sourceZ: number) {
-            uniforms.time.value = time
-            uniforms.count.value = count
-            mesh.position.setX(sourceX + 1)
-            mesh.position.setZ(sourceZ)
-        }
-    }
+    return mesh
 }
 
 export default createLaser

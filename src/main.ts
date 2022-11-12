@@ -1,22 +1,24 @@
 import 'typed-query-selector'
+import { createNoise2D } from "simplex-noise"
 import * as THREE from 'three'
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js"
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js"
-import { createNoise2D } from "simplex-noise"
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
+import { smoothstep } from 'three/src/math/MathUtils'
+import * as Stats from "stats.js"
+import { onBeforeRender, onUpdate } from './hooks'
+import { getState, newsList, subscribe } from './save_data'
+import { domStore, getRenderingOption } from './dom'
 import createRainPass from './webgl/rain'
 import createSelectiveBloomPass, { bloomLayer } from './webgl/selective_bloom'
 import snoise from './webgl/snoise'
 import createLaser from './webgl/projectiles'
-import * as Stats from "stats.js"
 import { loadGLTF } from './webgl/gltf'
 import createNewspaperPlayer from './webgl/news'
 import ObjectPool from './webgl/object_pool'
-import { onBeforeRender, onUpdate } from './hooks'
-import { getState, subscribe } from './save_data'
-import { domStore, getRenderingOption } from './dom'
+import createFog from './webgl/fog'
 
 const scene = new THREE.Scene()
 scene.add(new THREE.AmbientLight(0xffffff, 0.025))
@@ -41,49 +43,20 @@ skybox.position.setY(-0.5)
 scene.add(skybox)
 
 const showNewspaper = !getRenderingOption("newspaper") ? null : await createNewspaperPlayer(scene)
+
 subscribe((s, prev) => {
     if (s.availableNews === prev.availableNews) { return }
     const addedNews = [...s.availableNews].filter((n) => !prev.availableNews.has(n))[0]
     if (!addedNews) { return }
+    domStore.setState({ news: newsList[addedNews] })
     showNewspaper?.(addedNews)
 })
 
-const fogUniform = {
-    time: { value: 0.0 },
-}
-
-const fog = !getRenderingOption("fog") ? new THREE.Object3D() : new THREE.Mesh(new THREE.PlaneGeometry(), new THREE.ShaderMaterial({
-    transparent: true,
-    uniforms: fogUniform,
-    vertexShader: /* glsl */`\
-out vec2 pos;
-void main() {
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    pos = position.xy;
-}
-`,
-    fragmentShader: /* glsl */`\
-${snoise}
-
-in vec2 pos;
-uniform float time;
-void main() {
-    gl_FragColor = vec4(vec3(73.0, 150.0, 209.0) / 255.0 + snoise(pos * 8.0 + vec2(0.0, 0.0003) * time) * 0.15, 0.8 - smoothstep(0.3, 0.55, length(pos)));
-}
-`
-}))
-fog.rotateX(-Math.PI / 2)
-fog.scale.setScalar(4)
-fog.position.setY(-0.13)
-scene.add(fog)
-
-const laser = !getRenderingOption("laser") ? null : createLaser()
-if (laser) { scene.add(laser.mesh) }
-
-const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : (x - a) / (b - a)
+if (getRenderingOption("fog")) { scene.add(createFog()) }
+if (getRenderingOption("laser")) { scene.add(createLaser(airplane)) }
 
 {
-    // Make object pools
+    // Create a object pool for the 3D model of a bird
     const buildBirdModel = async () => {
         const model = await loadGLTF("models/low_polygon_art__white_eagle_bird.glb", 0.1)
         model.rotateX(-Math.PI / 2)
@@ -91,7 +64,6 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
         model.scale.multiplyScalar(0.3)
         return model
     }
-
     const birds = new ObjectPool(await buildBirdModel()).withVertexAnimation((positions, originalPositions) => {
         for (let i = 0; i < positions.count; i++) {
             const dy = smoothstep(3.5, 17, Math.abs(positions.getX(i))) * 10 * Math.sin(Date.now() * 0.01) * 0.8
@@ -100,10 +72,10 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
         }
     })
     if (getRenderingOption("birds")) { scene.add(birds) }
-
     const deadBirds = new ObjectPool(await buildBirdModel())
     if (getRenderingOption("deadBirds")) { scene.add(deadBirds) }
 
+    // Create a object pool for the 3D model of a hit effect.
     const hitEffects = await ObjectPool.fromBuilder(async () => {
         // TODO: shader
         const mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(0.006), new THREE.MeshBasicMaterial({ color: 0xff66ff }))
@@ -112,6 +84,7 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
     })
     if (getRenderingOption("hitEffects")) { scene.add(hitEffects) }
 
+    // Create a object pool for the 3D model of a UFO.
     const ufos = (await ObjectPool.fromBuilder(async () => {
         const ufo = await loadGLTF("models/ufo.glb", 0.2)
         ufo.rotateX(-Math.PI / 2)
@@ -124,6 +97,7 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
     })
     if (getRenderingOption("UFO")) { scene.add(ufos) }
 
+    // A set to store the state of each enemy.
     type EnemyName = "Bird" | "UFO"
     const enemies = new Set<{
         readonly name: EnemyName
@@ -134,14 +108,17 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
         hitEffectModel?: ReturnType<typeof hitEffects.allocate>,
         onKilled: () => void
     }>()
+
+    // A set to store the state of dead enemy.
     const deadEnemies = new Set<{
-        time: number
+        time: number  // time since it was killed
         model: ReturnType<typeof deadBirds.allocate>
     }>()
 
+    // The enemy that the autopilot algorithm is currently targeting.
     let autopilotTarget: (typeof enemies extends Set<infer R> ? R : never) | null = null
 
-    // Main loop
+    // Main game loop
     onUpdate.add((t) => {
         // Spawn enemies
         if (t % 5 === 0) {
@@ -168,11 +145,11 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
             })
         }
 
-        // Move enemies
         for (const enemy of [...enemies]) {
+            // Move enemies
             if (enemy.name === "Bird") {
                 enemy.model.position.x -= 0.01
-            } else {
+            } else { // UFO
                 if (enemy.time % 80 <= 3) {
                     enemy.model.scale.copy(enemy.model.getOriginalScale().multiply(new THREE.Vector3(1, 1 - (enemy.time % 80) / 3, 1)))
                 } else if (enemy.time % 80 === 3 + 1) {
@@ -183,6 +160,7 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
                 }
             }
 
+            // Collision detection between the enemy and the player's attack
             if (Math.abs(enemy.model.position.z - airplane.position.z) < 0.03 && enemy.model.position.x > airplane.position.x) {
                 // Show a hit effect
                 if (!enemy.hitEffectModel) {
@@ -192,13 +170,15 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
 
                 // Damage
                 enemy.hp -= getState().upgrades.Laser + 1
-            } else if (enemy.hitEffectModel) {
-                // Delete a hit effect
-                enemy.hitEffectModel.free()
-                enemy.hitEffectModel = undefined
+            } else { // No collisions
+                if (enemy.hitEffectModel) {
+                    // Delete a hit effect
+                    enemy.hitEffectModel.free()
+                    enemy.hitEffectModel = undefined
+                }
             }
 
-            // Delete the enemy if it is outside screen
+            // Delete the enemy if it is outside screen or is killed
             if (enemy.model.position.x < -1 || enemy.hp <= 0) {
                 if (enemy.hp <= 0) { enemy.onKilled() }
                 enemy.model.free()
@@ -211,7 +191,7 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
         // Animate dead enemies
         for (const body of deadEnemies) {
             body.model.position.y -= 0.001 * body.time
-            body.model.rotateZ(0.1 * (Math.random() - 0.5))
+            body.model.rotateZ(0.1 * (Math.random() - 0.5)) // free fall
             body.time++
             if (body.time > 100) {
                 body.model.free()
@@ -219,12 +199,13 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
             }
         }
 
-        // Move the airplane
+        // Move the airplane by WASD keys
         if (pressedKeys.has("KeyD")) { airplane.position.setZ(Math.min(0.5, Math.max(-0.5, airplane.position.z + 0.015))) }
         if (pressedKeys.has("KeyA")) { airplane.position.setZ(Math.min(0.5, Math.max(-0.5, airplane.position.z - 0.015))) }
         if (pressedKeys.has("KeyW")) { airplane.position.setX(Math.min(0.3, Math.max(-0.3, airplane.position.x + 0.015))) }
         if (pressedKeys.has("KeyS")) { airplane.position.setX(Math.min(0.3, Math.max(-0.3, airplane.position.x - 0.015))) }
 
+        // Autopilot
         if (getState().upgrades.Autopilot > 0 && pressedKeys.size === 0) { // TODO: add a switch to disable autopilot
             const findMin = <T>(arr: readonly T[], key: (v: T) => void) => arr.length === 0 ? null : arr.reduce((p, c) => key(p) < key(c) ? p : c, arr[0]!)
             if (!autopilotTarget || !enemies.has(autopilotTarget) || autopilotTarget.model.position.x < airplane.position.x) {
@@ -234,9 +215,6 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
                 airplane.position.setZ(airplane.position.z * (1 - 0.01 * getState().upgrades.Autopilot) + autopilotTarget.model.position.z * 0.01 * getState().upgrades.Autopilot)
             }
         }
-    })
-    onBeforeRender.add((time, deltaTime) => {
-        laser?.render(time, getState().upgrades.Laser, airplane.position.x, airplane.position.z)
     })
 }
 
@@ -261,7 +239,7 @@ if (getRenderingOption("rain")) {
     effectComposer.addPass(rainPass = createRainPass(getRenderingOption("rain.blur", false), snoise))
 }
 
-// Fit canvas to the window
+// Resize the canvas to fit to the window
 window.addEventListener("resize", () => {
     // https://stackoverflow.com/a/20434960/10710682 and
     // https://stackoverflow.com/a/20641695/10710682
@@ -288,7 +266,6 @@ if (stats) {
     let updateCount = 0
     renderer.setAnimationLoop((time: number): void => {
         stats?.update()
-        fogUniform.time.value = time
 
         // onUpdate
         {

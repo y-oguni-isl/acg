@@ -8,11 +8,13 @@ type Instance<T extends THREE.Object3D> = T & {
 }
 
 /**
+ * The object pool (https://en.wikipedia.org/wiki/Object_pool_pattern).
+ * 
  * ```
- * const pool = new ObjectPool(model)
- * scene.add(pool)
- * const copy = pool.allocate()
- * copy.free()
+ * const models = new ObjectPool(model)
+ * scene.add(models)
+ * const copy = models.allocate() // allocate() copies the `model` if the `models.pool` is empty, attaches the copy to `models`, and returns it.
+ * copy.free() // free() detaches the copy from `models` and gives the object back to the `models.pool`.
  * ```
  */
 export default class ObjectPool<T extends THREE.Object3D> extends THREE.Object3D {

@@ -1,7 +1,7 @@
 import { render } from "preact"
 import Upgrades from "./upgrades"
 import { useStore } from "zustand"
-import { deleteSaveData, getState, store, tutorials } from "../save_data"
+import { deleteSaveData, store, tutorials } from "../save_data"
 import create from "zustand"
 import { immer } from "zustand/middleware/immer"
 import { persist } from "zustand/middleware"
@@ -9,8 +9,10 @@ import { entries } from "../util"
 import { Ref, useEffect, useRef, useState } from "preact/hooks"
 import type { JSXInternal } from "preact/src/jsx"
 
+/** A mapping from tutorial names to their indices.  */
 const tutorialIndices = new Map((Object.keys(tutorials) as (keyof typeof tutorials)[]).map((name, i) => [name, i]))
 
+/** A black banner showing a tutorial message. */
 const Tutorial = () => {
     const tutorial = useStore(store, (s) =>
         [...s.availableTutorials]
@@ -21,6 +23,7 @@ const Tutorial = () => {
     </div>
 }
 
+/** The current state of the DOM (HTML). */
 export const domStore = create<{
     renderingOptions: Record<string, boolean>
     news: readonly [headline: string, text: string] | null
@@ -42,13 +45,15 @@ export const domStore = create<{
     name: "acgRenderingOptions",
 }))
 
+/** Returns a boolean indicating whether the component should be rendered or not, which can be controlled in the rendering options window. */
 export const getRenderingOption = domStore.getState().getRenderingOption
 
+/** Close the dialog when the user clicks outside the dialog */
 const closeDialogOnClick = (ev: JSXInternal.TargetedMouseEvent<HTMLDialogElement>) => {
-    // Close the dialog when the user clicks outside the dialog
     if (ev.target === ev.currentTarget) { (ev.currentTarget as HTMLDialogElement).close() }
 }
 
+/** A random text to fill newspapers. */
 const randomText = Array(10000).fill(0).map(() => Array(Math.floor(Math.random() * 6) + 2).fill(0).map(() => "abcdefghijklmnopqrstuvwxyz"[Math.floor(Math.random() * 26)]).join("")).join(" ")
 
 const UI = () => {
@@ -75,8 +80,13 @@ const UI = () => {
     }, [state.news])
 
     return <>
+        {/* Upgrades */}
         <Upgrades />
+
+        {/* Tutorial message */}
         <Tutorial />
+
+        {/* Rendering options */}
         <div class="absolute right-1 top-1">
             <div class="px-3 pt-1 pb-3 window">
                 <h2>Rendering</h2>
@@ -89,6 +99,8 @@ const UI = () => {
                 <button class="bg-gray-800 bg-opacity-30 px-4 hover:bg-opacity-60" onClick={() => { location.reload() }}>Apply</button>
             </div>
         </div>
+
+        {/* The buttons at the left bottom corner */}
         <div class="absolute left-1 bottom-1 px-5 pb-1 window">
             <span class="cursor-pointer" onClick={() => { creditDialog.current!.showModal() }}>Credit</span>
             <span class="cursor-pointer text-red-400 ml-5" onClick={() => {
@@ -98,12 +110,16 @@ const UI = () => {
                 }
             }}>Reset Progress</span>
         </div>
+
+        {/* Credits */}
         <dialog ref={creditDialog} class="p-2" onClick={closeDialogOnClick}>
             <div class="p-5">
-                <h1 class="text-xl mb-2">Credit</h1>
+                <h1 class="text-xl mb-2">Credits</h1>
                 <ul dangerouslySetInnerHTML={{ __html: creditHTML ?? "" }} class="w-full h-full block [&_li]:mb-2 [&_h2]:font-bold"></ul>
             </div>
         </dialog>
+
+        {/* Newspaper */}
         <dialog ref={newsDialog} class="bg-gray-100 w-[400px] h-[620px] p-5 box-border shadow-2xl select-none [transition:opacity_ease_0.3s]" onClick={closeDialogOnClick}>
             {state.news && <div class="[line-height:1.2] [font-size:12px] text-justify overflow-y-hidden  h-full">
                 <h2 class="text-lg font-bold mb-4 [border-bottom:3px_solid_rgb(130,130,130)] text-center">{state.news[0]}</h2>
@@ -111,9 +127,10 @@ const UI = () => {
                 <span class="text-gray-500">{randomText}</span>
             </div>}
         </dialog>
+
+        {/* Loading message */}
         {state.loadingMessage && <div class="text-white absolute top-[35%] left-0 w-full text-center">{state.loadingMessage}</div>}
     </>
 }
-
 
 render(<UI />, document.body)
