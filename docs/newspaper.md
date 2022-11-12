@@ -1,5 +1,5 @@
 # newspaper
-モデルの頂点座標を編集して波立たせている。three.jsが提供するmaterialの vertex shader のみを変更できれば良かったが、できなさそうだった。もっとなめらかにアニメーションさせるためにblenderで頂点数を増やすといいかも。
+モデルの頂点座標を編集して波立たせている。three.jsが提供するmaterialの vertex shader のみを変更できれば良かったが、できなさそうだった。
 
 ![](/docs/figures/newspaper.png)
 

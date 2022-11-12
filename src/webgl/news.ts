@@ -6,7 +6,7 @@ import { onBeforeRender } from '../hooks'
 
 const createNewspaperPlayer = async (scene: THREE.Scene) => {
     const group = (await ObjectPool.fromBuilder(async () => {
-        const model = await loadGLTF("models/closed_newspaper.glb", 0.1)
+        const model = await loadGLTF("models/y2k_newspaper_article.glb", 0.1)
         model.rotateY(Math.PI / 2)
         model.rotateX(Math.PI * 0.3)
         model.scale.multiplyScalar(2)
@@ -14,13 +14,15 @@ const createNewspaperPlayer = async (scene: THREE.Scene) => {
         return model
     })).withAnimation((positions, originalPositions) => {
         for (let i = 0; i < positions.count; i++) {
-            positions.setY(i, originalPositions.getY(i) + Math.sin(positions.getX(i) * Math.PI * 2 + Date.now() * 0.006) * 2)
+            positions.setY(i, originalPositions.getY(i) +
+                Math.sin(positions.getX(i) * Math.PI * 2 + Date.now() * 0.006) * 0.03 +
+                Math.sin(positions.getZ(i) * Math.PI * 2 + Date.now() * 0.006) * 0.01)
         }
     })
     group.mesh.material.depthTest = false
     group.mesh.material.transparent = true
     group.mesh.renderOrder = 3
-    for (let i = 0; i < 30; i++) { group.allocate() }
+    for (let i = 0; i < 1; i++) { group.allocate() }
 
     let startTime = Date.now()
     const noise = createNoise2D()
