@@ -3,6 +3,7 @@
 		"module": "ESNext",
 		"target": "ESNext",
 		"strict": true,
-		"moduleResolution": "Node"
+		"moduleResolution": "Node",
+		"noUncheckedIndexedAccess": true,
 	}
 }

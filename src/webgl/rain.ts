@@ -130,14 +130,14 @@ void main() {
 
     const rotateMouseTrail = () => {
         for (let i = numMouseTrails - 2; i >= 0; i--) {
-            pass!.uniforms[`mouse${i + 1}`].value.copy(pass!.uniforms[`mouse${i}`].value)
+            pass!.uniforms[`mouse${i + 1}`]!.value.copy(pass!.uniforms[`mouse${i}`]!.value)
         }
-        pass!.uniforms.mouse0.value.set(-1.0, -1.0, -1.0)
+        pass!.uniforms.mouse0!.value.set(-1, -1)
     }
 
     window.addEventListener("mousemove", (ev) => {
-        (pass!.uniforms.mouse0.value as THREE.Vector2).set(ev.pageX / window.innerWidth, 1 - ev.pageY / window.innerHeight)
-        if ((pass!.uniforms.mouse0.value as THREE.Vector2).distanceTo(pass!.uniforms.mouse1.value as THREE.Vector2) > 0.1) {
+        (pass!.uniforms.mouse0!.value as THREE.Vector2).set(ev.pageX / window.innerWidth, 1 - ev.pageY / window.innerHeight)
+        if ((pass!.uniforms.mouse0!.value as THREE.Vector2).distanceTo(pass!.uniforms.mouse1!.value as THREE.Vector2) > 0.1) {
             rotateMouseTrail()
         }
     })

@@ -1,6 +1,5 @@
 import 'typed-query-selector'
 import * as THREE from 'three'
-import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js"
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
@@ -8,21 +7,18 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { createNoise2D } from "simplex-noise"
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 import "./dom/credit"
-import createRainPass from './shader/rain'
-import upgrades from './dom/upgrades'
-import createSelectiveBloomPass from './shader/selective_bloom'
+import createRainPass from './webgl/rain'
+import upgrades, { addMoney } from './dom/upgrades'
+import createSelectiveBloomPass, { bloomLayer } from './webgl/selective_bloom'
 import renderingOption from './dom/rendering_option'
-import snoise from './shader/snoise'
-import createLaser from './shader/projectiles'
-
-const loadGLTF = async (filepath: string, height: number | null): Promise<THREE.Object3D> => {
-    const obj = (await new Promise<GLTF>((resolve, reject) => new GLTFLoader().load(filepath, resolve, (xhr) => { document.querySelector("div#message")!.innerText = `Loading ${filepath} (${xhr.loaded}/${xhr.total})` }, reject)))
-        .scene.children[0].children[0]
-    if (height !== null) {
-        obj.scale.multiplyScalar(height / new THREE.Box3().setFromObject(obj).getSize(new THREE.Vector3()).y)
-    }
-    return obj
-}
+import snoise from './webgl/snoise'
+import createLaser from './webgl/projectiles'
+import * as Stats from "stats.js"
+import { loadGLTF } from './webgl/gltf'
+import createNewspaperPlayer from './webgl/news'
+import "./dom/tutorial"
+import ObjectPool from './webgl/object_pool'
+import { onBeforeRender, onUpdate, onUpgrade } from './hooks'
 
 const scene = new THREE.Scene()
 scene.add(new THREE.AmbientLight(0xffffff, 0.025))
@@ -33,20 +29,25 @@ scene.add(directionalLight)
 const airplane = !renderingOption("airplane") ? new THREE.Object3D() : await loadGLTF("models/low-poly_airplane.glb", 0.05)
 scene.add(airplane)
 
-let controlled = false
-window.addEventListener("keydown", (ev) => { controlled = ev.shiftKey || ev.ctrlKey })
-window.addEventListener("keyup", (ev) => { controlled = ev.shiftKey || ev.ctrlKey })
-window.addEventListener("mousemove", (ev) => {
-    if (controlled) {
-        airplane.position.setZ(Math.min(0.3, Math.max(-0.3, ev.pageX / (window.innerWidth / 2) - 1)))
-        airplane.position.setX(Math.min(0.3, Math.max(-0.3, 1 - ev.pageY / (window.innerHeight / 2))))
-    }
-})
+const pressedKeys = new Set<string>()
+window.addEventListener("keydown", (ev) => { pressedKeys.add(ev.code) })
+window.addEventListener("keyup", (ev) => { pressedKeys.delete(ev.code) })
+window.addEventListener("blur", () => { pressedKeys.clear() })
 
-const skybox = !renderingOption("skybox") ? new THREE.Object3D() : await loadGLTF("models/sky_pano_-_grand_canyon_yuma_point_lowres.glb", 4)
+const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10)
+camera.position.set(-0.5, 0.6, 0)
+
+const skybox = !renderingOption("skybox") ? new THREE.Object3D() : await loadGLTF("models/sky_pano_-_grand_canyon_yuma_point.glb", 4)
 skybox.rotateX(-Math.PI / 2)
 skybox.position.setY(-0.5)
 scene.add(skybox)
+
+const showNewspaper = !renderingOption("newspaper") ? null : await createNewspaperPlayer(scene)
+onUpgrade.add((name, prevCount) => {
+    if (name === "Autopilot" && prevCount === 0) {
+        showNewspaper?.(0)
+    }
+})
 
 document.querySelector("div#message")!.innerText = `Loading models...`
 await new Promise((resolve) => setTimeout(resolve, 0)) // Render DOM
@@ -84,11 +85,124 @@ scene.add(fog)
 const laser = !renderingOption("laser") ? null : createLaser()
 if (laser) { scene.add(laser.mesh) }
 
+const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : (x - a) / (b - a)
+
+{
+    const buildBirdModel = async () => {
+        const model = await loadGLTF("models/low_polygon_art__white_eagle_bird.glb", 0.1)
+        model.rotateX(-Math.PI / 2)
+        model.rotateZ(-Math.PI / 2)
+        model.scale.multiplyScalar(0.3)
+        return model
+    }
+    const birds = new ObjectPool(await buildBirdModel()).withAnimation((positions, originalPositions) => {
+        for (let i = 0; i < positions.count; i++) {
+            const dy = smoothstep(3.5, 17, Math.abs(positions.getX(i))) * 10 * Math.sin(Date.now() * 0.01) * 0.8
+            positions.setY(i, originalPositions.getY(i) + dy * 0.7)
+            positions.setZ(i, originalPositions.getZ(i) + dy)
+        }
+    })
+    scene.add(birds)
+
+    const deadBirds = new ObjectPool(await buildBirdModel())
+    scene.add(deadBirds)
+
+    const hitEffects = await ObjectPool.fromBuilder(async () => {
+        // TODO: shader
+        const mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(0.006), new THREE.MeshBasicMaterial({ color: 0xff66ff }))
+        mesh.layers.enable(bloomLayer)
+        return mesh
+    })
+    scene.add(hitEffects)
+
+    const enemies = new Set<{
+        hp: number
+        hitEffectZ?: number
+        model: typeof birds extends ObjectPool<infer R> ? R : never,
+        hitEffectModel?: typeof hitEffects extends ObjectPool<infer R> ? R : never,
+    }>()
+    const deadEnemies = new Set<{
+        time: number
+        model: typeof birds extends ObjectPool<infer R> ? R : never
+    }>()
+
+    let autopilotTarget: (typeof enemies extends Set<infer R> ? R : never) | null = null
+    onUpdate.add((t) => {
+        // Spawn enemies
+        if (t % 5 === 0) {
+            const model = birds.allocate()
+            model.position.set(2, 0, (t * 0.06) % 1 - 0.5)
+            enemies.add({ hp: 30, model })
+        }
+
+        // Move enemies
+        for (const enemy of [...enemies]) {
+            enemy.model.position.x -= 0.01
+
+            if (Math.abs(enemy.model.position.z - airplane.position.z) < 0.03 && enemy.model.position.x > airplane.position.x) {
+                // Show a hit effect
+                if (!enemy.hitEffectModel) {
+                    enemy.hitEffectModel = hitEffects.allocate()
+                }
+                enemy.hitEffectModel.position.copy(enemy.model.position).setZ(airplane.position.z)
+
+                // Damage
+                enemy.hp -= upgrades.Laser.value + 1
+            } else if (enemy.hitEffectModel) {
+                // Delete a hit effect
+                hitEffects.free(enemy.hitEffectModel)
+                enemy.hitEffectModel = undefined
+            }
+
+            // Delete the enemy if it is outside screen
+            if (enemy.model.position.x < -1 || enemy.hp <= 0) {
+                if (enemy.hp <= 0) {
+                    addMoney(1)
+                    const body = deadBirds.allocate()
+                    body.position.copy(enemy.model.position)
+                    deadEnemies.add({ time: 0, model: body })
+                }
+
+                birds.free(enemy.model)
+                if (enemy.hitEffectModel) { hitEffects.free(enemy.hitEffectModel) }
+                enemies.delete(enemy)
+            }
+        }
+
+        // Animate dead enemies
+        for (const body of deadEnemies) {
+            body.model.position.y -= 0.001 * body.time
+            body.model.rotateZ(0.1 * (Math.random() - 0.5))
+            body.time++
+            if (body.time > 100) {
+                deadBirds.free(body.model)
+                deadEnemies.delete(body)
+            }
+        }
+
+        // Move the airplane
+        if (pressedKeys.has("KeyD")) { airplane.position.setZ(Math.min(0.5, Math.max(-0.5, airplane.position.z + 0.015))) }
+        if (pressedKeys.has("KeyA")) { airplane.position.setZ(Math.min(0.5, Math.max(-0.5, airplane.position.z - 0.015))) }
+        if (pressedKeys.has("KeyW")) { airplane.position.setX(Math.min(0.3, Math.max(-0.3, airplane.position.x + 0.015))) }
+        if (pressedKeys.has("KeyS")) { airplane.position.setX(Math.min(0.3, Math.max(-0.3, airplane.position.x - 0.015))) }
+
+        if (upgrades.Autopilot.value > 0 && pressedKeys.size === 0) { // TODO: add a switch to disable autopilot
+            const findMin = <T>(arr: readonly T[], key: (v: T) => void) => arr.length === 0 ? null : arr.reduce((p, c) => key(p) < key(c) ? p : c, arr[0]!)
+            if (!autopilotTarget || !enemies.has(autopilotTarget) || autopilotTarget.model.position.x < airplane.position.x) {
+                autopilotTarget = findMin([...enemies].filter((e) => e.model.position.x > airplane.position.x + 0.3), (e) => e.model.position.x)
+            }
+            if (autopilotTarget) {
+                airplane.position.setZ(airplane.position.z * (1 - 0.01 * upgrades.Autopilot.value) + autopilotTarget.model.position.z * 0.01 * upgrades.Autopilot.value)
+            }
+        }
+    })
+    onBeforeRender.add((time, deltaTime) => {
+        laser?.render(time, upgrades.Laser.value, airplane.position.x, airplane.position.z)
+    })
+}
+
 const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.outputEncoding = THREE.sRGBEncoding
-
-const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10)
-camera.position.set(-0.5, 0.6, 0)
 
 // Fit canvas to the window
 renderer.setSize(window.innerWidth, window.innerHeight)
@@ -113,34 +227,55 @@ if (renderingOption("rain")) {
 
 // Main loop
 const rotationNoise = createNoise2D()
-let targetZ = 0.0
+const stats = new Stats()
+stats.showPanel(0)
+stats.dom.style.bottom = "50px"
+stats.dom.style.top = ""
+document.body.append(stats.dom)
 
-renderer.setAnimationLoop((time: number): void => {
-    fogUniform.time.value = time
+{
+    let prevTime = 0
+    let prevUpdateTime = 0
+    let updateCount = 0
+    renderer.setAnimationLoop((time: number): void => {
+        stats.update()
+        fogUniform.time.value = time
 
-    if (Math.abs(targetZ - airplane.position.z) < 0.01) {
-        targetZ = Math.cos(Math.random() * Math.PI) * 0.3
-    }
-    if (!controlled) {
-        airplane.position.setZ(airplane.position.z * (1 - 0.01 * upgrades.autopilot.value) + targetZ * 0.01 * upgrades.autopilot.value)
-    }
+        // onUpdate
+        {
+            const deltaTime = time - prevUpdateTime
+            const numUpdates = Math.floor(deltaTime / (1000 / 30))
+            prevUpdateTime += numUpdates * (1000 / 30)
+            for (let i = 0; i < numUpdates; i++) {
+                onUpdate.forEach((f) => f(updateCount))
+                updateCount++
+            }
+        }
 
-    airplane.rotation.set(
-        rotationNoise(0, time * 0.0003) * (4 / 180 * Math.PI),
-        Math.PI * 0.5 + rotationNoise(1, time * 0.0003) * (4 / 180 * Math.PI),
-        rotationNoise(2, time * 0.0003) * (4 / 180 * Math.PI),
-    )
+        // onBeforeRender
+        {
+            const deltaTime = time - prevTime
+            prevTime = time
+            onBeforeRender.forEach((f) => f(time, deltaTime))
+        }
 
-    laser?.render(time, upgrades.laser.value, airplane.position.x, airplane.position.z)
+        airplane.rotation.set(
+            rotationNoise(0, time * 0.0003) * (4 / 180 * Math.PI),
+            Math.PI * 0.5 + rotationNoise(1, time * 0.0003) * (4 / 180 * Math.PI),
+            rotationNoise(2, time * 0.0003) * (4 / 180 * Math.PI),
+        )
 
-    if (rainPass !== null) {
-        rainPass.uniforms.aspect.value = camera.aspect
-        rainPass.uniforms.time.value = time;
-    }
+        if (rainPass !== null) {
+            rainPass.uniforms.aspect!.value = camera.aspect
+            rainPass.uniforms.time!.value = time;
+        }
 
-    selectiveBloomComposer?.render(camera)
-    effectComposer.render()
-})
+        selectiveBloomComposer?.render(camera)
+        effectComposer.render()
+    })
+}
+
+document.querySelector("button#newspaper")!.addEventListener("click", () => { showNewspaper?.(0) })
 
 // Allow the user to control the camera by dragging
 new OrbitControls(camera, renderer.domElement).listenToKeyEvents(window)
@@ -157,3 +292,7 @@ window.addEventListener("click", playAudio)
 playAudio()
 
 document.querySelector("div#message")!.style.display = "none"
+
+document.querySelector("span#random-text")!.innerText = Array(10000).fill(0).map(() => Array(Math.floor(Math.random() * 6) + 2).fill(0).map(() => "abcdefghijklmnopqrstuvwxyz"[Math.floor(Math.random() * 26)]).join("")).join(" ")
+
+scene.add(new THREE.AxesHelper())

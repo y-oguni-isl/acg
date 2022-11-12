@@ -7,7 +7,7 @@
     <title>ACG final project</title>
     <link rel="stylesheet" href="./style.css">
 </head>
-<body class="bg-gray-700">
+<body class="bg-gray-700 font-serif">
     <div class="absolute left-0 top-0 px-4 py-2 text-gray-50 bg-gray-700 bg-opacity-40 backdrop-blur-3xl drop-shadow-lg select-none" id="upgrades">
         <h2>Upgrades</h2>
         <template id="upgradesTemplate">
@@ -27,11 +27,20 @@
                 <span></span>
             </label>
         </template>
+        <button class="bg-gray-800 bg-opacity-30 px-4 hover:bg-opacity-60" id="newspaper">newspaper</button>
     </div>
-    <div class="absolute left-0 bottom-0 px-5 pb-1 text-gray-50 bg-gray-700 bg-opacity-30 backdrop-blur-3xl drop-shadow-lg select-none" id="options">
+    <div class="absolute left-0 bottom-0 px-5 pb-1 text-gray-50 bg-gray-700 bg-opacity-30 backdrop-blur-3xl drop-shadow-lg select-none" id="leftBottom">
         <span class="cursor-pointer" id="creditButton">Credit</span>
     </div>
     <dialog id="creditDialog" class="p-0"><ul class="w-full h-full p-5 block"><h1 class="text-xl mb-2">Credit</h1></ul></dialog>
+    <dialog id="newsDialog" class="bg-gray-100 w-[400px] h-[620px] p-5 box-border shadow-2xl select-none [transition:opacity_ease_0.3s]">
+        <div class="[line-height:1.2] [font-size:12px] text-justify overflow-y-hidden  h-full">
+            <h2 id="news-title" class="text-lg font-bold mb-4 [border-bottom:3px_solid_rgb(130,130,130)] text-center"></h2>
+            <span id="news-text"></span>
+            <span class="text-gray-500" id="random-text"></span>
+        </div>
+    </dialog>
+    <div class="absolute w-full text-center top-[70%] text-white bg-slate-800 bg-opacity-70 select-none opacity-100 [transition:opacity_ease_1s] whitespace-pre-wrap pointer-events-none" id="tutorial"></div>
     <div id="message" class="text-white absolute top-[35%] left-0 w-full text-center"></div>
     <audio id="rainAudio" src="./audio/mixkit-light-rain-loop-2393.mp3"></audio>
     <script src="./src/main.ts" type="module"></script>

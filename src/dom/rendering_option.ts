@@ -1,6 +1,6 @@
 /** Adds a rendering option and returns the current value saved in the localStorage. */
 const renderingOption = (name: string, defaultValue: boolean = true) => {
-    const label = document.querySelector("template#optionTemplate")!.content.children[0].cloneNode(true) as HTMLLabelElement
+    const label = document.querySelector("template#optionTemplate")!.content.children[0]!.cloneNode(true) as HTMLLabelElement
     const input = label.querySelector("input")!
     input.checked = defaultValue ?
         localStorage.getItem(`option.${name}`) !== "false" :

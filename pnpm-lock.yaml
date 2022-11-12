@@ -1,10 +1,12 @@
 lockfileVersion: 5.4
 
 specifiers:
+  '@types/stats.js': ^0.17.0
   '@types/three': ^0.144.0
   autoprefixer: ^10.4.13
   postcss: ^8.4.18
   simplex-noise: ^4.0.1
+  stats.js: ^0.17.0
   tailwindcss: ^3.2.2
   three: ^0.146.0
   typed-query-selector: ^2.8.0
@@ -13,10 +15,12 @@ specifiers:
 
 dependencies:
   simplex-noise: 4.0.1
+  stats.js: 0.17.0
   three: 0.146.0
   webgl-noise: github.com/stegu/webgl-noise/893dacd869c7fafe8f60fd658ae6030761ce247d
 
 devDependencies:
+  '@types/stats.js': 0.17.0
   '@types/three': 0.144.0
   autoprefixer: 10.4.13_postcss@8.4.18
   postcss: 8.4.18
@@ -63,6 +67,10 @@ packages:
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.13.0
+    dev: true
+
+  /@types/stats.js/0.17.0:
+    resolution: {integrity: sha512-9w+a7bR8PeB0dCT/HBULU2fMqf6BAzvKbxFboYhmDtDkKPiyXYbjoe2auwsXlEFI7CFNMF1dCv3dFH5Poy9R1w==}
     dev: true
 
   /@types/three/0.144.0:
@@ -704,6 +712,10 @@ packages:
     resolution: {integrity: sha512-R0XvVJ9WusLiqTCEiGCmICCMplcCkIwwR11mOSD9CR5u+IXYdiseeEuXCVAjS54zqwkLcPNnmU4OeJ6tUrWhDw==}
     engines: {node: '>=0.10.0'}
     dev: true
+
+  /stats.js/0.17.0:
+    resolution: {integrity: sha512-hNKz8phvYLPEcRkeG1rsGmV5ChMjKDAWU7/OJJdDErPBNChQXxCo3WZurGpnWc6gZhAzEPFad1aVgyOANH1sMw==}
+    dev: false
 
   /supports-preserve-symlinks-flag/1.0.0:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}

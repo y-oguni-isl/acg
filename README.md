@@ -1,7 +1,7 @@
 1. https://nodejs.org/en/download/
 2. ```shell
    corepack enable
-   corepack prepare pnpm@7.14.2 --activate
+   corepack prepare pnpm@7.15.0 --activate
    pnpm i
 
    pnpm start

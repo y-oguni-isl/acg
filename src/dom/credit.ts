@@ -7,5 +7,5 @@ document.querySelector("span#creditButton")!.addEventListener("click", () => {
 })
 document.querySelector('dialog#creditDialog')!.addEventListener("click", (ev) => {
     // Close the dialog when the user clicks outside the dialog
-    if (ev.target === ev.currentTarget) { document.querySelector('dialog#creditDialog')!.close() }
+    if (ev.target === ev.currentTarget) { (ev.currentTarget as HTMLDialogElement).close() }
 })
