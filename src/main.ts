@@ -302,4 +302,4 @@ document.querySelector("div#message")!.style.display = "none"
 
 document.querySelector("span#random-text")!.innerText = Array(10000).fill(0).map(() => Array(Math.floor(Math.random() * 6) + 2).fill(0).map(() => "abcdefghijklmnopqrstuvwxyz"[Math.floor(Math.random() * 26)]).join("")).join(" ")
 
-scene.add(new THREE.AxesHelper())
+if (renderingOption("axis")) { scene.add(new THREE.AxesHelper()) }
