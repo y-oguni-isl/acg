@@ -227,18 +227,20 @@ if (renderingOption("rain")) {
 
 // Main loop
 const rotationNoise = createNoise2D()
-const stats = new Stats()
-stats.showPanel(0)
-stats.dom.style.bottom = "50px"
-stats.dom.style.top = ""
-document.body.append(stats.dom)
+const stats = import.meta.env.DEV ? new Stats() : null
+if (stats) {
+    stats.showPanel(0)
+    stats.dom.style.bottom = "50px"
+    stats.dom.style.top = ""
+    document.body.append(stats.dom)
+}
 
 {
     let prevTime = 0
     let prevUpdateTime = 0
     let updateCount = 0
     renderer.setAnimationLoop((time: number): void => {
-        stats.update()
+        stats?.update()
         fogUniform.time.value = time
 
         // onUpdate
