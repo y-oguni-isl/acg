@@ -22,7 +22,7 @@ const createNewspaperPlayer = async (scene: THREE.Scene) => {
     group.mesh.material.depthTest = false
     group.mesh.material.transparent = true
     group.mesh.renderOrder = 3
-    for (let i = 0; i < 1; i++) { group.allocate() }
+    for (let i = 0; i < 30; i++) { group.allocate() }
 
     let startTime = Date.now()
     const noise = createNoise2D()
