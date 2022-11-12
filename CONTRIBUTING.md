@@ -7,3 +7,10 @@ viteは public/ を最上位のディレクトリとして扱う (https://vitejs
 # 座標系
 横がz、奥がx
 TODO: 分かりやすい座標系に直せるなら直したい
+
+# チート
+store を window のプロパティに設定してあり、dev tools の console から呼び出して状態を上書きできる。
+
+```typescript
+store.setState({ money: 100 })
+```

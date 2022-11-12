@@ -5,5 +5,7 @@
 		"strict": true,
 		"moduleResolution": "Node",
 		"noUncheckedIndexedAccess": true,
+		"jsx": "react-jsx",
+		"jsxImportSource": "preact"
 	}
 }

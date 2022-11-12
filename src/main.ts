@@ -6,19 +6,17 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js"
 import { createNoise2D } from "simplex-noise"
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
-import "./dom/credit"
 import createRainPass from './webgl/rain'
-import upgrades, { addMoney } from './dom/upgrades'
 import createSelectiveBloomPass, { bloomLayer } from './webgl/selective_bloom'
-import renderingOption from './dom/rendering_option'
 import snoise from './webgl/snoise'
 import createLaser from './webgl/projectiles'
 import * as Stats from "stats.js"
 import { loadGLTF } from './webgl/gltf'
 import createNewspaperPlayer from './webgl/news'
-import "./dom/tutorial"
 import ObjectPool from './webgl/object_pool'
-import { onBeforeRender, onUpdate, onUpgrade } from './hooks'
+import { onBeforeRender, onUpdate } from './hooks'
+import { getState, subscribe } from './save_data'
+import { domStore, getRenderingOption } from './dom'
 
 const scene = new THREE.Scene()
 scene.add(new THREE.AmbientLight(0xffffff, 0.025))
@@ -26,7 +24,7 @@ const directionalLight = new THREE.DirectionalLight(0xf5eeba, 1.6)
 directionalLight.position.set(0.3, 1, -1)
 scene.add(directionalLight)
 
-const airplane = !renderingOption("airplane") ? new THREE.Object3D() : await loadGLTF("models/low-poly_airplane.glb", 0.05)
+const airplane = !getRenderingOption("airplane") ? new THREE.Object3D() : await loadGLTF("models/low-poly_airplane.glb", 0.05)
 scene.add(airplane)
 
 const pressedKeys = new Set<string>()
@@ -37,24 +35,24 @@ window.addEventListener("blur", () => { pressedKeys.clear() })
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10)
 camera.position.set(-0.5, 0.6, 0)
 
-const skybox = !renderingOption("skybox") ? new THREE.Object3D() : await loadGLTF("models/sky_pano_-_grand_canyon_yuma_point.glb", 4)
+const skybox = !getRenderingOption("skybox") ? new THREE.Object3D() : await loadGLTF("models/sky_pano_-_grand_canyon_yuma_point.glb", 4)
 skybox.rotateX(-Math.PI / 2)
 skybox.position.setY(-0.5)
 scene.add(skybox)
 
-const showNewspaper = !renderingOption("newspaper") ? null : await createNewspaperPlayer(scene)
-
-onUpgrade.add((name, prevCount) => {
-    if (name === "Autopilot" && prevCount === 0) {
-        showNewspaper?.(0)
-    }
+const showNewspaper = !getRenderingOption("newspaper") ? null : await createNewspaperPlayer(scene)
+subscribe((s, prev) => {
+    if (s.availableNews === prev.availableNews) { return }
+    const addedNews = [...s.availableNews].filter((n) => !prev.availableNews.has(n))[0]
+    if (!addedNews) { return }
+    showNewspaper?.(addedNews)
 })
 
 const fogUniform = {
     time: { value: 0.0 },
 }
 
-const fog = !renderingOption("fog") ? new THREE.Object3D() : new THREE.Mesh(new THREE.PlaneGeometry(), new THREE.ShaderMaterial({
+const fog = !getRenderingOption("fog") ? new THREE.Object3D() : new THREE.Mesh(new THREE.PlaneGeometry(), new THREE.ShaderMaterial({
     transparent: true,
     uniforms: fogUniform,
     vertexShader: /* glsl */`\
@@ -74,13 +72,12 @@ void main() {
 }
 `
 }))
-fog.name = "fog"
 fog.rotateX(-Math.PI / 2)
 fog.scale.setScalar(4)
 fog.position.setY(-0.13)
 scene.add(fog)
 
-const laser = !renderingOption("laser") ? null : createLaser()
+const laser = !getRenderingOption("laser") ? null : createLaser()
 if (laser) { scene.add(laser.mesh) }
 
 const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : (x - a) / (b - a)
@@ -102,10 +99,10 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
             positions.setZ(i, originalPositions.getZ(i) + dy)
         }
     })
-    if (renderingOption("birds")) { scene.add(birds) }
+    if (getRenderingOption("birds")) { scene.add(birds) }
 
     const deadBirds = new ObjectPool(await buildBirdModel())
-    if (renderingOption("deadBirds")) { scene.add(deadBirds) }
+    if (getRenderingOption("deadBirds")) { scene.add(deadBirds) }
 
     const hitEffects = await ObjectPool.fromBuilder(async () => {
         // TODO: shader
@@ -113,7 +110,7 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
         mesh.layers.enable(bloomLayer)
         return mesh
     })
-    if (renderingOption("hitEffects")) { scene.add(hitEffects) }
+    if (getRenderingOption("hitEffects")) { scene.add(hitEffects) }
 
     const ufos = (await ObjectPool.fromBuilder(async () => {
         const ufo = await loadGLTF("models/ufo.glb", 0.2)
@@ -125,7 +122,7 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
             copy.rotation.set(-Math.PI / 2 + Math.sin(time * 0.01) * 0.05, Math.cos(time * 0.01) * 0.05, 0)
         })
     })
-    if (renderingOption("UFO")) { scene.add(ufos) }
+    if (getRenderingOption("UFO")) { scene.add(ufos) }
 
     type EnemyName = "Bird" | "UFO"
     const enemies = new Set<{
@@ -151,19 +148,19 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
             const model = birds.allocate()
             model.position.set(2, 0, (t * 0.06) % 1 - 0.5)
             enemies.add({
-                name: "Bird", time: 0, hp: 30 * (1 + Math.random()), model, onKilled: () => {
-                    addMoney(1)
+                name: "Bird", time: 0, hp: 15 * (1 + Math.random()), model, onKilled: () => {
+                    getState().addMoney(1)
                     const body = deadBirds.allocate()
                     body.position.copy(model.position)
                     deadEnemies.add({ time: 0, model: body })
                 }
             })
-        } else if (t % 31 === 0) {
+        } else if (t % 31 === 0 && getState().availableNews.has("aliensComing")) {
             const model = ufos.allocate()
             model.position.set(2, 0, (t * 0.06) % 1 - 0.5)
             enemies.add({
                 name: "UFO", time: 0, hp: 300 * (1 + Math.random()), model, onKilled: () => {
-                    addMoney(10)
+                    getState().addMoney(10)
                     const body = ufos.allocate()
                     body.position.copy(model.position)
                     deadEnemies.add({ time: 0, model: body })
@@ -194,7 +191,7 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
                 enemy.hitEffectModel.position.copy(enemy.model.position).setZ(airplane.position.z)
 
                 // Damage
-                enemy.hp -= upgrades.Laser.value + 1
+                enemy.hp -= getState().upgrades.Laser + 1
             } else if (enemy.hitEffectModel) {
                 // Delete a hit effect
                 enemy.hitEffectModel.free()
@@ -228,22 +225,22 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
         if (pressedKeys.has("KeyW")) { airplane.position.setX(Math.min(0.3, Math.max(-0.3, airplane.position.x + 0.015))) }
         if (pressedKeys.has("KeyS")) { airplane.position.setX(Math.min(0.3, Math.max(-0.3, airplane.position.x - 0.015))) }
 
-        if (upgrades.Autopilot.value > 0 && pressedKeys.size === 0) { // TODO: add a switch to disable autopilot
+        if (getState().upgrades.Autopilot > 0 && pressedKeys.size === 0) { // TODO: add a switch to disable autopilot
             const findMin = <T>(arr: readonly T[], key: (v: T) => void) => arr.length === 0 ? null : arr.reduce((p, c) => key(p) < key(c) ? p : c, arr[0]!)
             if (!autopilotTarget || !enemies.has(autopilotTarget) || autopilotTarget.model.position.x < airplane.position.x) {
                 autopilotTarget = findMin([...enemies].filter((e) => e.model.position.x > airplane.position.x + 0.3), (e) => e.model.position.x)
             }
             if (autopilotTarget) {
-                airplane.position.setZ(airplane.position.z * (1 - 0.01 * upgrades.Autopilot.value) + autopilotTarget.model.position.z * 0.01 * upgrades.Autopilot.value)
+                airplane.position.setZ(airplane.position.z * (1 - 0.01 * getState().upgrades.Autopilot) + autopilotTarget.model.position.z * 0.01 * getState().upgrades.Autopilot)
             }
         }
     })
     onBeforeRender.add((time, deltaTime) => {
-        laser?.render(time, upgrades.Laser.value, airplane.position.x, airplane.position.z)
+        laser?.render(time, getState().upgrades.Laser, airplane.position.x, airplane.position.z)
     })
 }
 
-document.querySelector("div#message")!.innerText = `Loading models...`
+domStore.setState({ loadingMessage: `Loading models...` })
 await new Promise((resolve) => setTimeout(resolve, 0)) // Render DOM
 
 const renderer = new THREE.WebGLRenderer({ antialias: true })
@@ -254,14 +251,14 @@ const effectComposer = new EffectComposer(renderer)
 const renderPass = new RenderPass(scene, camera)
 
 effectComposer.addPass(renderPass)
-if (renderingOption("unrealbloom")) { effectComposer.addPass(new UnrealBloomPass(new THREE.Vector2(256, 256), 0.2, 0, 0)) }
+if (getRenderingOption("unrealbloom")) { effectComposer.addPass(new UnrealBloomPass(new THREE.Vector2(256, 256), 0.2, 0, 0)) }
 
-const selectiveBloomComposer = !renderingOption("selective unrealbloom") ? null : createSelectiveBloomPass(renderer, renderPass)
+const selectiveBloomComposer = !getRenderingOption("selective unrealbloom") ? null : createSelectiveBloomPass(renderer, renderPass)
 if (selectiveBloomComposer) { effectComposer.addPass(selectiveBloomComposer.pass) }
 
 let rainPass: ShaderPass | null = null
-if (renderingOption("rain")) {
-    effectComposer.addPass(rainPass = createRainPass(renderingOption("rain.blur", false), snoise))
+if (getRenderingOption("rain")) {
+    effectComposer.addPass(rainPass = createRainPass(getRenderingOption("rain.blur", false), snoise))
 }
 
 // Fit canvas to the window
@@ -327,8 +324,6 @@ if (stats) {
     })
 }
 
-document.querySelector("button#newspaper")!.addEventListener("click", () => { showNewspaper?.(0) })
-
 // Allow the user to control the camera by dragging
 new OrbitControls(camera, renderer.domElement).listenToKeyEvents(window)
 
@@ -343,8 +338,6 @@ const playAudio = () => {
 window.addEventListener("click", playAudio)
 playAudio()
 
-document.querySelector("div#message")!.style.display = "none"
+domStore.setState({ loadingMessage: `` })
 
-document.querySelector("span#random-text")!.innerText = Array(10000).fill(0).map(() => Array(Math.floor(Math.random() * 6) + 2).fill(0).map(() => "abcdefghijklmnopqrstuvwxyz"[Math.floor(Math.random() * 26)]).join("")).join(" ")
-
-if (renderingOption("axis")) { scene.add(new THREE.AxesHelper()) }
+if (getRenderingOption("axis")) { scene.add(new THREE.AxesHelper()) }
