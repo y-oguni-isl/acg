@@ -1,3 +1,4 @@
+import * as THREE from "three"
 import { onUpgrade } from "../hooks"
 import { dequeueTutorial, enqueueTutorial } from "./tutorial"
 
@@ -39,7 +40,7 @@ const setState = (name: typeof upgradeNames[number], value: number | "???") => {
 
                 money -= price(name)
                 setState(name, upgrade.value + 1)
-                updateDOM()
+                updateProgressBars()
             }
         })
         upgrades[name] = { state: "???", dom: div, value: 0 }
@@ -54,8 +55,6 @@ const setState = (name: typeof upgradeNames[number], value: number | "???") => {
     }
 }
 
-setState("Laser", "???")
-setState("Autopilot", "???")
 onUpgrade.add((name, prevCount) => {
     if (prevCount !== 0) { return }
     // Unlock upgrades when a new upgrade is bought
@@ -65,19 +64,36 @@ onUpgrade.add((name, prevCount) => {
     }
 })
 
-const updateDOM = () => {
+const updateProgressBars = () => {
+    let y = -1
     for (const [k, v] of Object.entries(upgrades) as [typeof upgradeNames[number], Upgrade][]) {
+        y++
         if ("dom" in v) {
             const requirement = price(k)
             if (v.state === "???" && money >= requirement * 2 / 3) { setState(k, 0) }
-            const color = upgrades[k].value >= maxUpgrades ? `255, 0, 0` : money >= requirement ? `0, 255, 255` : `128, 128, 128`
-            const progress = upgrades[k].value >= maxUpgrades ? 100 : money / requirement * 100
-            v.dom.style.background = `linear-gradient(90deg, rgba(${color}, 0.5) ${Math.min(99, progress)}%,rgba(${color}, 0) ${Math.min(100, progress + 5)}%)`
+            const baseColor = upgrades[k].value >= maxUpgrades ? new THREE.Vector4(255, 0, 0, 1) : money >= requirement ? new THREE.Vector4(0, 220, 220, 1) : new THREE.Vector4(128, 128, 128, 1)
+            const progress = upgrades[k].value >= maxUpgrades ? 1 : money / requirement
+
+            let style = "linear-gradient(90deg,"
+            for (let i = 0; i <= 1; i += 0.05) {
+                const color = baseColor.clone()
+                const t = (Math.sin(i * 2 - Date.now() * 0.004 + y) + 1) / 2
+                color.x += t * 70
+                color.y += t * 70
+                color.z += t * 70
+                if (i > progress) {
+                    color.w = 0
+                } else {
+                    color.w = 0.5
+                }
+                style += `rgba(${color.toArray().join(",")}) ${i * 100}%,`
+            }
+            v.dom.style.background = `${style.slice(0, -1)})`
         }
     }
 }
 
-updateDOM()
+setInterval(updateProgressBars, 1000 / 30)
 
 export const addMoney = (delta: number) => {
     money += delta
@@ -86,5 +102,25 @@ export const addMoney = (delta: number) => {
     } else {
         dequeueTutorial("upgrade")
     }
-    updateDOM()
 }
+
+const reset = () => {
+    money = 0
+    for (const name of upgradeNames) {
+        const upgrade = upgrades[name]
+        if ("dom" in upgrade) {
+            upgrade.dom.remove()
+        }
+        upgrades[name] = { state: "hidden", value: 0 }
+    }
+    setState("Laser", "???")
+    setState("Autopilot", "???")
+}
+
+document.querySelector("span#resetProgress")!.addEventListener("click", () => {
+    if (confirm("Are you sure you want to reset your save data?")) {
+        reset()
+    }
+})
+
+reset()
