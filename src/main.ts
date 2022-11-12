@@ -99,10 +99,10 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
             positions.setZ(i, originalPositions.getZ(i) + dy)
         }
     })
-    scene.add(birds)
+    if (renderingOption("birds")) { scene.add(birds) }
 
     const deadBirds = new ObjectPool(await buildBirdModel())
-    scene.add(deadBirds)
+    if (renderingOption("deadBirds")) { scene.add(deadBirds) }
 
     const hitEffects = await ObjectPool.fromBuilder(async () => {
         // TODO: shader
@@ -110,7 +110,7 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
         mesh.layers.enable(bloomLayer)
         return mesh
     })
-    scene.add(hitEffects)
+    if (renderingOption("hitEffects")) { scene.add(hitEffects) }
 
     const enemies = new Set<{
         hp: number
