@@ -58,8 +58,11 @@ setState("Laser", "???")
 setState("Autopilot", "???")
 onUpgrade.add((name, prevCount) => {
     if (prevCount !== 0) { return }
-    const el = upgradeNames[upgradeNames.indexOf(name) + 2]
-    if (el) { setState(el, "???") }
+    // Unlock upgrades when a new upgrade is bought
+    for (let i = 1; i <= 2; i++) {
+        const el = upgradeNames[upgradeNames.indexOf(name) + i]
+        if (el) { setState(el, "???") }
+    }
 })
 
 const updateDOM = () => {
