@@ -8,8 +8,8 @@ export const upgradeNames = ["Laser", "Autopilot", "placeholder0", "placeholder1
 const upgrades = Object.fromEntries(upgradeNames.map((name) => [name, { state: "hidden", value: 0 }])) as Record<typeof upgradeNames[number], Upgrade>
 export default upgrades
 
-const requirements = {
-    Laser: 15,  // FIXME: 15 * 1.15**level
+const basePrice = {
+    Laser: 15,
     Autopilot: 60,
     placeholder0: 60 * 15,
     placeholder1: 60 * 15 ** 2,
@@ -19,6 +19,7 @@ const requirements = {
     placeholder5: 60 * 15 ** 6,
     placeholder6: 60 * 15 ** 7,
 } satisfies Record<typeof upgradeNames[number], number>
+const price = (name: (typeof upgradeNames)[number]) => basePrice[name] * 1.15 ** upgrades[name].value
 
 const maxUpgrades = 25
 
@@ -33,11 +34,11 @@ const setState = (name: typeof upgradeNames[number], value: number | "???") => {
         document.querySelector("div#upgrades")!.append(div)
         div.addEventListener("mousedown", () => {
             const upgrade = upgrades[name]
-            if (requirements[name] <= money && upgrade.state === "visible" && upgrade.value < maxUpgrades) {
+            if (price(name) <= money && upgrade.state === "visible" && upgrade.value < maxUpgrades) {
                 onUpgrade.forEach((f) => f(name, upgrades[name].value))
 
+                money -= price(name)
                 setState(name, upgrade.value + 1)
-                money -= requirements[name]
                 updateDOM()
             }
         })
@@ -64,7 +65,7 @@ onUpgrade.add((name, prevCount) => {
 const updateDOM = () => {
     for (const [k, v] of Object.entries(upgrades) as [typeof upgradeNames[number], Upgrade][]) {
         if ("dom" in v) {
-            const requirement = requirements[k]
+            const requirement = price(k)
             if (v.state === "???" && money >= requirement * 2 / 3) { setState(k, 0) }
             const color = upgrades[k].value >= maxUpgrades ? `255, 0, 0` : money >= requirement ? `0, 255, 255` : `128, 128, 128`
             const progress = upgrades[k].value >= maxUpgrades ? 100 : money / requirement * 100
@@ -77,7 +78,7 @@ updateDOM()
 
 export const addMoney = (delta: number) => {
     money += delta
-    if (upgrades[upgradeNames[0]].value === 0 && money >= requirements[upgradeNames[0]]) {
+    if (upgrades[upgradeNames[0]].value === 0 && money >= price(upgradeNames[0])) {
         enqueueTutorial("upgrade")
     } else {
         dequeueTutorial("upgrade")
