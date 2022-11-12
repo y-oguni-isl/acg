@@ -49,9 +49,6 @@ onUpgrade.add((name, prevCount) => {
     }
 })
 
-document.querySelector("div#message")!.innerText = `Loading models...`
-await new Promise((resolve) => setTimeout(resolve, 0)) // Render DOM
-
 const fogUniform = {
     time: { value: 0.0 },
 }
@@ -200,6 +197,9 @@ const smoothstep = (a: number, b: number, x: number) => x < a ? 0 : x > b ? 1 : 
         laser?.render(time, upgrades.Laser.value, airplane.position.x, airplane.position.z)
     })
 }
+
+document.querySelector("div#message")!.innerText = `Loading models...`
+await new Promise((resolve) => setTimeout(resolve, 0)) // Render DOM
 
 const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.outputEncoding = THREE.sRGBEncoding
