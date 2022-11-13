@@ -103,7 +103,6 @@ if (getRenderingOption("laser")) { scene.add(createLaser(airplane)) }
         readonly name: EnemyName
         time: number
         hp: number
-        hitEffectZ?: number
         model: ReturnType<typeof birds.allocate>,
         hitEffectModel?: ReturnType<typeof hitEffects.allocate>,
         onKilled: () => void
