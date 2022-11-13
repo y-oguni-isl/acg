@@ -1,10 +1,11 @@
 import * as THREE from 'three'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
+import { onBeforeRender } from '../hooks'
 
 const numMouseTrails = 10
 
 /** Returns a shader pass that makes the scene look like you're looking the scene through a glass on a rainy day. */
-const createRainPass = (blur: boolean, snoise: string) => {
+const createRainPass = (camera: THREE.PerspectiveCamera, blur: boolean, snoise: string) => {
     const declareMouseUniform = Array.from(Array(numMouseTrails).keys(), (i) => `uniform vec2 mouse${i};`).join("\n")
 
     const rainBlur = !blur ? "" : /* glsl */`gl_FragColor = vec4(
@@ -144,6 +145,11 @@ void main() {
     })
 
     setInterval(() => { rotateMouseTrail() }, 100)
+
+    onBeforeRender.add((time) => {
+        pass.uniforms.aspect!.value = camera.aspect
+        pass.uniforms.time!.value = time;
+    })
 
     return pass
 }

@@ -5,7 +5,6 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js"
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js"
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 import { smoothstep } from 'three/src/math/MathUtils'
 import * as Stats from "stats.js"
 import { onBeforeRender, onUpdate } from './hooks'
@@ -16,12 +15,22 @@ import createSelectiveBloomPass, { bloomLayer } from './webgl/selective_bloom'
 import snoise from './webgl/snoise'
 import createLaser from './webgl/projectiles'
 import { loadGLTF } from './webgl/gltf'
-import createNewspaperPlayer from './webgl/news'
+import createNewspaperPlayer from './webgl/news_animation'
 import ObjectPool from './webgl/object_pool'
 import createFog from './webgl/fog'
 import { call } from './util'
 
 const airplane = !getRenderingOption("airplane") ? new THREE.Object3D() : await loadGLTF("models/low-poly_airplane.glb", 0.05)
+{
+    const rotationNoise = createNoise2D()
+    onBeforeRender.add((time) => {
+        airplane.rotation.set(
+            rotationNoise(0, time * 0.0003) * (4 / 180 * Math.PI),
+            Math.PI * 0.5 + rotationNoise(1, time * 0.0003) * (4 / 180 * Math.PI),
+            rotationNoise(2, time * 0.0003) * (4 / 180 * Math.PI),
+        )
+    })
+}
 
 const scene = new THREE.Scene().add(
     new THREE.AmbientLight(0xffffff, 0.025),
@@ -30,20 +39,24 @@ const scene = new THREE.Scene().add(
     !getRenderingOption("skybox") ? new THREE.Object3D() : call(await loadGLTF("models/sky_pano_-_grand_canyon_yuma_point.glb", 4), { rotateX: -Math.PI / 2, position: { setY: -0.5 } }),
     !getRenderingOption("fog") ? new THREE.Object3D() : createFog(),
     !getRenderingOption("laser") ? new THREE.Object3D() : createLaser(airplane),
+    !getRenderingOption("axis") ? new THREE.Object3D() : new THREE.AxesHelper(),
 )
 
 const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10), { position: { set: [-0.5, 0.6, 0] } })
 
-const showNewspaper = !getRenderingOption("newspaper") ? null : await createNewspaperPlayer(scene)
+// News
+{
+    const startNewspaperAnimation = !getRenderingOption("newspaper") ? null : await createNewspaperPlayer(scene)
+    subscribe((s, prev) => {
+        if (s.availableNews === prev.availableNews) { return }
+        const addedNews = [...s.availableNews].filter((n) => !prev.availableNews.has(n))[0]
+        if (!addedNews) { return }
+        domStore.setState({ news: newsList[addedNews] })
+        startNewspaperAnimation?.(addedNews)
+    })
+}
 
-subscribe((s, prev) => {
-    if (s.availableNews === prev.availableNews) { return }
-    const addedNews = [...s.availableNews].filter((n) => !prev.availableNews.has(n))[0]
-    if (!addedNews) { return }
-    domStore.setState({ news: newsList[addedNews] })
-    showNewspaper?.(addedNews)
-})
-
+// Enemies
 {
     // Create a object pool for the 3D model of a bird
     const buildBirdModel = async () => call(await loadGLTF("models/low_polygon_art__white_eagle_bird.glb", 0.1), { rotateX: -Math.PI / 2, rotateZ: -Math.PI / 2, scale: { multiplyScalar: 0.3 } })
@@ -193,25 +206,24 @@ subscribe((s, prev) => {
     })
 }
 
+// Update the loading message
 domStore.setState({ loadingMessage: `Loading models...` })
 await new Promise((resolve) => setTimeout(resolve, 0)) // Render DOM
 
+// Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.outputEncoding = THREE.sRGBEncoding
 renderer.setSize(window.innerWidth, window.innerHeight)
+document.body.appendChild(renderer.domElement)
 
+// Post processing
 const effectComposer = new EffectComposer(renderer)
-const renderPass = new RenderPass(scene, camera)
-
-effectComposer.addPass(renderPass)
-if (getRenderingOption("unrealbloom")) { effectComposer.addPass(new UnrealBloomPass(new THREE.Vector2(256, 256), 0.2, 0, 0)) }
-
-const selectiveBloomComposer = !getRenderingOption("selective unrealbloom") ? null : createSelectiveBloomPass(renderer, renderPass)
-if (selectiveBloomComposer) { effectComposer.addPass(selectiveBloomComposer.pass) }
-
-let rainPass: ShaderPass | null = null
-if (getRenderingOption("rain")) {
-    effectComposer.addPass(rainPass = createRainPass(getRenderingOption("rain.blur", false), snoise))
+{
+    const renderPass = new RenderPass(scene, camera)
+    effectComposer.addPass(renderPass)
+    if (getRenderingOption("unrealbloom")) { effectComposer.addPass(new UnrealBloomPass(new THREE.Vector2(256, 256), 0.2, 0, 0)) }
+    if (getRenderingOption("selective unrealbloom")) { effectComposer.addPass(createSelectiveBloomPass(renderer, camera, renderPass)) }
+    if (getRenderingOption("rain")) { effectComposer.addPass(createRainPass(camera, getRenderingOption("rain.blur", false), snoise)) }
 }
 
 // Resize the canvas to fit to the window
@@ -222,11 +234,9 @@ window.addEventListener("resize", () => {
     camera.updateProjectionMatrix()
     renderer.setSize(window.innerWidth, window.innerHeight)
     effectComposer.setSize(window.innerWidth, window.innerHeight)
-    selectiveBloomComposer?.setSize(window.innerWidth, window.innerHeight)
 })
 
-// Main loop
-const rotationNoise = createNoise2D()
+// FPS monitor
 const stats = import.meta.env.DEV ? new Stats() : null
 if (stats) {
     stats.showPanel(0)
@@ -236,50 +246,31 @@ if (stats) {
 }
 
 {
-    let prevTime = 0
-    let prevUpdateTime = 0
+    const prevTime = { render: 0, update: 0 }
     let updateCount = 0
     renderer.setAnimationLoop((time: number): void => {
+        // FPS monitor
         stats?.update()
 
         // onUpdate
-        {
-            const deltaTime = time - prevUpdateTime
-            const numUpdates = Math.floor(deltaTime / (1000 / 30))
-            prevUpdateTime += numUpdates * (1000 / 30)
-            for (let i = 0; i < numUpdates; i++) {
-                onUpdate.forEach((f) => f(updateCount))
-                updateCount++
-            }
+        const numUpdates = Math.floor((time - prevTime.update) / (1000 / 30))
+        prevTime.update += numUpdates * (1000 / 30)
+        for (let i = 0; i < numUpdates; i++) {
+            onUpdate.forEach((f) => f(updateCount))
+            updateCount++
         }
 
         // onBeforeRender
-        {
-            const deltaTime = time - prevTime
-            prevTime = time
-            onBeforeRender.forEach((f) => f(time, deltaTime))
-        }
+        const deltaTime = time - prevTime.render
+        prevTime.render = time
+        onBeforeRender.forEach((f) => f(time, deltaTime))
 
-        airplane.rotation.set(
-            rotationNoise(0, time * 0.0003) * (4 / 180 * Math.PI),
-            Math.PI * 0.5 + rotationNoise(1, time * 0.0003) * (4 / 180 * Math.PI),
-            rotationNoise(2, time * 0.0003) * (4 / 180 * Math.PI),
-        )
-
-        if (rainPass !== null) {
-            rainPass.uniforms.aspect!.value = camera.aspect
-            rainPass.uniforms.time!.value = time;
-        }
-
-        selectiveBloomComposer?.render(camera)
         effectComposer.render()
     })
 }
 
 // Allow the user to control the camera by dragging
 new OrbitControls(camera, renderer.domElement).listenToKeyEvents(window)
-
-document.body.appendChild(renderer.domElement)
 
 // Audio
 const playAudio = () => {
@@ -290,6 +281,5 @@ const playAudio = () => {
 window.addEventListener("click", playAudio)
 playAudio()
 
+// Clear the loading message
 domStore.setState({ loadingMessage: `` })
-
-if (getRenderingOption("axis")) { scene.add(new THREE.AxesHelper()) }

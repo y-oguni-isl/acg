@@ -3,6 +3,7 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import type { RenderPass } from "three/examples/jsm/postprocessing/RenderPass"
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass"
+import { onBeforeRender } from "../hooks"
 
 export const bloomLayer = 1
 
@@ -21,7 +22,7 @@ export const bloomLayer = 1
  * scene.add(ball)
  * ```
  */
-const createSelectiveBloomPass = (renderer: THREE.WebGLRenderer, renderPass: RenderPass) => {
+const createSelectiveBloomPass = (renderer: THREE.WebGLRenderer, camera: THREE.Camera, renderPass: RenderPass) => {
     const effectComposer = new EffectComposer(renderer)
     effectComposer.renderToScreen = false
     effectComposer.addPass(renderPass)
@@ -52,16 +53,14 @@ void main() {
         'texture1',
     )
     additiveBlendingPass.needsSwap = true
-    return {
-        setSize: (width: number, height: number) => effectComposer.setSize(width, height),
-        render: (camera: THREE.Camera) => {
-            camera.layers.disableAll()
-            camera.layers.enable(bloomLayer)
-            effectComposer.render()
-            camera.layers.enableAll()
-        },
-        pass: additiveBlendingPass,
-    }
+    onBeforeRender.add(() => {
+        camera.layers.disableAll()
+        camera.layers.enable(bloomLayer)
+        effectComposer.render()
+        camera.layers.enableAll()
+    })
+    window.addEventListener("resize", () => { effectComposer.setSize(window.innerWidth, window.innerHeight) })
+    return additiveBlendingPass
 }
 
 export default createSelectiveBloomPass

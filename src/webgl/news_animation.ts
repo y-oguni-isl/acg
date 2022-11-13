@@ -8,7 +8,7 @@ import { domStore } from '../dom'
 import { call } from '../util'
 
 /** Create a function that plays an animation of falling newspapers. */
-const createNewspaperPlayer = async (scene: THREE.Scene) => {
+const createNewspaperAnimationPlayer = async (scene: THREE.Scene) => {
     const group = (await ObjectPool.fromBuilder(async () => call(await loadGLTF("models/y2k_newspaper_article.glb", 0.1), { rotateY: Math.PI / 2, rotateX: Math.PI * 0.3, scale: { multiplyScalar: 2 }, position: { set: [0.8, 0.5, 0.5] } })))
         .withVertexAnimation((positions, originalPositions) => {
             for (let i = 0; i < positions.count; i++) {
@@ -45,4 +45,4 @@ const createNewspaperPlayer = async (scene: THREE.Scene) => {
     }
 }
 
-export default createNewspaperPlayer
+export default createNewspaperAnimationPlayer
