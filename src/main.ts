@@ -64,7 +64,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
     const birds = new ObjectPool(await buildBirdModel())
         .withVertexAnimation((positions, originalPositions) => {
             for (let i = 0; i < positions.count; i++) {
-                const dy = smoothstep(3.5, 17, Math.abs(positions.getX(i))) * 10 * Math.sin(Date.now() * 0.01) * 0.8
+                const dy = smoothstep(Math.abs(positions.getX(i)), 3.5, 17) * 10 * Math.sin(Date.now() * 0.01) * 0.8
                 positions.setY(i, originalPositions.getY(i) + dy * 0.7)
                 positions.setZ(i, originalPositions.getZ(i) + dy)
             }
