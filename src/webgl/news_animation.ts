@@ -1,11 +1,11 @@
 import * as THREE from 'three'
 import { loadGLTF } from "./gltf"
-import { createNoise2D } from "simplex-noise"
 import ObjectPool from './object_pool'
 import { onBeforeRender } from '../hooks'
 import { newsList } from '../save_data'
 import { domStore } from '../dom'
 import { call } from '../util'
+import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise"
 
 /** Create a function that plays an animation of falling newspapers. */
 const createNewspaperAnimationPlayer = async (scene: THREE.Scene) => {
@@ -23,15 +23,15 @@ const createNewspaperAnimationPlayer = async (scene: THREE.Scene) => {
     for (let i = 0; i < 30; i++) { group.allocate() }
 
     let startTime = Date.now()
-    const noise = createNoise2D()
+    const noise = new SimplexNoise()
     onBeforeRender.add(() => {
         if (group.parent === null) { return }
         const r = 0.1
         for (const [i, obj] of group.children.entries()) {
-            const t = (Date.now() - startTime) * 0.006 * (1 + noise(i, 3) * 0.3)
-            obj.rotation.y = noise(i, 5)
+            const t = (Date.now() - startTime) * 0.006 * (1 + noise.noise(i, 3) * 0.3)
+            obj.rotation.y = noise.noise(i, 5)
             obj.rotation.z = 1 * t
-            obj.position.set(noise(i, 4) * 0.5 + 0.2, 0.3 + (Math.cos(t) - t * 0.5 - 1) * r + (noise(i, 1) + 1) * 0.3, 0.5 + (Math.sin(t) - t * 0.8) * r + (noise(i, 2) + 1) * 0.3)
+            obj.position.set(noise.noise(i, 4) * 0.5 + 0.2, 0.3 + (Math.cos(t) - t * 0.5 - 1) * r + (noise.noise(i, 1) + 1) * 0.3, 0.5 + (Math.sin(t) - t * 0.8) * r + (noise.noise(i, 2) + 1) * 0.3)
         }
     })
 

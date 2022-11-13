@@ -1,5 +1,5 @@
 import 'typed-query-selector'
-import { createNoise2D } from "simplex-noise"
+import "./webgl/lib.glsl"
 import * as THREE from 'three'
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js"
@@ -12,22 +12,22 @@ import { getState, newsList, subscribe } from './save_data'
 import { domStore, getRenderingOption } from './dom'
 import createRainPass from './webgl/rain'
 import createSelectiveBloomPass, { bloomLayer } from './webgl/selective_bloom'
-import snoise from './webgl/snoise'
-import createLaser from './webgl/projectiles'
+import createLaser from './webgl/laser'
 import { loadGLTF } from './webgl/gltf'
 import createNewspaperPlayer from './webgl/news_animation'
 import ObjectPool from './webgl/object_pool'
 import createFog from './webgl/fog'
 import { call } from './util'
+import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise"
 
 const airplane = !getRenderingOption("airplane") ? new THREE.Object3D() : await loadGLTF("models/low-poly_airplane.glb", 0.05)
 {
-    const rotationNoise = createNoise2D()
+    const rotationNoise = new SimplexNoise()
     onBeforeRender.add((time) => {
         airplane.rotation.set(
-            rotationNoise(0, time * 0.0003) * (4 / 180 * Math.PI),
-            Math.PI * 0.5 + rotationNoise(1, time * 0.0003) * (4 / 180 * Math.PI),
-            rotationNoise(2, time * 0.0003) * (4 / 180 * Math.PI),
+            rotationNoise.noise(0, time * 0.0003) * (4 / 180 * Math.PI),
+            Math.PI * 0.5 + rotationNoise.noise(1, time * 0.0003) * (4 / 180 * Math.PI),
+            rotationNoise.noise(2, time * 0.0003) * (4 / 180 * Math.PI),
         )
     })
 }
@@ -223,7 +223,7 @@ const effectComposer = new EffectComposer(renderer)
     effectComposer.addPass(renderPass)
     if (getRenderingOption("unrealbloom")) { effectComposer.addPass(new UnrealBloomPass(new THREE.Vector2(256, 256), 0.2, 0, 0)) }
     if (getRenderingOption("selective unrealbloom")) { effectComposer.addPass(createSelectiveBloomPass(renderer, camera, renderPass)) }
-    if (getRenderingOption("rain")) { effectComposer.addPass(createRainPass(camera, getRenderingOption("rain.blur", false), snoise)) }
+    if (getRenderingOption("rain")) { effectComposer.addPass(createRainPass(camera, getRenderingOption("rain.blur", false))) }
 }
 
 // Resize the canvas to fit to the window
