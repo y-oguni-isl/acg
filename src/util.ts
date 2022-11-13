@@ -21,7 +21,7 @@ type RewriteMethodsToProperties<T> = {
  * obj.rotateX(1)
  * 
  * // can be written as
- * call(obj, { position: { set: [1, 2, 3] }, rotateX: 1})
+ * call(obj, { position: { set: [1, 2, 3] }, rotateX: 1 })
  * ```
  */
 export const call = <T>(obj: T, props: RewriteMethodsToProperties<T>): T => {
