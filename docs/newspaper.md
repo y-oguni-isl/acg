@@ -1,5 +1,6 @@
 # newspaper
-モデルの頂点座標を編集して波立たせている。three.jsが提供するmaterialの vertex shader のみを変更できれば良かったが、できなさそうだった。
+モデルの頂点座標を編集して波立たせている。
+TODO: extendShaderで書き直す
 
 ![](/docs/figures/newspaper.png)
 

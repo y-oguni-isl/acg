@@ -19,6 +19,7 @@ import ObjectPool from './webgl/object_pool'
 import createFog from './webgl/fog'
 import { call } from './util'
 import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise"
+import { buildUFOPool } from './webgl/ufo'
 
 const airplane = !getRenderingOption("airplane") ? new THREE.Object3D() : await loadGLTF("models/low-poly_airplane.glb", 0.05)
 {
@@ -78,12 +79,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
     if (getRenderingOption("hitEffects")) { scene.add(hitEffects) }
 
     // Create a object pool for the 3D model of a UFO.
-    const ufos = (await ObjectPool.fromBuilder(async () => call(await loadGLTF("models/ufo.glb", 0.2), { rotateX: -Math.PI / 2, position: { set: [0.5, 0, 0] } })))
-        .onClone((copy) => {
-            onBeforeRender.add((time) => {
-                copy.rotation.set(-Math.PI / 2 + Math.sin(time * 0.01) * 0.05, Math.cos(time * 0.01) * 0.05, 0)
-            })
-        })
+    const ufos = await buildUFOPool()
     if (getRenderingOption("UFO")) { scene.add(ufos) }
 
     // A set to store the state of each enemy.
