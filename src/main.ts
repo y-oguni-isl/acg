@@ -19,28 +19,20 @@ import { loadGLTF } from './webgl/gltf'
 import createNewspaperPlayer from './webgl/news'
 import ObjectPool from './webgl/object_pool'
 import createFog from './webgl/fog'
-
-const scene = new THREE.Scene()
-scene.add(new THREE.AmbientLight(0xffffff, 0.025))
-const directionalLight = new THREE.DirectionalLight(0xf5eeba, 1.6)
-directionalLight.position.set(0.3, 1, -1)
-scene.add(directionalLight)
+import { call } from './util'
 
 const airplane = !getRenderingOption("airplane") ? new THREE.Object3D() : await loadGLTF("models/low-poly_airplane.glb", 0.05)
-scene.add(airplane)
 
-const pressedKeys = new Set<string>()
-window.addEventListener("keydown", (ev) => { pressedKeys.add(ev.code) })
-window.addEventListener("keyup", (ev) => { pressedKeys.delete(ev.code) })
-window.addEventListener("blur", () => { pressedKeys.clear() })
+const scene = new THREE.Scene().add(
+    new THREE.AmbientLight(0xffffff, 0.025),
+    call(new THREE.DirectionalLight(0xf5eeba, 1.6), { position: { set: [0.3, 1, -1] } }),
+    airplane,
+    !getRenderingOption("skybox") ? new THREE.Object3D() : call(await loadGLTF("models/sky_pano_-_grand_canyon_yuma_point.glb", 4), { rotateX: -Math.PI / 2, position: { setY: -0.5 } }),
+    !getRenderingOption("fog") ? new THREE.Object3D() : createFog(),
+    !getRenderingOption("laser") ? new THREE.Object3D() : createLaser(airplane),
+)
 
-const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10)
-camera.position.set(-0.5, 0.6, 0)
-
-const skybox = !getRenderingOption("skybox") ? new THREE.Object3D() : await loadGLTF("models/sky_pano_-_grand_canyon_yuma_point.glb", 4)
-skybox.rotateX(-Math.PI / 2)
-skybox.position.setY(-0.5)
-scene.add(skybox)
+const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10), { position: { set: [-0.5, 0.6, 0] } })
 
 const showNewspaper = !getRenderingOption("newspaper") ? null : await createNewspaperPlayer(scene)
 
@@ -52,49 +44,33 @@ subscribe((s, prev) => {
     showNewspaper?.(addedNews)
 })
 
-if (getRenderingOption("fog")) { scene.add(createFog()) }
-if (getRenderingOption("laser")) { scene.add(createLaser(airplane)) }
-
 {
     // Create a object pool for the 3D model of a bird
-    const buildBirdModel = async () => {
-        const model = await loadGLTF("models/low_polygon_art__white_eagle_bird.glb", 0.1)
-        model.rotateX(-Math.PI / 2)
-        model.rotateZ(-Math.PI / 2)
-        model.scale.multiplyScalar(0.3)
-        return model
-    }
-    const birds = new ObjectPool(await buildBirdModel()).withVertexAnimation((positions, originalPositions) => {
-        for (let i = 0; i < positions.count; i++) {
-            const dy = smoothstep(3.5, 17, Math.abs(positions.getX(i))) * 10 * Math.sin(Date.now() * 0.01) * 0.8
-            positions.setY(i, originalPositions.getY(i) + dy * 0.7)
-            positions.setZ(i, originalPositions.getZ(i) + dy)
-        }
-    })
+    const buildBirdModel = async () => call(await loadGLTF("models/low_polygon_art__white_eagle_bird.glb", 0.1), { rotateX: -Math.PI / 2, rotateZ: -Math.PI / 2, scale: { multiplyScalar: 0.3 } })
+    const birds = new ObjectPool(await buildBirdModel())
+        .withVertexAnimation((positions, originalPositions) => {
+            for (let i = 0; i < positions.count; i++) {
+                const dy = smoothstep(3.5, 17, Math.abs(positions.getX(i))) * 10 * Math.sin(Date.now() * 0.01) * 0.8
+                positions.setY(i, originalPositions.getY(i) + dy * 0.7)
+                positions.setZ(i, originalPositions.getZ(i) + dy)
+            }
+        })
     if (getRenderingOption("birds")) { scene.add(birds) }
     const deadBirds = new ObjectPool(await buildBirdModel())
     if (getRenderingOption("deadBirds")) { scene.add(deadBirds) }
 
     // Create a object pool for the 3D model of a hit effect.
-    const hitEffects = await ObjectPool.fromBuilder(async () => {
-        // TODO: shader
-        const mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(0.006), new THREE.MeshBasicMaterial({ color: 0xff66ff }))
-        mesh.layers.enable(bloomLayer)
-        return mesh
-    })
+    // TODO: shader
+    const hitEffects = await ObjectPool.fromBuilder(async () => call(new THREE.Mesh(new THREE.IcosahedronGeometry(0.006), new THREE.MeshBasicMaterial({ color: 0xff66ff })), { layers: { enable: bloomLayer } }))
     if (getRenderingOption("hitEffects")) { scene.add(hitEffects) }
 
     // Create a object pool for the 3D model of a UFO.
-    const ufos = (await ObjectPool.fromBuilder(async () => {
-        const ufo = await loadGLTF("models/ufo.glb", 0.2)
-        ufo.rotateX(-Math.PI / 2)
-        ufo.position.set(0.5, 0, 0)
-        return ufo
-    })).onClone((copy) => {
-        onBeforeRender.add((time) => {
-            copy.rotation.set(-Math.PI / 2 + Math.sin(time * 0.01) * 0.05, Math.cos(time * 0.01) * 0.05, 0)
+    const ufos = (await ObjectPool.fromBuilder(async () => call(await loadGLTF("models/ufo.glb", 0.2), { rotateX: -Math.PI / 2, position: { set: [0.5, 0, 0] } })))
+        .onClone((copy) => {
+            onBeforeRender.add((time) => {
+                copy.rotation.set(-Math.PI / 2 + Math.sin(time * 0.01) * 0.05, Math.cos(time * 0.01) * 0.05, 0)
+            })
         })
-    })
     if (getRenderingOption("UFO")) { scene.add(ufos) }
 
     // A set to store the state of each enemy.
@@ -117,29 +93,29 @@ if (getRenderingOption("laser")) { scene.add(createLaser(airplane)) }
     // The enemy that the autopilot algorithm is currently targeting.
     let autopilotTarget: (typeof enemies extends Set<infer R> ? R : never) | null = null
 
+    // Keyboard events
+    const pressedKeys = new Set<string>()
+    window.addEventListener("keydown", (ev) => { pressedKeys.add(ev.code) })
+    window.addEventListener("keyup", (ev) => { pressedKeys.delete(ev.code) })
+    window.addEventListener("blur", () => { pressedKeys.clear() })
+
     // Main game loop
     onUpdate.add((t) => {
         // Spawn enemies
         if (t % 5 === 0) {
-            const model = birds.allocate()
-            model.position.set(2, 0, (t * 0.06) % 1 - 0.5)
+            const model = call(birds.allocate(), { position: { set: [2, 0, (t * 0.06) % 1 - 0.5] } })
             enemies.add({
                 name: "Bird", time: 0, hp: 15 * (1 + Math.random()), model, onKilled: () => {
                     getState().addMoney(1)
-                    const body = deadBirds.allocate()
-                    body.position.copy(model.position)
-                    deadEnemies.add({ time: 0, model: body })
+                    deadEnemies.add({ time: 0, model: call(deadBirds.allocate(), { position: { copy: model.position } }) })
                 }
             })
         } else if (t % 31 === 0 && getState().availableNews.has("aliensComing")) {
-            const model = ufos.allocate()
-            model.position.set(2, 0, (t * 0.06) % 1 - 0.5)
+            const model = call(ufos.allocate(), { position: { set: [2, 0, (t * 0.06) % 1 - 0.5] } })
             enemies.add({
                 name: "UFO", time: 0, hp: 300 * (1 + Math.random()), model, onKilled: () => {
                     getState().addMoney(10)
-                    const body = ufos.allocate()
-                    body.position.copy(model.position)
-                    deadEnemies.add({ time: 0, model: body })
+                    deadEnemies.add({ time: 0, model: call(ufos.allocate(), { position: { copy: model.position } }) })
                 }
             })
         }
