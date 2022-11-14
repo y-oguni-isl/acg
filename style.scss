@@ -29,3 +29,5 @@ $to2: rgb(139, 169, 217, 0.7);
     }
     to   { background: linear-gradient(240deg, $to1 0%, $to2 100%); }
 }
+
+input:not([type]),input[type=text] { @apply text-gray-700 pl-1; }

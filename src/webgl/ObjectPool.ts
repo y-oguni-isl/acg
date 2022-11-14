@@ -9,6 +9,7 @@ type Instance<T extends THREE.Object3D> = T & {
 
 /**
  * The object pool (https://en.wikipedia.org/wiki/Object_pool_pattern).
+ * Changes to vertices and shaders in the model are shared between all copies. Positions and rotations are maintained independently for each copy.
  * 
  * ```
  * const models = new ObjectPool(model)

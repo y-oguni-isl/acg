@@ -1,7 +1,6 @@
 import 'typed-query-selector'
 import * as Stats from "stats.js"
 import * as THREE from 'three'
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js"
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js"
@@ -12,6 +11,7 @@ import { getState, subscribe } from './saveData'
 import { domStore, getRenderingOption } from './dom'
 import { call } from './util'
 import * as webgl from "./webgl"
+import modelDebuggerStore, { init3DModelDebugger } from './modelDebugger'
 
 // Airplane
 const airplane = !getRenderingOption("airplane") ? new THREE.Object3D() : await webgl.loadGLTF("models/low-poly_airplane.glb", 0.05)
@@ -253,25 +253,29 @@ if (stats) {
         // FPS monitor
         stats?.update()
 
-        // onUpdate
-        const numUpdates = Math.floor((time - prevTime.update) / (1000 / 30))
-        prevTime.update += numUpdates * (1000 / 30)
-        for (let i = 0; i < numUpdates; i++) {
-            onUpdate.forEach((f) => f(updateCount))
-            updateCount++
-        }
+        if (modelDebuggerStore.getState().stop) {
+            prevTime.update = prevTime.render = Date.now()
+        } else {
+            // onUpdate
+            const numUpdates = Math.floor((time - prevTime.update) / (1000 / 30))
+            prevTime.update += numUpdates * (1000 / 30)
+            for (let i = 0; i < numUpdates; i++) {
+                onUpdate.forEach((f) => f(updateCount))
+                updateCount++
+            }
 
-        // onBeforeRender
-        const deltaTime = time - prevTime.render
-        prevTime.render = time
-        onBeforeRender.forEach((f) => f(time, deltaTime))
+            // onBeforeRender
+            const deltaTime = time - prevTime.render
+            prevTime.render = time
+            onBeforeRender.forEach((f) => f(time, deltaTime))
+        }
 
         effectComposer.render()
     })
 }
 
-// Allow the user to control the camera by dragging
-new OrbitControls(camera, renderer.domElement).listenToKeyEvents(window)
+// 3D model debugger
+init3DModelDebugger(camera, renderer, scene)
 
 // Audio
 const playAudio = () => {

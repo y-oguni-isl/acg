@@ -7,6 +7,7 @@ import { deleteSaveData, getState, store, tutorials } from "../saveData"
 import { entries } from "../util"
 import { Ref, useEffect, useRef, useState } from "preact/hooks"
 import type { JSXInternal } from "preact/src/jsx"
+import modelDebuggerStore from "../modelDebugger"
 
 /** A mapping from tutorial names to their indices.  */
 const tutorialIndices = new Map((Object.keys(tutorials) as (keyof typeof tutorials)[]).map((name, i) => [name, i]))
@@ -55,6 +56,33 @@ const closeDialogOnClick = (ev: JSXInternal.TargetedMouseEvent<HTMLDialogElement
 /** A random text to fill newspapers. */
 const randomText = Array(10000).fill(0).map(() => Array(Math.floor(Math.random() * 6) + 2).fill(0).map(() => "abcdefghijklmnopqrstuvwxyz"[Math.floor(Math.random() * 26)]).join("")).join(" ")
 
+const ModelDebugger = () => {
+    const state = useStore(modelDebuggerStore)
+    return <div class="px-3 pt-1 pb-3 window">
+        <h2>[Debug] 3D Models</h2>
+        <div>
+            {!state.stop && <button class="px-2" onClick={() => { modelDebuggerStore.setState({ stop: true }) }}>🛑 Stop</button>}
+            {state.stop && <button class="px-2 ml-1" onClick={() => { modelDebuggerStore.setState({ stop: false }) }}>▶️ Resume</button>}
+        </div>
+        {state.stop && (state.object === null ? <>Double click on objects.</> : <>
+            <h3>{state.object.name}</h3>
+            <table>
+                <tr>
+                    <td>pos</td>
+                    <td><input class="w-10 mr-1" value={state.object.position.x} onBlur={(ev) => { if (!state.object) { return } state.object.position.x = +ev.currentTarget.value; modelDebuggerStore.setState({ objectChangeCount: state.objectChangeCount + 1 }) }} /></td>
+                    <td><input class="w-10 mr-1" value={state.object.position.y} onBlur={(ev) => { if (!state.object) { return } state.object.position.y = +ev.currentTarget.value; modelDebuggerStore.setState({ objectChangeCount: state.objectChangeCount + 1 }) }} /></td>
+                    <td><input class="w-10 mr-1" value={state.object.position.z} onBlur={(ev) => { if (!state.object) { return } state.object.position.z = +ev.currentTarget.value; modelDebuggerStore.setState({ objectChangeCount: state.objectChangeCount + 1 }) }} /></td>
+                </tr>
+                <tr>
+                    <td>rot°</td>
+                    <td><input class="w-10 mr-1" value={state.object.rotation.x / Math.PI * 180} onBlur={(ev) => { if (!state.object) { return } state.object.rotation.x = +ev.currentTarget.value / 180 * Math.PI; modelDebuggerStore.setState({ objectChangeCount: state.objectChangeCount + 1 }) }} /></td>
+                    <td><input class="w-10 mr-1" value={state.object.rotation.y / Math.PI * 180} onBlur={(ev) => { if (!state.object) { return } state.object.rotation.y = +ev.currentTarget.value / 180 * Math.PI; modelDebuggerStore.setState({ objectChangeCount: state.objectChangeCount + 1 }) }} /></td>
+                    <td><input class="w-10 mr-1" value={state.object.rotation.z / Math.PI * 180} onBlur={(ev) => { if (!state.object) { return } state.object.rotation.z = +ev.currentTarget.value / 180 * Math.PI; modelDebuggerStore.setState({ objectChangeCount: state.objectChangeCount + 1 }) }} /></td>
+                </tr>
+            </table>
+        </>)}
+    </div>
+}
 const UI = () => {
     const state = useStore(domStore)
     const newsDialog = useRef() as Ref<HTMLDialogElement>
@@ -91,8 +119,8 @@ const UI = () => {
         {/* Tutorial message */}
         <Tutorial />
 
-        {/* Rendering options */}
         <div class="absolute right-1 top-1">
+            {/* Stages */}
             {isStageWindowVisible && <div class="px-3 pt-1 pb-3 window">
                 <h2 class="mb-2">Stages</h2>
                 <div>
@@ -102,6 +130,7 @@ const UI = () => {
                 </div>
             </div>}
 
+            {/* DEBUG: Rendering options */}
             <div class="px-3 pt-1 pb-3 window">
                 <h2>[Debug] Rendering</h2>
                 <div>
@@ -112,6 +141,9 @@ const UI = () => {
                 </div>
                 <button class="px-4 hover:bg-opacity-60" onClick={() => { location.reload() }}>Apply</button>
             </div>
+
+            {/* DEBUG: 3D model debugger */}
+            <ModelDebugger />
         </div>
 
         {/* The buttons at the left bottom corner */}
