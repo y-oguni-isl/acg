@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { getState, price, store, upgradeNames } from "../save_data"
+import { getState, price, store, upgradeNames } from "../saveData"
 import { useStore } from "zustand"
 import { entries } from "../util"
 

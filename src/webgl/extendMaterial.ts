@@ -7,7 +7,7 @@ import * as THREE from "three"
  * ```
  * const uniforms = { time: { value: 0 } }
  * onBeforeRender.add((time) => { uniforms.time.value = time })
- * extendFragmentShader(model, {
+ * extendMaterial(model, {
  *     uniforms,
  *     fragmentShader: `
  * uniform float time;
@@ -26,7 +26,7 @@ import * as THREE from "three"
  * - fragment shader:
  *   - vViewPosition: the screen position
  */
-const extendShader = (obj: THREE.Object3D, program: { uniforms?: Record<string, { value: unknown }>, vertexShader?: string, fragmentShader?: string }) => {
+export default (obj: THREE.Object3D, program: { uniforms?: Record<string, { value: unknown }>, vertexShader?: string, fragmentShader?: string }) => {
     obj.traverse((obj) => {
         if (!(obj instanceof THREE.Mesh)) { return }
         (obj.material as THREE.Material).onBeforeCompile = (shader) => {
@@ -41,5 +41,3 @@ const extendShader = (obj: THREE.Object3D, program: { uniforms?: Record<string, 
         }
     })
 }
-
-export default extendShader

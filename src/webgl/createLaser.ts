@@ -1,13 +1,13 @@
 import * as THREE from "three"
 import { onBeforeRender } from "../hooks"
-import { getState } from "../save_data"
+import { getState } from "../saveData"
 import { call } from "../util"
-import laserFrag from "./laser.frag"
-import laserVert from "./laser.vert"
-import { bloomLayer } from "./selective_bloom"
+import laserFrag from "./createLaser.frag"
+import laserVert from "./createLaser.vert"
+import { bloomLayer } from "./createSelectiveBloomPass"
 
 /** Creates a 3D model of a laser. */
-const createLaser = (source: THREE.Object3D) => {
+export default (source: THREE.Object3D) => {
     const uniforms = {
         time: { value: 0.0 },
         count: { value: 0.0 },
@@ -36,5 +36,3 @@ const createLaser = (source: THREE.Object3D) => {
 
     return mesh
 }
-
-export default createLaser

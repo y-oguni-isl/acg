@@ -1,13 +1,12 @@
 import { onBeforeRender } from "../hooks"
 import { call } from "../util"
-import extendShader from "./extend_material"
-import { loadGLTF } from "./gltf"
-import ObjectPool from "./object_pool"
-import ufoFrag from "./ufo.frag"
-import ufoVert from "./ufo.vert"
+import extendShader from "./extendMaterial"
+import loadGLTF from "./loadGLTF"
+import ObjectPool from "./ObjectPool"
+import ufoFrag from "./createUFOPool.frag"
+import ufoVert from "./createUFOPool.vert"
 
-let i = 0
-export const buildUFOPool = async () => {
+export default async () => {
     const uniforms = { time: { value: 0 }, distortion: { value: 0 } }
     onBeforeRender.add((time) => { uniforms.time.value = time })
 

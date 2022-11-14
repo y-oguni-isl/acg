@@ -4,8 +4,8 @@ import type { RenderPass } from "three/examples/jsm/postprocessing/RenderPass"
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass"
 import { onBeforeRender } from "../hooks"
-import selective_bloomFrag from "./selective_bloom.frag"
-import selective_bloomVert from "./selective_bloom.vert"
+import selective_bloomFrag from "./createSelectiveBloomPass.frag"
+import selective_bloomVert from "./createSelectiveBloomPass.vert"
 
 export const bloomLayer = 1
 
@@ -24,7 +24,7 @@ export const bloomLayer = 1
  * scene.add(ball)
  * ```
  */
-const createSelectiveBloomPass = (renderer: THREE.WebGLRenderer, camera: THREE.Camera, renderPass: RenderPass) => {
+export default (renderer: THREE.WebGLRenderer, camera: THREE.Camera, renderPass: RenderPass) => {
     const effectComposer = new EffectComposer(renderer)
     effectComposer.renderToScreen = false
     effectComposer.addPass(renderPass)
@@ -51,5 +51,3 @@ const createSelectiveBloomPass = (renderer: THREE.WebGLRenderer, camera: THREE.C
     window.addEventListener("resize", () => { effectComposer.setSize(window.innerWidth, window.innerHeight) })
     return additiveBlendingPass
 }
-
-export default createSelectiveBloomPass

@@ -1,27 +1,20 @@
 import 'typed-query-selector'
-import "./webgl/lib.glsl"
+import * as Stats from "stats.js"
 import * as THREE from 'three'
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js"
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js"
 import { smoothstep } from 'three/src/math/MathUtils'
-import * as Stats from "stats.js"
-import { onBeforeRender, onUpdate } from './hooks'
-import { getState, newsList, subscribe } from './save_data'
-import { domStore, getRenderingOption } from './dom'
-import createRainPass from './webgl/rain'
-import createSelectiveBloomPass, { bloomLayer } from './webgl/selective_bloom'
-import createLaser from './webgl/laser'
-import { loadGLTF } from './webgl/gltf'
-import createNewspaperPlayer from './webgl/news_animation'
-import ObjectPool from './webgl/object_pool'
-import createFog from './webgl/fog'
-import { call } from './util'
 import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise"
-import { buildUFOPool } from './webgl/ufo'
+import { onBeforeRender, onUpdate } from './hooks'
+import { getState, newsList, subscribe } from './saveData'
+import { domStore, getRenderingOption } from './dom'
+import { call } from './util'
+import * as webgl from "./webgl"
 
-const airplane = !getRenderingOption("airplane") ? new THREE.Object3D() : await loadGLTF("models/low-poly_airplane.glb", 0.05)
+// Airplane
+const airplane = !getRenderingOption("airplane") ? new THREE.Object3D() : await webgl.loadGLTF("models/low-poly_airplane.glb", 0.05)
 {
     const rotationNoise = new SimplexNoise()
     onBeforeRender.add((time) => {
@@ -33,28 +26,27 @@ const airplane = !getRenderingOption("airplane") ? new THREE.Object3D() : await 
     })
 }
 
-const skybox = !getRenderingOption("skybox") ? new THREE.Object3D() : call(await loadGLTF("models/sky_pano_-_grand_canyon_yuma_point.glb", 4), { rotateX: -Math.PI / 2, position: { setY: -0.5 } })
-{
-    onBeforeRender.add((time) => {
-        skybox.rotation.y = time * 0.0001
-    })
-}
+// Skybox
+const skybox = !getRenderingOption("skybox") ? new THREE.Object3D() : call(await webgl.loadGLTF("models/sky_pano_-_grand_canyon_yuma_point.glb", 4), { rotateX: -Math.PI / 2, position: { setY: -0.5 } })
+onBeforeRender.add((time) => { skybox.rotation.y = time * 0.0001 })
 
+// Light, fog, laser, and axis helper
 const scene = new THREE.Scene().add(
     new THREE.AmbientLight(0xffffff, 0.025),
     call(new THREE.DirectionalLight(0xf5eeba, 1.6), { position: { set: [0.3, 1, -1] } }),
     airplane,
     skybox,
-    !getRenderingOption("fog") ? new THREE.Object3D() : createFog(),
-    !getRenderingOption("laser") ? new THREE.Object3D() : createLaser(airplane),
+    !getRenderingOption("fog") ? new THREE.Object3D() : webgl.createFog(),
+    !getRenderingOption("laser") ? new THREE.Object3D() : webgl.laser(airplane),
     !getRenderingOption("axis") ? new THREE.Object3D() : new THREE.AxesHelper(),
 )
 
+// Camera
 const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10), { position: { set: [-0.5, 0.6, 0] } })
 
 // News
 {
-    const startNewspaperAnimation = !getRenderingOption("newspaper") ? null : await createNewspaperPlayer(scene)
+    const startNewspaperAnimation = !getRenderingOption("newspaper") ? null : await webgl.newsAnimation(scene)
     subscribe((s, prev) => {
         if (s.availableNews === prev.availableNews) { return }
         const addedNews = [...s.availableNews].filter((n) => !prev.availableNews.has(n))[0]
@@ -67,8 +59,8 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
 // Enemies
 {
     // Create a object pool for the 3D model of a bird
-    const buildBirdModel = async () => call(await loadGLTF("models/low_polygon_art__white_eagle_bird.glb", 0.1), { rotateX: -Math.PI / 2, rotateZ: -Math.PI / 2, scale: { multiplyScalar: 0.3 } })
-    const birds = new ObjectPool(await buildBirdModel())
+    const buildBirdModel = async () => call(await webgl.loadGLTF("models/low_polygon_art__white_eagle_bird.glb", 0.1), { rotateX: -Math.PI / 2, rotateZ: -Math.PI / 2, scale: { multiplyScalar: 0.3 } })
+    const birds = new webgl.ObjectPool(await buildBirdModel())
         .withVertexAnimation((positions, originalPositions) => {
             for (let i = 0; i < positions.count; i++) {
                 const dy = smoothstep(Math.abs(positions.getX(i)), 3.5, 17) * 10 * Math.sin(Date.now() * 0.01) * 0.8
@@ -77,16 +69,16 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
             }
         })
     if (getRenderingOption("birds")) { scene.add(birds) }
-    const deadBirds = new ObjectPool(await buildBirdModel())
+    const deadBirds = new webgl.ObjectPool(await buildBirdModel())
     if (getRenderingOption("deadBirds")) { scene.add(deadBirds) }
 
     // Create a object pool for the 3D model of a hit effect.
     // TODO: shader
-    const hitEffects = await ObjectPool.fromBuilder(async () => call(new THREE.Mesh(new THREE.IcosahedronGeometry(0.006), new THREE.MeshBasicMaterial({ color: 0xff66ff })), { layers: { enable: bloomLayer } }))
+    const hitEffects = await webgl.ObjectPool.fromBuilder(async () => call(new THREE.Mesh(new THREE.IcosahedronGeometry(0.006), new THREE.MeshBasicMaterial({ color: 0xff66ff })), { layers: { enable: webgl.bloomLayer } }))
     if (getRenderingOption("hitEffects")) { scene.add(hitEffects) }
 
     // Create a object pool for the 3D model of a UFO.
-    const ufos = await buildUFOPool()
+    const ufos = await webgl.createUFOPool()
     if (getRenderingOption("UFO")) { scene.add(ufos) }
 
     // A set to store the state of each enemy.
@@ -225,8 +217,8 @@ const effectComposer = new EffectComposer(renderer)
     const renderPass = new RenderPass(scene, camera)
     effectComposer.addPass(renderPass)
     if (getRenderingOption("unrealbloom")) { effectComposer.addPass(new UnrealBloomPass(new THREE.Vector2(256, 256), 0.2, 0, 0)) }
-    if (getRenderingOption("selective unrealbloom")) { effectComposer.addPass(createSelectiveBloomPass(renderer, camera, renderPass)) }
-    if (getRenderingOption("rain")) { effectComposer.addPass(createRainPass(camera, getRenderingOption("rain.blur", false))) }
+    if (getRenderingOption("selective unrealbloom")) { effectComposer.addPass(webgl.createSelectiveBloomPass(renderer, camera, renderPass)) }
+    if (getRenderingOption("rain")) { effectComposer.addPass(webgl.createRainPass(camera, getRenderingOption("rain.blur", false))) }
 }
 
 // Resize the canvas to fit to the window
