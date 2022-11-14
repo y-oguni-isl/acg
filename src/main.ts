@@ -16,20 +16,27 @@ import createStageTransitionPass from './webgl/createStageTransitionPass'
 
 // Airplane
 const airplane = !getRenderingOption("airplane") ? new THREE.Object3D() : await webgl.loadGLTF("models/low-poly_airplane.glb", 0.05)
+let airplaneVelocity = new THREE.Vector2(0.0, 0.0)
 {
     const rotationNoise = new SimplexNoise()
     onBeforeRender.add((time) => {
         airplane.rotation.set(
-            rotationNoise.noise(0, time * 0.0003) * (4 / 180 * Math.PI),
+            airplaneVelocity.x * 0.3 + rotationNoise.noise(0, time * 0.0003) * (4 / 180 * Math.PI),
             Math.PI * 0.5 + rotationNoise.noise(1, time * 0.0003) * (4 / 180 * Math.PI),
             rotationNoise.noise(2, time * 0.0003) * (4 / 180 * Math.PI),
         )
     })
 }
+const xMax = 0.5
+const xMin = -0.5
+const yMax = 0.3
+const yMin = -0.3
 
-// Light, skybox, fog, laser, and axis helper
+
+// Light, contrail, skybox, fog, laser, and axis helper
 const scene = new THREE.Scene().add(
     airplane,
+    !getRenderingOption("contrail") ? new THREE.Object3D() : await webgl.createContrail(airplane),
     !getRenderingOption("skybox") ? new THREE.Object3D() : await webgl.createStages(),
     !getRenderingOption("laser") ? new THREE.Object3D() : webgl.laser(airplane),
     !getRenderingOption("axis") ? new THREE.Object3D() : new THREE.AxesHelper(),
@@ -143,12 +150,12 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
             if (enemy.name === "Bird") {
                 enemy.model.position.x -= 0.01
             } else { // UFO
-                if (enemy.time % 80 <= 3) {
+                if (enemy.time % 80 <= 3) { // before teleportation
                     enemy.model.scale.copy(enemy.model.getOriginalScale().multiply(new THREE.Vector3(1, 1 - (enemy.time % 80) / 3, 1)))
-                } else if (enemy.time % 80 === 3 + 1) {
+                } else if (enemy.time % 80 === 3 + 1) {  // teleportation
                     enemy.model.position.x -= 0.35 + Math.random() * 0.2
-                    enemy.model.position.z -= (Math.random() - 0.3) * 0.2
-                } else if (enemy.time % 80 <= 3 + 1 + 3) {
+                    enemy.model.position.z = Math.max(xMin, Math.min(xMax, enemy.model.position.z + (Math.random() - 0.5) * 0.2))
+                } else if (enemy.time % 80 <= 3 + 1 + 3) { // after teleportation
                     enemy.model.scale.copy(enemy.model.getOriginalScale().multiply(new THREE.Vector3(1, (enemy.time % 80 - (3 + 1)) / 3, 1)))
                 }
             }
@@ -195,7 +202,6 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
         if (getState().stageTransitingTo !== null) {
             // Play the animation to move to another stage
             airplane.position.x += 0.01 + Math.max(0, airplane.position.x) * 0.08
-            console.log(scene.rotation.clone())
             scene.rotateY(0.02)
             scene.rotateZ(-0.003)
             if (airplane.position.x > 2) {
@@ -207,10 +213,14 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
             }
         } else {
             // Move the airplane by WASD keys
-            if (pressedKeys.has("KeyD")) { airplane.position.setZ(Math.min(0.5, Math.max(-0.5, airplane.position.z + 0.015))) }
-            if (pressedKeys.has("KeyA")) { airplane.position.setZ(Math.min(0.5, Math.max(-0.5, airplane.position.z - 0.015))) }
-            if (pressedKeys.has("KeyW")) { airplane.position.setX(Math.min(0.3, Math.max(-0.3, airplane.position.x + 0.015))) }
-            if (pressedKeys.has("KeyS")) { airplane.position.setX(Math.min(0.3, Math.max(-0.3, airplane.position.x - 0.015))) }
+            if (pressedKeys.has("KeyD")) { airplaneVelocity.x = Math.min(1, Math.max(0, airplaneVelocity.x) + 0.3) }
+            if (pressedKeys.has("KeyA")) { airplaneVelocity.x = Math.max(-1, Math.min(0, airplaneVelocity.x) - 0.3) }
+            if (pressedKeys.has("KeyW")) { airplaneVelocity.y = Math.min(1, Math.max(0, airplaneVelocity.y) + 0.3) }
+            if (pressedKeys.has("KeyS")) { airplaneVelocity.y = Math.max(-1, Math.min(0, airplaneVelocity.y) - 0.3) }
+            if (pressedKeys.size === 0) { airplaneVelocity.multiplyScalar(0.5) }
+            if (airplaneVelocity.length() > 1) { airplaneVelocity.normalize() }
+            airplane.position.setZ(Math.min(xMax, Math.max(xMin, airplane.position.z + airplaneVelocity.x * 0.015)))
+            airplane.position.setX(Math.min(yMax, Math.max(yMin, airplane.position.x + airplaneVelocity.y * 0.01)))
 
             // Autopilot
             if (getState().upgrades.Autopilot > 0 && pressedKeys.size === 0) { // TODO: add a switch to disable autopilot

@@ -10,3 +10,4 @@ export { default as createSelectiveBloomPass, enableSelectiveBloom } from "./cre
 export { default as createUFOPool } from "./createUFOPool"
 export { default as createStages } from "./createStages"
 export { default as createHammerPool } from "./createHammerPool"
+export { default as createContrail } from "./createContrail"
