@@ -42,6 +42,7 @@ export type Stage = 0 | 1
 
 type State = {
     stage: Stage
+    stageTransitingTo: Stage | null
     money: number
     upgrades: Record<typeof upgradeNames[number], number>
     completedTutorials: Set<keyof typeof tutorials>
@@ -53,14 +54,17 @@ type State = {
     completeTutorial: (name: keyof typeof tutorials) => void
     addNews: (name: keyof typeof newsList) => void
     addTutorial: (name: keyof typeof tutorials) => void
-    setStage: (stage: Stage) => void
+    setStageTransitingTo: (stage: Stage) => void
+    completeStageTransition: () => void
 }
 
 const localStorageKey = "acgSaveData"
 let destroyed = false
 
+/** This store maintains the stage of game, and it is persisted in the localStorage by the persiste() middleware. */
 export const store = create<State>()(persist(immer((set, get) => ({
     stage: 0 as Stage,
+    stageTransitingTo: null as Stage | null,
     money: 0,
     upgrades: Object.fromEntries(upgradeNames.map((name) => [name, 0])) as Record<typeof upgradeNames[number], number>,
     completedTutorials: new Set(),
@@ -85,11 +89,21 @@ export const store = create<State>()(persist(immer((set, get) => ({
         set((d) => { d.availableNews.add(name) })
     },
     addTutorial: (name) => { set((d) => { d.availableTutorials.add(name) }) },
-    setStage: (stage) => { set((d) => { d.stage = stage }) }
+    setStageTransitingTo: (stage) => {
+        if (get().stage === stage) { return }
+        set((d) => { d.stageTransitingTo = stage })
+    },
+    completeStageTransition: () => {
+        set((d) => {
+            if (d.stageTransitingTo === null) { return }
+            d.stage = d.stageTransitingTo
+            d.stageTransitingTo = null
+        })
+    },
 })), {
     // Options for the "persist" middleware
     name: localStorageKey,
-    version: 1,
+    version: 2,
     // migrate: (state, version) => {
     //     if (version === 0) { state.foo = "bar" }
     //     return state as State

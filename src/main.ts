@@ -12,6 +12,7 @@ import { domStore, getRenderingOption } from './dom'
 import { call } from './util'
 import * as webgl from "./webgl"
 import modelDebuggerStore, { init3DModelDebugger } from './modelDebugger'
+import createStageTransitionPass from './webgl/createStageTransitionPass'
 
 // Airplane
 const airplane = !getRenderingOption("airplane") ? new THREE.Object3D() : await webgl.loadGLTF("models/low-poly_airplane.glb", 0.05)
@@ -191,20 +192,35 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
             }
         }
 
-        // Move the airplane by WASD keys
-        if (pressedKeys.has("KeyD")) { airplane.position.setZ(Math.min(0.5, Math.max(-0.5, airplane.position.z + 0.015))) }
-        if (pressedKeys.has("KeyA")) { airplane.position.setZ(Math.min(0.5, Math.max(-0.5, airplane.position.z - 0.015))) }
-        if (pressedKeys.has("KeyW")) { airplane.position.setX(Math.min(0.3, Math.max(-0.3, airplane.position.x + 0.015))) }
-        if (pressedKeys.has("KeyS")) { airplane.position.setX(Math.min(0.3, Math.max(-0.3, airplane.position.x - 0.015))) }
-
-        // Autopilot
-        if (getState().upgrades.Autopilot > 0 && pressedKeys.size === 0) { // TODO: add a switch to disable autopilot
-            const findMin = <T>(arr: readonly T[], key: (v: T) => void) => arr.length === 0 ? null : arr.reduce((p, c) => key(p) < key(c) ? p : c, arr[0]!)
-            if (!autopilotTarget || !enemies.has(autopilotTarget) || autopilotTarget.model.position.x < airplane.position.x) {
-                autopilotTarget = findMin([...enemies].filter((e) => e.model.position.x > airplane.position.x + 0.3), (e) => e.model.position.x)
+        if (getState().stageTransitingTo !== null) {
+            // Play the animation to move to another stage
+            airplane.position.x += 0.01 + Math.max(0, airplane.position.x) * 0.08
+            console.log(scene.rotation.clone())
+            scene.rotateY(0.02)
+            scene.rotateZ(-0.003)
+            if (airplane.position.x > 2) {
+                stageTransitionPass.play(() => {
+                    airplane.position.x = 0
+                    scene.rotation.set(0, 0, 0)
+                    camera.lookAt(new THREE.Vector3(0, 0, 0))
+                })
             }
-            if (autopilotTarget) {
-                airplane.position.setZ(airplane.position.z * (1 - 0.01 * getState().upgrades.Autopilot) + autopilotTarget.model.position.z * 0.01 * getState().upgrades.Autopilot)
+        } else {
+            // Move the airplane by WASD keys
+            if (pressedKeys.has("KeyD")) { airplane.position.setZ(Math.min(0.5, Math.max(-0.5, airplane.position.z + 0.015))) }
+            if (pressedKeys.has("KeyA")) { airplane.position.setZ(Math.min(0.5, Math.max(-0.5, airplane.position.z - 0.015))) }
+            if (pressedKeys.has("KeyW")) { airplane.position.setX(Math.min(0.3, Math.max(-0.3, airplane.position.x + 0.015))) }
+            if (pressedKeys.has("KeyS")) { airplane.position.setX(Math.min(0.3, Math.max(-0.3, airplane.position.x - 0.015))) }
+
+            // Autopilot
+            if (getState().upgrades.Autopilot > 0 && pressedKeys.size === 0) { // TODO: add a switch to disable autopilot
+                const findMin = <T>(arr: readonly T[], key: (v: T) => void) => arr.length === 0 ? null : arr.reduce((p, c) => key(p) < key(c) ? p : c, arr[0]!)
+                if (!autopilotTarget || !enemies.has(autopilotTarget) || autopilotTarget.model.position.x < airplane.position.x) {
+                    autopilotTarget = findMin([...enemies].filter((e) => e.model.position.x > airplane.position.x + 0.3), (e) => e.model.position.x)
+                }
+                if (autopilotTarget) {
+                    airplane.position.setZ(airplane.position.z * (1 - 0.01 * getState().upgrades.Autopilot) + autopilotTarget.model.position.z * 0.01 * getState().upgrades.Autopilot)
+                }
             }
         }
     })
@@ -222,12 +238,14 @@ document.body.appendChild(renderer.domElement)
 
 // Post processing
 const effectComposer = new EffectComposer(renderer)
+const stageTransitionPass = createStageTransitionPass()
 {
     const renderPass = new RenderPass(scene, camera)
     effectComposer.addPass(renderPass)
     if (getRenderingOption("unrealbloom")) { effectComposer.addPass(new UnrealBloomPass(new THREE.Vector2(256, 256), 0.2, 0, 0)) }
     if (getRenderingOption("selective unrealbloom")) { effectComposer.addPass(webgl.createSelectiveBloomPass(renderer, camera, renderPass)) }
     if (getRenderingOption("rain")) { effectComposer.addPass(webgl.createRainPass(camera, getRenderingOption("rain.blur", false))) }
+    effectComposer.addPass(stageTransitionPass.pass)
 }
 
 // Resize the canvas to fit to the window
