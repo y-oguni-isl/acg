@@ -33,11 +33,18 @@ const airplane = !getRenderingOption("airplane") ? new THREE.Object3D() : await 
     })
 }
 
+const skybox = !getRenderingOption("skybox") ? new THREE.Object3D() : call(await loadGLTF("models/sky_pano_-_grand_canyon_yuma_point.glb", 4), { rotateX: -Math.PI / 2, position: { setY: -0.5 } })
+{
+    onBeforeRender.add((time) => {
+        skybox.rotation.y = time * 0.0001
+    })
+}
+
 const scene = new THREE.Scene().add(
     new THREE.AmbientLight(0xffffff, 0.025),
     call(new THREE.DirectionalLight(0xf5eeba, 1.6), { position: { set: [0.3, 1, -1] } }),
     airplane,
-    !getRenderingOption("skybox") ? new THREE.Object3D() : call(await loadGLTF("models/sky_pano_-_grand_canyon_yuma_point.glb", 4), { rotateX: -Math.PI / 2, position: { setY: -0.5 } }),
+    skybox,
     !getRenderingOption("fog") ? new THREE.Object3D() : createFog(),
     !getRenderingOption("laser") ? new THREE.Object3D() : createLaser(airplane),
     !getRenderingOption("axis") ? new THREE.Object3D() : new THREE.AxesHelper(),
