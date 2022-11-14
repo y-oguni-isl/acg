@@ -3,7 +3,7 @@ import Upgrades from "./upgrades"
 import create, { useStore } from "zustand"
 import { immer } from "zustand/middleware/immer"
 import { persist } from "zustand/middleware"
-import { deleteSaveData, store, tutorials } from "../saveData"
+import { deleteSaveData, getState, store, tutorials } from "../saveData"
 import { entries } from "../util"
 import { Ref, useEffect, useRef, useState } from "preact/hooks"
 import type { JSXInternal } from "preact/src/jsx"
@@ -65,9 +65,11 @@ const UI = () => {
         fetch("./audio/credit.html")
             .then((res) => res.text())
             .then((html) => { setCreditHTML((c) => c + html) })
+            .catch(console.error)
         fetch("./models/credit.html")
             .then((res) => res.text())
             .then((html) => { setCreditHTML((c) => c + html) })
+            .catch(console.error)
     }, [])
 
     useEffect(() => {
@@ -88,14 +90,22 @@ const UI = () => {
         {/* Rendering options */}
         <div class="absolute right-1 top-1">
             <div class="px-3 pt-1 pb-3 window">
-                <h2>Rendering</h2>
+                <h2 class="mb-2">Stages</h2>
+                <div>
+                    <button class="bg-gray-800 window w-full mb-1" onClick={() => { getState().setStage(0) }}>Earth</button><br />
+                    <button class="bg-gray-800 window w-full mb-1" onClick={() => { getState().setStage(1) }}>Universe</button>
+                </div>
+            </div>
+
+            <div class="px-3 pt-1 pb-3 window">
+                <h2>[Debug] Rendering</h2>
                 <div>
                     {entries(state.renderingOptions).map(([name, checked]) => <label class="block">
                         <input type="checkbox" class="mr-1" checked={checked} onClick={() => { state.setRenderingOption(name, !checked) }} />
                         <span>{name}</span>
                     </label>)}
                 </div>
-                <button class="bg-gray-800 bg-opacity-30 px-4 hover:bg-opacity-60" onClick={() => { location.reload() }}>Apply</button>
+                <button class="bg-gray-800 window bg-opacity-30 px-4 hover:bg-opacity-60" onClick={() => { location.reload() }}>Apply</button>
             </div>
         </div>
 

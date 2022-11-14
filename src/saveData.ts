@@ -34,8 +34,10 @@ export const newsList = {
     hammer: ["UFO Researchers Develop Device That Can Float Hammers In Air", "A team of UFO researchers say they have invented a device that can float hammers in mid-air. The team says the device uses \"anti - gravity\" technology to achieve the feat. The device, which the team has dubbed the \"Hammer levitator\", consists of a frame made of aluminum tubing, with a ring of magnets mounted on the top. The device is placed over a hammer, and when it is turned on, the magnets create a magnetic field that levitates the hammer. The device is the latest invention from a team of UFO researchers that has been making headlines in recent years for their unorthodox methods. The team says they are now working on a device that they believe could allow humans to fly."],
 } as const satisfies { readonly [k: string]: readonly [title: string, text: string] }
 
+export type Stage = 0 | 1
+
 type State = {
-    stage: number
+    stage: Stage
     money: number
     upgrades: Record<typeof upgradeNames[number], number>
     completedTutorials: Set<keyof typeof tutorials>
@@ -47,13 +49,14 @@ type State = {
     completeTutorial: (name: keyof typeof tutorials) => void
     addNews: (name: keyof typeof newsList) => void
     addTutorial: (name: keyof typeof tutorials) => void
+    setStage: (stage: Stage) => void
 }
 
 const localStorageKey = "acgSaveData"
 let destroyed = false
 
 export const store = create<State>()(persist(immer((set, get) => ({
-    stage: 0,
+    stage: 0 as Stage,
     money: 0,
     upgrades: Object.fromEntries(upgradeNames.map((name) => [name, 0])) as Record<typeof upgradeNames[number], number>,
     completedTutorials: new Set(),
@@ -79,6 +82,7 @@ export const store = create<State>()(persist(immer((set, get) => ({
         set((d) => { d.availableNews.add(name) })
     },
     addTutorial: (name) => { set((d) => { d.availableTutorials.add(name) }) },
+    setStage: (stage) => { set((d) => { d.stage = stage }) }
 })), {
     // Options for the "persist" middleware
     name: localStorageKey,
