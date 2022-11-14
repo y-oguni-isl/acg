@@ -78,7 +78,10 @@ const UI = () => {
         newsDialog.current!.style.opacity = "0"
         newsDialog.current!.showModal()
         newsDialog.current!.style.opacity = "1"
-        newsDialog.current!.addEventListener("close", () => { domStore.setState({ news: null }) }, { once: true })
+        newsDialog.current!.addEventListener("close", () => {
+            domStore.setState({ news: null })
+            getState().addTutorial("nextStage")
+        }, { once: true })
     }, [state.news])
 
     return <>
@@ -94,7 +97,8 @@ const UI = () => {
                 <h2 class="mb-2">Stages</h2>
                 <div>
                     <button class="w-full mb-1" onClick={() => { getState().setStage(0) }}>Earth</button><br />
-                    <button class="w-full mb-1" onClick={() => { getState().setStage(1) }}>Universe</button>
+                    <button class="w-full mb-1" onClick={() => { getState().setStage(1); getState().completeTutorial("nextStage") }}>Universe</button>
+                    <button class="w-full mb-1" disabled onClick={() => { /* TODO: */ }}>???</button>
                 </div>
             </div>}
 

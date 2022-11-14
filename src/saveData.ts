@@ -20,12 +20,13 @@ const basePrice = {
     placeholder6: 100 * 15 ** 7,
 } satisfies Record<typeof upgradeNames[number], number>
 
-export const price = (name: (typeof upgradeNames)[number]) => basePrice[name] * 1.15 ** getState().upgrades[name]
+export const price = (name: (typeof upgradeNames)[number]) => basePrice[name] * 1.25 ** getState().upgrades[name]
 
 /** The list of tutorials and their texts. */
 export const tutorials = {
     wasd: "You have become a fighter pilot that shoots laser beams. This world is peaceful, so your first mission is to protect farmers from harmful birds.\nThe controls are simple, WASD to move and aim your targets.",
     upgrade: "You can now buy upgrades for your aircraft! To do so, click on the button in the upper left corner of the screen.",
+    nextStage: "You can now move on to the next stage! To do so, click the button in the top right corner of the screen."
 }
 
 /** The list of news and their headlines and texts. */

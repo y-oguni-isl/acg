@@ -44,7 +44,6 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
         if (s.availableNews === prev.availableNews) { return }
         const addedNews = [...s.availableNews].filter((n) => !prev.availableNews.has(n))[0]
         if (!addedNews) { return }
-        domStore.setState({ news: newsList[addedNews] })
         startNewspaperAnimation?.(addedNews)
     })
 }
@@ -117,7 +116,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
     // Main game loop
     onUpdate.add((t) => {
         // Spawn enemies
-        if (t % 5 === 0) {
+        if (getState().stage === 0 && t % 5 === 0) {
             const model = call(birds.allocate(), { position: { set: [2, 0, (t * 0.06) % 1 - 0.5] } })
             enemies.add({
                 name: "Bird", time: 0, hp: 15 * (1 + Math.random()), model, onKilled: () => {
@@ -125,11 +124,11 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
                     deadEnemies.add({ time: 0, model: call(deadBirds.allocate(), { position: { copy: model.position } }) })
                 }
             })
-        } else if (t % 31 === 0 && getState().availableNews.has("aliensComing")) {
+        } else if (getState().stage === 1 && t % 31 === 0 && getState().availableNews.has("aliensComing")) {
             const model = call(ufos.allocate(), { position: { set: [2, 0, (t * 0.06) % 1 - 0.5] } })
             enemies.add({
                 name: "UFO", time: 0, hp: 300 * (1 + Math.random()), model, onKilled: () => {
-                    getState().addMoney(10)
+                    getState().addMoney(30)
                     deadEnemies.add({ time: 0, model: call(ufos.allocate(), { position: { copy: model.position } }) })
                 }
             })
