@@ -2,6 +2,7 @@ import * as THREE from "three"
 import { getState, price, store, upgradeNames } from "../saveData"
 import { useStore } from "zustand"
 import { entries } from "../util"
+import { useEffect, useState } from "preact/hooks"
 
 const maxUpgrades = 25
 
@@ -32,6 +33,13 @@ const Upgrades = () => {
     const upgrades = useStore(store, (s) => s.upgrades)
     const money = useStore(store, (s) => s.money)
     const buyUpgrade = useStore(store, (s) => s.buyUpgrade)
+
+    const [, update] = useState({})
+
+    useEffect(() => {
+        const timer = setInterval(() => { update({}) }, 1000 / 60)
+        return () => { clearTimeout(timer) }
+    }, [])
 
     return <div class="absolute left-1 top-1">
         <div class="px-3 pt-1 pb-3 window">

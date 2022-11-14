@@ -8,7 +8,7 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { smoothstep } from 'three/src/math/MathUtils'
 import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise"
 import { onBeforeRender, onUpdate } from './hooks'
-import { getState, newsList, subscribe } from './saveData'
+import { getState, subscribe } from './saveData'
 import { domStore, getRenderingOption } from './dom'
 import { call } from './util'
 import * as webgl from "./webgl"
@@ -90,6 +90,20 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
         time: number  // time since it was killed
         model: ReturnType<typeof deadBirds.allocate>
     }>()
+
+    // Delete everything when switching to another stage
+    subscribe((state, prev) => {
+        if (state.stage === prev.stage) { return }
+        for (const enemy of enemies) {
+            enemy.model.free()
+            enemy.hitEffectModel?.free()
+        }
+        enemies.clear()
+        for (const body of deadEnemies) {
+            body.model.free()
+        }
+        deadEnemies.clear()
+    })
 
     // The enemy that the autopilot algorithm is currently targeting.
     let autopilotTarget: (typeof enemies extends Set<infer R> ? R : never) | null = null

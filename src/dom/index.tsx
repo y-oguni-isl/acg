@@ -60,6 +60,7 @@ const UI = () => {
     const newsDialog = useRef() as Ref<HTMLDialogElement>
     const creditDialog = useRef() as Ref<HTMLDialogElement>
     const [creditHTML, setCreditHTML] = useState<string>("")
+    const isStageWindowVisible = useStore(store, (s) => s.availableNews.has("aliensComing"))
 
     useEffect(() => {
         fetch("./audio/credit.html")
@@ -89,13 +90,13 @@ const UI = () => {
 
         {/* Rendering options */}
         <div class="absolute right-1 top-1">
-            <div class="px-3 pt-1 pb-3 window">
+            {isStageWindowVisible && <div class="px-3 pt-1 pb-3 window">
                 <h2 class="mb-2">Stages</h2>
                 <div>
-                    <button class="bg-gray-800 window w-full mb-1" onClick={() => { getState().setStage(0) }}>Earth</button><br />
-                    <button class="bg-gray-800 window w-full mb-1" onClick={() => { getState().setStage(1) }}>Universe</button>
+                    <button class="w-full mb-1" onClick={() => { getState().setStage(0) }}>Earth</button><br />
+                    <button class="w-full mb-1" onClick={() => { getState().setStage(1) }}>Universe</button>
                 </div>
-            </div>
+            </div>}
 
             <div class="px-3 pt-1 pb-3 window">
                 <h2>[Debug] Rendering</h2>
@@ -105,7 +106,7 @@ const UI = () => {
                         <span>{name}</span>
                     </label>)}
                 </div>
-                <button class="bg-gray-800 window bg-opacity-30 px-4 hover:bg-opacity-60" onClick={() => { location.reload() }}>Apply</button>
+                <button class="px-4 hover:bg-opacity-60" onClick={() => { location.reload() }}>Apply</button>
             </div>
         </div>
 
