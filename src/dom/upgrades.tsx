@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { getState, price, store, upgradeNames } from "../saveData"
+import { getState, isUpgradeNameHidden, price, store, upgradeNames } from "../saveData"
 import { useStore } from "zustand"
 import { entries } from "../util"
 import { useEffect, useState } from "preact/hooks"
@@ -56,7 +56,7 @@ const Upgrades = () => {
                         buyUpgrade(name)
                     }}>
                     <div class="px-2 hover:bg-[linear-gradient(0deg,rgba(255,255,255,1)_0%,rgba(255,255,255,0)_10%)]">
-                        <span class="inline-block w-28">{count === 0 && money <= price(name) * 2 / 3 ? "???" : name}</span>
+                        <span class="inline-block w-28">{isUpgradeNameHidden(name) ? "???" : name}</span>
                         <span class="float-right">{count}</span>
                     </div>
                 </div>)}

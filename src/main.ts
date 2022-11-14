@@ -6,7 +6,7 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js"
 import { smoothstep } from 'three/src/math/MathUtils'
 import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise"
-import { onBeforeRender, onUpdate } from './hooks'
+import { onBeforeRender, onPreprocess, onUpdate } from './hooks'
 import { getState, subscribe } from './saveData'
 import { domStore, getRenderingOption } from './dom'
 import { call } from './util'
@@ -33,6 +33,9 @@ const scene = new THREE.Scene().add(
     !getRenderingOption("laser") ? new THREE.Object3D() : webgl.laser(airplane),
     !getRenderingOption("axis") ? new THREE.Object3D() : new THREE.AxesHelper(),
 )
+
+const hammers = !getRenderingOption("hammer") ? null : await webgl.createHammerPool(airplane)
+if (hammers) { scene.add(hammers) }
 
 // Camera
 const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10), { position: { set: [-0.5, 0.6, 0] } })
@@ -66,7 +69,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
 
     // Create a object pool for the 3D model of a hit effect.
     // TODO: shader
-    const hitEffects = await webgl.ObjectPool.fromBuilder(async () => call(new THREE.Mesh(new THREE.IcosahedronGeometry(0.006), new THREE.MeshBasicMaterial({ color: 0xff66ff })), { layers: { enable: webgl.bloomLayer } }))
+    const hitEffects = await webgl.ObjectPool.fromBuilder(async () => webgl.enableSelectiveBloom(new THREE.Mesh(new THREE.IcosahedronGeometry(0.006), new THREE.MeshBasicMaterial({ color: 0xff66ff }))))
     if (getRenderingOption("hitEffects")) { scene.add(hitEffects) }
 
     // Create a object pool for the 3D model of a UFO.
@@ -270,6 +273,7 @@ if (stats) {
             onBeforeRender.forEach((f) => f(time, deltaTime))
         }
 
+        onPreprocess.forEach((f) => f())
         effectComposer.render()
     })
 }

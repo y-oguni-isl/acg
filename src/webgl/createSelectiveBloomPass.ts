@@ -3,23 +3,27 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import type { RenderPass } from "three/examples/jsm/postprocessing/RenderPass"
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass"
-import { onBeforeRender } from "../hooks"
+import { onPreprocess } from "../hooks"
 import selective_bloomFrag from "./createSelectiveBloomPass.frag"
 import selective_bloomVert from "./createSelectiveBloomPass.vert"
 
-export const bloomLayer = 1
+const bloomLayer = 1
+export const enableSelectiveBloom = <T extends THREE.Object3D>(obj: T): T => {
+    obj.traverse((child) => { child.layers.set(bloomLayer) })
+    return obj
+}
 
 /**
- * Creates a shader pass that applies bloom effects to objects marked with `obj.layers.enable(bloomLayer)`.
+ * Creates a shader pass that applies bloom effects to objects marked with `enableSelectiveBloom(obj)`.
  * Based on three.js/examples/webgl_postprocessing_unreal_bloom_selective
  * https://threejs.org/examples/?q=bloom#webgl_postprocessing_unreal_bloom_selective
  * 
  * @example
  * ```
- * import { bloomLayer } from './shader/selective_bloom'
+ * import { enableSelectiveBloom } from './shader/selective_bloom'
  * 
  * const ball = new THREE.Mesh(new THREE.IcosahedronGeometry(0.1), new THREE.MeshBasicMaterial({ color: "purple" }))
- * ball.layers.enable(bloomLayer)
+ * enableSelectiveBloom(ball)
  * ball.position.set(0.4, 0, 0)
  * scene.add(ball)
  * ```
@@ -42,7 +46,7 @@ export default (renderer: THREE.WebGLRenderer, camera: THREE.Camera, renderPass:
         'texture1',
     )
     additiveBlendingPass.needsSwap = true
-    onBeforeRender.add(() => {
+    onPreprocess.add(() => {
         camera.layers.disableAll()
         camera.layers.enable(bloomLayer)
         effectComposer.render()

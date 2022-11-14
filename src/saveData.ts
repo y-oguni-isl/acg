@@ -22,6 +22,9 @@ const basePrice = {
 
 export const price = (name: (typeof upgradeNames)[number]) => basePrice[name] * 1.25 ** getState().upgrades[name]
 
+/** If true, the name of the upgrade is shown as ??? */
+export const isUpgradeNameHidden = (name: (typeof upgradeNames)[number]) => getState().upgrades[name] === 0 && getState().money < price(name) / 2 * 3
+
 /** The list of tutorials and their texts. */
 export const tutorials = {
     wasd: "You have become a fighter pilot that shoots laser beams. This world is peaceful, so your first mission is to protect farmers from harmful birds.\nThe controls are simple, WASD to move and aim your targets.",
@@ -66,9 +69,8 @@ export const store = create<State>()(persist(immer((set, get) => ({
 
     addMoney: (delta) => {
         set((d) => { d.money += delta })
-        if (get().money >= price(upgradeNames[0]!)) {
-            get().addTutorial("upgrade")
-        }
+        if (get().money >= price(upgradeNames[0]!)) { get().addTutorial("upgrade") }
+        if (!isUpgradeNameHidden("Hammer")) { get().addNews("hammer") }
     },
     buyUpgrade: (name) => {
         set((d) => { d.money -= price(name); d.upgrades[name]++ })

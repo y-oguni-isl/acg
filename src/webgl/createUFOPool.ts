@@ -1,6 +1,6 @@
 import { onBeforeRender } from "../hooks"
 import { call } from "../util"
-import extendShader from "./extendMaterial"
+import { extendMaterial } from "./extendMaterial"
 import loadGLTF from "./loadGLTF"
 import ObjectPool from "./ObjectPool"
 import ufoFrag from "./createUFOPool.frag"
@@ -12,7 +12,7 @@ export default async () => {
 
     return (await ObjectPool.fromBuilder(async () => {
         const model = call(await loadGLTF("models/ufo.glb", 0.2), { rotateX: -Math.PI / 2, position: { set: [0.5, 0, 0] } })
-        extendShader(model, { uniforms, vertexShader: ufoVert, fragmentShader: ufoFrag })
+        extendMaterial(model, { uniforms, vertexShader: ufoVert, fragmentShader: ufoFrag })
         return model
     })).onClone((copy) => {
         onBeforeRender.add((time) => {

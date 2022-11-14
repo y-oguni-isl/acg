@@ -4,7 +4,7 @@ import { getState } from "../saveData"
 import { call } from "../util"
 import laserFrag from "./createLaser.frag"
 import laserVert from "./createLaser.vert"
-import { bloomLayer } from "./createSelectiveBloomPass"
+import { enableSelectiveBloom } from "./createSelectiveBloomPass"
 
 /** Creates a 3D model of a laser. */
 export default (source: THREE.Object3D) => {
@@ -30,8 +30,8 @@ export default (source: THREE.Object3D) => {
         rotateX: -Math.PI / 2,
         scale: { set: [0.25, 2, 0] },
         position: { set: [1, 0.01, 0] },
-        layers: { enable: bloomLayer },
     })
+    enableSelectiveBloom(mesh)
     mesh.renderOrder = 1
 
     return mesh

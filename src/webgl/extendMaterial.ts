@@ -26,7 +26,7 @@ import * as THREE from "three"
  * - fragment shader:
  *   - vViewPosition: the screen position
  */
-export default (obj: THREE.Object3D, program: { uniforms?: Record<string, { value: unknown }>, vertexShader?: string, fragmentShader?: string }) => {
+export const extendMaterial = (obj: THREE.Object3D, program: { uniforms?: Record<string, { value: unknown }>, vertexShader?: string, fragmentShader?: string }) => {
     obj.traverse((obj) => {
         if (!(obj instanceof THREE.Mesh)) { return }
         (obj.material as THREE.Material).onBeforeCompile = (shader) => {
@@ -39,5 +39,12 @@ export default (obj: THREE.Object3D, program: { uniforms?: Record<string, { valu
                 shader.fragmentShader = shader.fragmentShader.replace(/void\s*main\s*\(\s*\)/, "void super()") + program.fragmentShader
             }
         }
+    })
+}
+
+export const overrideMaterial = (obj: THREE.Object3D, material: THREE.Material) => {
+    obj.traverse((obj) => {
+        if (!(obj instanceof THREE.Mesh)) { return }
+        obj.material = material
     })
 }
