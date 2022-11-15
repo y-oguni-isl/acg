@@ -14,9 +14,3 @@ const loadGLTF = async (filepath: string, height: number | null): Promise<THREE.
 }
 
 export default loadGLTF
-
-export const lazyLoadGLTF = (filepath: string, height: number | null): THREE.Object3D => {
-    const container = new THREE.Object3D()
-    loadGLTF(filepath, height).then((m) => container.add(m)).catch(console.error)
-    return container
-}

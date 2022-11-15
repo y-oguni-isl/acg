@@ -22,7 +22,7 @@ const show = <T extends THREE.Object3D>(obj: T, renderingOptionLabel?: string): 
 }
 
 // Airplane
-const airplane = show(!getRenderingOption("airplane") ? new THREE.Object3D() : webgl.lazyLoadGLTF("models/low-poly_airplane.glb", 0.05))
+const airplane = show(!getRenderingOption("airplane") ? new THREE.Object3D() : await webgl.loadGLTF("models/low-poly_airplane.glb", 0.05))
 let airplaneVelocity = new THREE.Vector2(0.0, 0.0)
 {
     const rotationNoise = new SimplexNoise()
