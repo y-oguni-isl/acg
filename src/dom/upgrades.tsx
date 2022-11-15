@@ -31,36 +31,46 @@ const buildProgressBarStyle = (name: typeof upgradeNames[number], rowNumber: num
 /** The list of upgrades shown at the left top corner. */
 const Upgrades = () => {
     const upgrades = useStore(store, (s) => s.upgrades)
-    const money = useStore(store, (s) => s.money)
-    const buyUpgrade = useStore(store, (s) => s.buyUpgrade)
-
-    const [, update] = useState({})
-
-    useEffect(() => {
-        const timer = setInterval(() => { update({}) }, 1000 / 60)
-        return () => { clearTimeout(timer) }
-    }, [])
 
     return <div class="absolute left-1 top-1">
         <div class="px-3 pt-1 pb-3 window">
             <h2 class="mb-2">Upgrades</h2>
             {entries(upgrades)
                 .filter((_, i, arr) => i < 2 || arr[i - 1]![1] > 0 || arr[i - 2]![1] > 0)
-                .map(([name, count], i) => <div
-                    key={name}
-                    class="block hover:cursor-pointer mb-1 backdrop-blur-3xl drop-shadow-md select-none border-opacity-40 border-[1px] border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600"
-                    style={{ background: buildProgressBarStyle(name, i) }}
-                    disabled={price(name) > money || count >= maxUpgrades}
-                    onMouseDown={() => {
-                        if (price(name) > money || count >= maxUpgrades) { return }
-                        buyUpgrade(name)
-                    }}>
-                    <div class="px-2 hover:bg-[linear-gradient(0deg,rgba(255,255,255,1)_0%,rgba(255,255,255,0)_10%)]">
-                        <span class="inline-block w-28">{isUpgradeNameHidden(name) ? "???" : name}</span>
-                        <span class="float-right">{count}</span>
-                    </div>
-                </div>)}
+                .map(([name, count], i) => <UpgradeItem key={name} name={name} count={count} rowNumber={i} />)}
         </div>
+    </div>
+}
+
+const UpgradeItem = (props: { name: typeof upgradeNames[number], count: number, rowNumber: number }) => {
+    const buyUpgrade = useStore(store, (s) => s.buyUpgrade)
+    const money = useStore(store, (s) => s.money)
+    const [mouseHover, setMouseHover] = useState(false)
+    const [, update] = useState({})
+
+    useEffect(() => {
+        const timer = setInterval(() => { update({}) }, 1000 / 60) // Update animation
+        return () => { clearTimeout(timer) }
+    }, [])
+
+    return <div
+        key={props.name}
+        class="relative block hover:cursor-pointer mb-1 backdrop-blur-3xl drop-shadow-md select-none border-opacity-40 border-[1px] border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600"
+        style={{ background: buildProgressBarStyle(props.name, props.rowNumber) }}
+        disabled={price(props.name) > money || props.count >= maxUpgrades}
+        onMouseDown={() => {
+            if (price(props.name) > money || props.count >= maxUpgrades) { return }
+            buyUpgrade(props.name)
+        }}
+        onMouseEnter={() => { setMouseHover(true) }}
+        onMouseLeave={() => { setMouseHover(false) }}>
+        <div class="px-2 hover:bg-[linear-gradient(0deg,rgba(255,255,255,1)_0%,rgba(255,255,255,0)_10%)]">
+            <span class="inline-block w-28">{isUpgradeNameHidden(props.name) ? "???" : props.name}</span>
+            <span class="float-right">{props.count}</span>
+        </div>
+        {mouseHover && <div class="absolute left-full top-0 ml-1 px-3 tooltip whitespace-nowrap">
+            {money} / {price(props.name)}
+        </div>}
     </div>
 }
 
