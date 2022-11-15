@@ -43,7 +43,7 @@ export const tutorials = {
     upgrade: "You can now buy upgrades for your aircraft! To do so, click on the button in the upper left corner of the screen.",
     nextStage: "You can now move on to the next stage! To do so, click the button in the top right corner of the screen.",
     backToPreviousStage: "If you're finding this stage too difficult, go back to the previous stage and try again after you get more upgrades.",
-    weatherEffect: "We need to kill a red UFO in order to stop the rain. The UFO has a device that can manipulate the weather, and the rain is interfering with the autopilot system.",
+    weatherEffect: "We need to kill a UFO in order to stop the rain. The UFO has a device that can manipulate the weather, and the rain is interfering with the autopilot system.",
 }
 
 /** The list of news and their headlines and texts. */
