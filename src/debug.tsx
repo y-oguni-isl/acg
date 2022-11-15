@@ -50,7 +50,7 @@ export const getRenderingOption = renderingOptionsStore.getState().getRenderingO
 export const Debugger = () => {
     const { object, resume, stop, stopped, refreshDebugger } = useStore(modelDebuggerStore)
     const { renderingOptions, setRenderingOption } = useStore(renderingOptionsStore)
-    return <div class="absolute right-56 bottom-1">
+    return <div class="absolute right-56 bottom-1 [font-size:50%]">
         {/* DEBUG: Rendering options */}
         <div class="px-3 pt-1 pb-3 window mb-1">
             <h2>[Debug] Rendering</h2>
