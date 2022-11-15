@@ -160,10 +160,11 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
             // Move enemies
             enemy.userData.update()
 
-            // Collision detection between the enemy and the player's attacks
+            // Collisions between the enemy and the player's attacks
             for (const hammer of hammers?.children ?? []) {
-                if (hammer.position.distanceTo(enemy.position) < 0.03) {
-                    hammer
+                if (hammer.position.distanceTo(enemy.position) < 0.05) {
+                    enemy.userData.hp -= 600
+                    hammer.free()
                 }
             }
             if (Math.abs(enemy.position.z - airplane.position.z) < 0.03 && enemy.position.x > airplane.position.x) {

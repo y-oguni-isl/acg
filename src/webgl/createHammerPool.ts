@@ -28,21 +28,24 @@ export default async (source: THREE.Object3D) => {
                 copy.rotation.z = Math.PI / 2
             })
         })
-        .onAllocate(() => ({ time: 0 }))
+        .onAllocate(() => {
+            const theta = (Math.random() - 0.5) * 2 * Math.PI / 4
+            return { time: 0, velocity: new THREE.Vector3(Math.cos(theta), Math.sin(theta), 0) }
+        })
 
     onUpdate.add((t) => {
         const level = getState().upgrades.Hammer
         if (level === 0) { return }
-        if (t % Math.ceil(60 / level) === 0) {
+        if (t % Math.ceil(50 / level) === 0) {
             const model = models.allocate()
             model.position.copy(source.position)
         }
         for (const m of models.children) {
             m.userData.time++
-            m.position.x += 0.01
+            m.position.x += m.userData.velocity.x * 0.01
             m.position.y = Math.sin(m.userData.time * 0.15) * 0.03
-            m.position.z += (Math.random() - 0.5) * 0.01
-            if (m.position.x > 2) {
+            m.position.z += m.userData.velocity.y * 0.01
+            if (m.position.x > 2 || Math.abs(m.position.z) > 1) {
                 m.free()
             }
         }
