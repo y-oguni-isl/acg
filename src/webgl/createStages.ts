@@ -9,7 +9,7 @@ import createSkyboxFrag from "./createStages.frag"
 import createSkyboxVert from "./createStages.vert"
 import loadGLTF from "./loadGLTF"
 
-export default async () => {
+export default () => {
     const stages = [
         new THREE.Group(),
         new THREE.Group(),

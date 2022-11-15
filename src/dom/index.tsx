@@ -107,6 +107,7 @@ const UI = () => {
     const creditDialog = useRef() as Ref<HTMLDialogElement>
     const [creditHTML, setCreditHTML] = useState<string>("")
     const isStageWindowVisible = useStore(store, (s) => s.availableNews.has("aliensComing"))
+    const isWeatherWindowVisible = useStore(store, (s) => s.completedTutorials.has("nextStage"))
     const loadingMessage = useStore(ephemeralDOMStore, (s) => s.loadingMessage)
 
     useEffect(() => {
@@ -146,6 +147,17 @@ const UI = () => {
                     <button class="w-full mb-1" onClick={() => { getState().setStageTransitingTo(0) }}>Earth</button><br />
                     <button class="w-full mb-1" onClick={() => { getState().setStageTransitingTo(1) }}>Universe</button>
                     <button class="w-full mb-1" disabled onClick={() => { /* TODO: */ }}>???</button>
+                </div>
+            </div>}
+
+            {/* Weather */}
+            {isWeatherWindowVisible && <div class="px-3 pt-1 pb-3 window mt-1 mb-1">
+                <h2 class="mb-2">Weather</h2>
+                <div>
+                    <table>
+                        <tr><td class="pr-1">{">"}</td><td class="font-bold">Normal</td></tr>
+                        <tr><td class="pr-1"></td><td>Rain</td></tr>
+                    </table>
                 </div>
             </div>}
 

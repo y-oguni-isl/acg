@@ -1,7 +1,7 @@
 import "./lib.glsl"
 export { extendMaterial, overrideMaterial } from "./extendMaterial"
 export { default as createFog } from "./createFog"
-export { default as loadGLTF } from "./loadGLTF"
+export { default as loadGLTF, lazyLoadGLTF } from "./loadGLTF"
 export { default as laser } from "./createLaser"
 export { default as newsAnimation } from "./createNewspaperAnimationPlayer"
 export { default as ObjectPool } from "./ObjectPool"

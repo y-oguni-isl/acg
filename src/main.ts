@@ -22,7 +22,7 @@ const show = <T extends THREE.Object3D>(obj: T, renderingOptionLabel?: string): 
 }
 
 // Airplane
-const airplane = show(!getRenderingOption("airplane") ? new THREE.Object3D() : await webgl.loadGLTF("models/low-poly_airplane.glb", 0.05))
+const airplane = show(!getRenderingOption("airplane") ? new THREE.Object3D() : webgl.lazyLoadGLTF("models/low-poly_airplane.glb", 0.05))
 let airplaneVelocity = new THREE.Vector2(0.0, 0.0)
 {
     const rotationNoise = new SimplexNoise()
@@ -39,24 +39,22 @@ const xMin = -0.5
 const yMax = 0.3
 const yMin = -0.3
 
-if (getRenderingOption("contrail")) { show(await webgl.createContrail(airplane)) }
-if (getRenderingOption("skybox")) { show(await webgl.createStages()) }
+if (getRenderingOption("contrail")) { show(webgl.createContrail(airplane)) }
+if (getRenderingOption("skybox")) { show(webgl.createStages()) }
 if (getRenderingOption("laser")) { show(webgl.laser(airplane)) }
 if (getRenderingOption("axis")) { show(new THREE.AxesHelper()) }
-
-const hammers = !getRenderingOption("hammer") ? null : show(await webgl.createHammerPool(airplane))
 
 // Camera
 const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10), { position: { set: [-0.5, 0.6, 0] } })
 
 // News
 {
-    const startNewspaperAnimation = !getRenderingOption("newspaper") ? null : await webgl.newsAnimation(scene)
+    const startNewspaperAnimation = !getRenderingOption("newspaper") ? null : webgl.newsAnimation(scene)
     subscribe((s, prev) => {
         if (s.availableNews === prev.availableNews) { return }
         const addedNews = [...s.availableNews].filter((n) => !prev.availableNews.has(n))[0]
         if (!addedNews) { return }
-        startNewspaperAnimation?.(addedNews)
+        startNewspaperAnimation?.then((play) => play(addedNews))
     })
 }
 
@@ -73,57 +71,72 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
         onKilled: () => void
     }
 
-    const birds = show(new webgl.ObjectPool(await buildBirdModel())
-        .withVertexAnimation((positions, originalPositions) => {
-            for (let i = 0; i < positions.count; i++) {
-                const dy = smoothstep(Math.abs(positions.getX(i)), 3.5, 17) * 10 * Math.sin(Date.now() * 0.01) * 0.8
-                positions.setY(i, originalPositions.getY(i) + dy * 0.7)
-                positions.setZ(i, originalPositions.getZ(i) + dy)
-            }
-        })
-        .onAllocate((copy): Enemy => ({
-            time: 0,
-            hp: 15 * (1 + Math.random()),
-            laserHitEffect: null,
-            update: () => {
-                copy.position.x -= 0.01
-            },
-            onKilled: () => {
-                getState().addMoney(1)
-                deadBirds.allocate().position.copy(copy.position)
-            },
-        })), "birds")
+    // Parallel download
+    const [
+        hammers,
+        birds,
+        ufos,
+        deadBirds,
+        deadUfos,
+    ] = await Promise.all([
+        // hammer
+        !getRenderingOption("hammer") ? null : show(await webgl.createHammerPool(airplane)),
 
-    // Create a object pool for the 3D model of a UFO.
-    const ufos = show((await webgl.createUFOPool())
-        .onAllocate((copy): Enemy => ({
-            time: 0,
-            hp: 300 * (1 + Math.random()),
-            laserHitEffect: null,
-            update: () => {
-                if (copy.userData.time % 80 <= 3) { // before teleportation
-                    copy.scale.copy(copy.getOriginalScale().multiply(new THREE.Vector3(1, 1 - (copy.userData.time % 80) / 3, 1)))
-                } else if (copy.userData.time % 80 === 3 + 1) {  // teleportation
-                    copy.position.x -= 0.35 + Math.random() * 0.2
-                    copy.position.z = Math.max(xMin, Math.min(xMax, copy.position.z + (Math.random() - 0.5) * 0.2))
-                } else if (copy.userData.time % 80 <= 3 + 1 + 3) { // after teleportation
-                    copy.scale.copy(copy.getOriginalScale().multiply(new THREE.Vector3(1, (copy.userData.time % 80 - (3 + 1)) / 3, 1)))
-                }
-            },
-            onKilled: () => {
-                getState().addMoney(30)
-                ufos.allocate().position.copy(copy.position)
-            },
-        })), "UFO")
+        // bird
+        buildBirdModel().then((m) =>
+            show(new webgl.ObjectPool(m)
+                .withVertexAnimation((positions, originalPositions) => {
+                    for (let i = 0; i < positions.count; i++) {
+                        const dy = smoothstep(Math.abs(positions.getX(i)), 3.5, 17) * 10 * Math.sin(Date.now() * 0.01) * 0.8
+                        positions.setY(i, originalPositions.getY(i) + dy * 0.7)
+                        positions.setZ(i, originalPositions.getZ(i) + dy)
+                    }
+                })
+                .onAllocate((copy): Enemy => ({
+                    time: 0,
+                    hp: 15 * (1 + Math.random()),
+                    laserHitEffect: null,
+                    update: () => {
+                        copy.position.x -= 0.01
+                    },
+                    onKilled: () => {
+                        getState().addMoney(1)
+                        deadBirds.allocate().position.copy(copy.position)
+                    },
+                })), "birds")),
 
-    const deadBirds = show(new webgl.ObjectPool(await buildBirdModel())
-        .onAllocate(() => ({ time: 0 })), "deadBirds")
+        // ufo
+        webgl.createUFOPool().then((m) =>
+            show(m.onAllocate((copy): Enemy => ({
+                time: 0,
+                hp: 300 * (1 + Math.random()),
+                laserHitEffect: null,
+                update: () => {
+                    if (copy.userData.time % 80 <= 3) { // before teleportation
+                        copy.scale.copy(copy.getOriginalScale().multiply(new THREE.Vector3(1, 1 - (copy.userData.time % 80) / 3, 1)))
+                    } else if (copy.userData.time % 80 === 3 + 1) {  // teleportation
+                        copy.position.x -= 0.35 + Math.random() * 0.2
+                        copy.position.z = Math.max(xMin, Math.min(xMax, copy.position.z + (Math.random() - 0.5) * 0.2))
+                    } else if (copy.userData.time % 80 <= 3 + 1 + 3) { // after teleportation
+                        copy.scale.copy(copy.getOriginalScale().multiply(new THREE.Vector3(1, (copy.userData.time % 80 - (3 + 1)) / 3, 1)))
+                    }
+                },
+                onKilled: () => {
+                    getState().addMoney(30)
+                    ufos.allocate().position.copy(copy.position)
+                },
+            })), "UFO")),
 
-    const deadUfos = show((await webgl.createUFOPool())
-        .onAllocate((copy) => ({ time: 0 })), "deadUFO")
+        // dead bird
+        buildBirdModel().then((m) => show(new webgl.ObjectPool(m)
+            .onAllocate(() => ({ time: 0 })), "deadBirds")),
 
-    // Create a object pool for the 3D model of a hit effect.
-    const hitEffects = show(await webgl.ObjectPool.fromBuilder(async () => webgl.enableSelectiveBloom(new THREE.Mesh(new THREE.IcosahedronGeometry(0.006), new THREE.MeshBasicMaterial({ color: 0xff66ff })))), "hitEffects")
+        // dead ufo
+        webgl.createUFOPool().then((m) => show(m.onAllocate((copy) => ({ time: 0 })), "deadUFO")),
+    ])
+
+    // hit effect
+    const hitEffects = show(new webgl.ObjectPool(webgl.enableSelectiveBloom(new THREE.Mesh(new THREE.IcosahedronGeometry(0.006), new THREE.MeshBasicMaterial({ color: 0xff66ff })))), "hitEffects")
 
     // Delete everything when switching to another stage
     subscribe((state, prev) => {
