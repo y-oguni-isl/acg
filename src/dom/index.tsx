@@ -23,7 +23,7 @@ const Tutorial = () => {
         [...s.availableTutorials]
             .filter((t) => !s.completedTutorials.has(t))
             .sort((a, b) => tutorialIndices.get(a)! - tutorialIndices.get(b)!)[0])
-    return <div style={{ opacity: tutorial === undefined ? "0" : "1" }} class="absolute w-full text-center top-[70%] text-white bg-slate-800 bg-opacity-70 select-none [transition:opacity_ease_1s] whitespace-pre-wrap pointer-events-none">
+    return <div style={{ opacity: tutorial === undefined ? "0" : "1" }} class="absolute w-full text-center top-[70%] text-white bg-slate-800 bg-opacity-70 select-none [transition:opacity_ease_1s] whitespace-pre-wrap pointer-events-none z-10">
         {tutorial && tutorials[tutorial]}
     </div>
 }
