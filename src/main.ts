@@ -8,7 +8,7 @@ import { smoothstep } from 'three/src/math/MathUtils'
 import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise"
 import { onBeforeRender, onPreprocess, onUpdate } from './hooks'
 import { getState, subscribe } from './saveData'
-import { domStore, getRenderingOption } from './dom'
+import { ephemeralDOMStore, getRenderingOption } from './dom'
 import { call } from './util'
 import * as webgl from "./webgl"
 import modelDebuggerStore, { init3DModelDebugger } from './modelDebugger'
@@ -241,7 +241,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
 }
 
 // Update the loading message
-domStore.setState({ loadingMessage: `Loading models...` })
+ephemeralDOMStore.getState().setLoadingMessage("loadingModels", `Loading models...`)
 await new Promise((resolve) => setTimeout(resolve, 0)) // Render DOM
 
 // Renderer
@@ -323,4 +323,4 @@ window.addEventListener("click", playAudio)
 playAudio()
 
 // Clear the loading message
-domStore.setState({ loadingMessage: `` })
+ephemeralDOMStore.getState().removeLoadingMessage("loadingModels")

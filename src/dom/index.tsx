@@ -8,6 +8,10 @@ import { entries } from "../util"
 import { Ref, useEffect, useRef, useState } from "preact/hooks"
 import type { JSXInternal } from "preact/src/jsx"
 import modelDebuggerStore from "../modelDebugger"
+import { enableMapSet } from "immer"
+import SuperJSON from "superjson"
+
+enableMapSet()
 
 /** A mapping from tutorial names to their indices.  */
 const tutorialIndices = new Map((Object.keys(tutorials) as (keyof typeof tutorials)[]).map((name, i) => [name, i]))
@@ -27,14 +31,12 @@ const Tutorial = () => {
 export const domStore = create<{
     renderingOptions: Record<string, boolean>
     news: readonly [headline: string, text: string] | null
-    loadingMessage: string
 
     getRenderingOption: (name: string, defaultValue?: boolean) => boolean
     setRenderingOption: (name: string, value: boolean) => void
 }>()(persist(immer((set, get) => ({
     renderingOptions: {},
     news: null as readonly [headline: string, text: string] | null,
-    loadingMessage: "",
 
     getRenderingOption: (name, defaultValue = true) => {
         set((d) => { if (!(name in d.renderingOptions)) { d.renderingOptions[name] = defaultValue } })
@@ -42,8 +44,24 @@ export const domStore = create<{
     },
     setRenderingOption: (name, value) => { set((d) => { d.renderingOptions[name] = value }) }
 })), {
-    name: "acgRenderingOptions",
+    name: "acgDOMStore",
+    version: 1,
+
+    // Allow saving Map, Set, etc.
+    serialize: (s) => { return SuperJSON.stringify(s) },
+    deserialize: (s) => SuperJSON.parse(s) as any,
 }))
+
+// Loading messages should not be persisted
+export const ephemeralDOMStore = create<{
+    loadingMessage: Map<string, string>
+    setLoadingMessage: (key: string, message: string) => void,
+    removeLoadingMessage: (key: string) => void,
+}>()(immer((set, get) => ({
+    loadingMessage: new Map(),
+    setLoadingMessage: (key, message) => { set((d) => { d.loadingMessage.set(key, message) }) },
+    removeLoadingMessage: (key: string) => { set((d) => { d.loadingMessage.delete(key) }) },
+})))
 
 /** Returns a boolean indicating whether the component should be rendered or not, which can be controlled in the rendering options window. */
 export const getRenderingOption = domStore.getState().getRenderingOption
@@ -89,6 +107,7 @@ const UI = () => {
     const creditDialog = useRef() as Ref<HTMLDialogElement>
     const [creditHTML, setCreditHTML] = useState<string>("")
     const isStageWindowVisible = useStore(store, (s) => s.availableNews.has("aliensComing"))
+    const loadingMessage = useStore(ephemeralDOMStore, (s) => s.loadingMessage)
 
     useEffect(() => {
         fetch("./audio/credit.html")
@@ -175,7 +194,7 @@ const UI = () => {
         </dialog>
 
         {/* Loading message */}
-        {state.loadingMessage && <div class="text-white absolute top-[35%] left-0 w-full text-center">{state.loadingMessage}</div>}
+        {loadingMessage.size > 0 && <div class="text-white absolute top-[35%] left-0 w-full text-center whitespace-pre">{[...loadingMessage.values()].join("\n")}</div>}
     </>
 }
 
