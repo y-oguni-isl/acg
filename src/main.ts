@@ -177,7 +177,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
             // Collisions between the enemy and the player's attacks
             for (const hammer of hammers?.children ?? []) {
                 if (hammer.position.distanceTo(enemy.position) < 0.05) {
-                    enemy.userData.hp -= 600
+                    enemy.userData.hp -= 600 * (getState().upgrades['ATK×2'] + 1)
                     hammer.free()
                 }
             }
@@ -189,7 +189,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
                 enemy.userData.laserHitEffect.position.copy(enemy.position).setZ(airplane.position.z)
 
                 // Damage
-                enemy.userData.hp -= getState().upgrades.Laser + 1
+                enemy.userData.hp -= (getState().upgrades.Laser + 1) * (getState().upgrades['ATK×2'] + 1)
                 ephemeralDOMStore.getState().setEnemyStatus({ hp: enemy.userData.hp, name: enemy.userData.name })
             } else { // No collisions
                 if (enemy.userData.laserHitEffect) {

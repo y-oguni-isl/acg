@@ -7,13 +7,13 @@ import { updatePerSecond } from './hooks'
 
 enableMapSet()
 
-export const upgradeNames = ["Laser", "Autopilot", "Hammer", "placeholder1", "placeholder2", "placeholder3", "placeholder4", "placeholder5", "placeholder6"] as const satisfies readonly string[]
+export const upgradeNames = ["Laser", "Autopilot", "Hammer", "ATK×2", "placeholder2", "placeholder3", "placeholder4", "placeholder5", "placeholder6"] as const satisfies readonly string[]
 
 const basePrice = {
     Laser: 15,
     Autopilot: 100,
     Hammer: 100 * 15,
-    placeholder1: 100 * 15 ** 2,
+    "ATK×2": 100 * 15 ** 2,
     placeholder2: 100 * 15 ** 3,
     placeholder3: 100 * 15 ** 4,
     placeholder4: 100 * 15 ** 5,
@@ -165,7 +165,7 @@ export const store = create<State>()(persist(immer((set, get) => ({
 })), {
     // Options for the "persist" middleware
     name: localStorageKey,
-    version: 3,
+    version: 5,
     // migrate: (state, version) => {
     //     if (version === 0) { state.foo = "bar" }
     //     return state as State
