@@ -14,8 +14,15 @@ import * as webgl from "./webgl"
 import modelDebuggerStore, { init3DModelDebugger } from './modelDebugger'
 import createStageTransitionPass from './webgl/createStageTransitionPass'
 
+const scene = new THREE.Scene()
+const show = <T extends THREE.Object3D>(obj: T, renderingOptionLabel?: string): T => {
+    if (renderingOptionLabel && !getRenderingOption(renderingOptionLabel)) { return obj }
+    scene.add(obj)
+    return obj
+}
+
 // Airplane
-const airplane = !getRenderingOption("airplane") ? new THREE.Object3D() : await webgl.loadGLTF("models/low-poly_airplane.glb", 0.05)
+const airplane = show(!getRenderingOption("airplane") ? new THREE.Object3D() : await webgl.loadGLTF("models/low-poly_airplane.glb", 0.05))
 let airplaneVelocity = new THREE.Vector2(0.0, 0.0)
 {
     const rotationNoise = new SimplexNoise()
@@ -32,18 +39,12 @@ const xMin = -0.5
 const yMax = 0.3
 const yMin = -0.3
 
+if (getRenderingOption("contrail")) { show(await webgl.createContrail(airplane)) }
+if (getRenderingOption("skybox")) { show(await webgl.createStages()) }
+if (getRenderingOption("laser")) { show(webgl.laser(airplane)) }
+if (getRenderingOption("axis")) { show(new THREE.AxesHelper()) }
 
-// Light, contrail, skybox, fog, laser, and axis helper
-const scene = new THREE.Scene().add(
-    airplane,
-    !getRenderingOption("contrail") ? new THREE.Object3D() : await webgl.createContrail(airplane),
-    !getRenderingOption("skybox") ? new THREE.Object3D() : await webgl.createStages(),
-    !getRenderingOption("laser") ? new THREE.Object3D() : webgl.laser(airplane),
-    !getRenderingOption("axis") ? new THREE.Object3D() : new THREE.AxesHelper(),
-)
-
-const hammers = !getRenderingOption("hammer") ? null : await webgl.createHammerPool(airplane)
-if (hammers) { scene.add(hammers) }
+const hammers = !getRenderingOption("hammer") ? null : show(await webgl.createHammerPool(airplane))
 
 // Camera
 const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10), { position: { set: [-0.5, 0.6, 0] } })
@@ -63,7 +64,16 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
 {
     // Create a object pool for the 3D model of a bird
     const buildBirdModel = async () => call(await webgl.loadGLTF("models/low_polygon_art__white_eagle_bird.glb", 0.1), { rotateX: -Math.PI / 2, rotateZ: -Math.PI / 2, scale: { multiplyScalar: 0.3 } })
-    const birds = new webgl.ObjectPool(await buildBirdModel())
+
+    type Enemy = {
+        time: number
+        hp: number
+        laserHitEffect: ReturnType<typeof hitEffects.allocate> | null
+        update: () => void
+        onKilled: () => void
+    }
+
+    const birds = show(new webgl.ObjectPool(await buildBirdModel())
         .withVertexAnimation((positions, originalPositions) => {
             for (let i = 0; i < positions.count; i++) {
                 const dy = smoothstep(Math.abs(positions.getX(i)), 3.5, 17) * 10 * Math.sin(Date.now() * 0.01) * 0.8
@@ -71,52 +81,65 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
                 positions.setZ(i, originalPositions.getZ(i) + dy)
             }
         })
-    if (getRenderingOption("birds")) { scene.add(birds) }
-    const deadBirds = new webgl.ObjectPool(await buildBirdModel())
-    if (getRenderingOption("deadBirds")) { scene.add(deadBirds) }
-
-    // Create a object pool for the 3D model of a hit effect.
-    // TODO: shader
-    const hitEffects = await webgl.ObjectPool.fromBuilder(async () => webgl.enableSelectiveBloom(new THREE.Mesh(new THREE.IcosahedronGeometry(0.006), new THREE.MeshBasicMaterial({ color: 0xff66ff }))))
-    if (getRenderingOption("hitEffects")) { scene.add(hitEffects) }
+        .onAllocate((copy): Enemy => ({
+            time: 0,
+            hp: 15 * (1 + Math.random()),
+            laserHitEffect: null,
+            update: () => {
+                copy.position.x -= 0.01
+            },
+            onKilled: () => {
+                getState().addMoney(1)
+                deadBirds.allocate().position.copy(copy.position)
+            },
+        })), "birds")
 
     // Create a object pool for the 3D model of a UFO.
-    const ufos = await webgl.createUFOPool()
-    if (getRenderingOption("UFO")) { scene.add(ufos) }
+    const ufos = show((await webgl.createUFOPool())
+        .onAllocate((copy): Enemy => ({
+            time: 0,
+            hp: 300 * (1 + Math.random()),
+            laserHitEffect: null,
+            update: () => {
+                if (copy.userData.time % 80 <= 3) { // before teleportation
+                    copy.scale.copy(copy.getOriginalScale().multiply(new THREE.Vector3(1, 1 - (copy.userData.time % 80) / 3, 1)))
+                } else if (copy.userData.time % 80 === 3 + 1) {  // teleportation
+                    copy.position.x -= 0.35 + Math.random() * 0.2
+                    copy.position.z = Math.max(xMin, Math.min(xMax, copy.position.z + (Math.random() - 0.5) * 0.2))
+                } else if (copy.userData.time % 80 <= 3 + 1 + 3) { // after teleportation
+                    copy.scale.copy(copy.getOriginalScale().multiply(new THREE.Vector3(1, (copy.userData.time % 80 - (3 + 1)) / 3, 1)))
+                }
+            },
+            onKilled: () => {
+                getState().addMoney(30)
+                ufos.allocate().position.copy(copy.position)
+            },
+        })), "UFO")
 
-    // A set to store the state of each enemy.
-    type EnemyName = "Bird" | "UFO"
-    const enemies = new Set<{
-        readonly name: EnemyName
-        time: number
-        hp: number
-        model: ReturnType<typeof birds.allocate>,
-        hitEffectModel?: ReturnType<typeof hitEffects.allocate>,
-        onKilled: () => void
-    }>()
+    const deadBirds = show(new webgl.ObjectPool(await buildBirdModel())
+        .onAllocate(() => ({ time: 0 })), "deadBirds")
 
-    // A set to store the state of dead enemy.
-    const deadEnemies = new Set<{
-        time: number  // time since it was killed
-        model: ReturnType<typeof deadBirds.allocate>
-    }>()
+    const deadUfos = show((await webgl.createUFOPool())
+        .onAllocate((copy) => ({ time: 0 })), "deadUFO")
+
+    // Create a object pool for the 3D model of a hit effect.
+    const hitEffects = show(await webgl.ObjectPool.fromBuilder(async () => webgl.enableSelectiveBloom(new THREE.Mesh(new THREE.IcosahedronGeometry(0.006), new THREE.MeshBasicMaterial({ color: 0xff66ff })))), "hitEffects")
 
     // Delete everything when switching to another stage
     subscribe((state, prev) => {
         if (state.stage === prev.stage) { return }
-        for (const enemy of enemies) {
-            enemy.model.free()
-            enemy.hitEffectModel?.free()
+        for (const obj of [
+            ...birds.children,
+            ...ufos.children,
+            ...deadBirds.children,
+            ...deadUfos.children,
+        ]) {
+            obj.free()
         }
-        enemies.clear()
-        for (const body of deadEnemies) {
-            body.model.free()
-        }
-        deadEnemies.clear()
     })
 
     // The enemy that the autopilot algorithm is currently targeting.
-    let autopilotTarget: (typeof enemies extends Set<infer R> ? R : never) | null = null
+    let autopilotTarget: ReturnType<typeof birds.allocate> | null = null
 
     // Keyboard events
     const pressedKeys = new Set<string>()
@@ -128,74 +151,54 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
     onUpdate.add((t) => {
         // Spawn enemies
         if (getState().stage === 0 && t % 5 === 0) {
-            const model = call(birds.allocate(), { position: { set: [2, 0, (t * 0.06) % 1 - 0.5] } })
-            enemies.add({
-                name: "Bird", time: 0, hp: 15 * (1 + Math.random()), model, onKilled: () => {
-                    getState().addMoney(1)
-                    deadEnemies.add({ time: 0, model: call(deadBirds.allocate(), { position: { copy: model.position } }) })
-                }
-            })
+            birds.allocate().position.set(2, 0, (t * 0.06) % 1 - 0.5)
         } else if (getState().stage === 1 && t % 31 === 0 && getState().availableNews.has("aliensComing")) {
-            const model = call(ufos.allocate(), { position: { set: [2, 0, (t * 0.06) % 1 - 0.5] } })
-            enemies.add({
-                name: "UFO", time: 0, hp: 300 * (1 + Math.random()), model, onKilled: () => {
-                    getState().addMoney(30)
-                    deadEnemies.add({ time: 0, model: call(ufos.allocate(), { position: { copy: model.position } }) })
-                }
-            })
+            ufos.allocate().position.set(2, 0, (t * 0.06) % 1 - 0.5)
         }
 
-        for (const enemy of [...enemies]) {
+        for (const enemy of [...birds.children, ...ufos.children]) {
             // Move enemies
-            if (enemy.name === "Bird") {
-                enemy.model.position.x -= 0.01
-            } else { // UFO
-                if (enemy.time % 80 <= 3) { // before teleportation
-                    enemy.model.scale.copy(enemy.model.getOriginalScale().multiply(new THREE.Vector3(1, 1 - (enemy.time % 80) / 3, 1)))
-                } else if (enemy.time % 80 === 3 + 1) {  // teleportation
-                    enemy.model.position.x -= 0.35 + Math.random() * 0.2
-                    enemy.model.position.z = Math.max(xMin, Math.min(xMax, enemy.model.position.z + (Math.random() - 0.5) * 0.2))
-                } else if (enemy.time % 80 <= 3 + 1 + 3) { // after teleportation
-                    enemy.model.scale.copy(enemy.model.getOriginalScale().multiply(new THREE.Vector3(1, (enemy.time % 80 - (3 + 1)) / 3, 1)))
+            enemy.userData.update()
+
+            // Collision detection between the enemy and the player's attacks
+            for (const hammer of hammers?.children ?? []) {
+                if (hammer.position.distanceTo(enemy.position) < 0.03) {
+                    hammer
                 }
             }
-
-            // Collision detection between the enemy and the player's attack
-            if (Math.abs(enemy.model.position.z - airplane.position.z) < 0.03 && enemy.model.position.x > airplane.position.x) {
+            if (Math.abs(enemy.position.z - airplane.position.z) < 0.03 && enemy.position.x > airplane.position.x) {
                 // Show a hit effect
-                if (!enemy.hitEffectModel) {
-                    enemy.hitEffectModel = hitEffects.allocate()
+                if (!enemy.userData.laserHitEffect) {
+                    enemy.userData.laserHitEffect = hitEffects.allocate()
                 }
-                enemy.hitEffectModel.position.copy(enemy.model.position).setZ(airplane.position.z)
+                enemy.userData.laserHitEffect.position.copy(enemy.position).setZ(airplane.position.z)
 
                 // Damage
-                enemy.hp -= getState().upgrades.Laser + 1
+                enemy.userData.hp -= getState().upgrades.Laser + 1
             } else { // No collisions
-                if (enemy.hitEffectModel) {
+                if (enemy.userData.laserHitEffect) {
                     // Delete a hit effect
-                    enemy.hitEffectModel.free()
-                    enemy.hitEffectModel = undefined
+                    enemy.userData.laserHitEffect.free()
+                    enemy.userData.laserHitEffect = null
                 }
             }
 
             // Delete the enemy if it is outside screen or is killed
-            if (enemy.model.position.x < -1 || enemy.hp <= 0) {
-                if (enemy.hp <= 0) { enemy.onKilled() }
-                enemy.model.free()
-                enemy.hitEffectModel?.free()
-                enemies.delete(enemy)
+            if (enemy.position.x < -1 || enemy.userData.hp <= 0) {
+                if (enemy.userData.hp <= 0) { enemy.userData.onKilled() }
+                enemy.free()
+                enemy.userData.laserHitEffect?.free()
             }
-            enemy.time++
+            enemy.userData.time++
         }
 
         // Animate dead enemies
-        for (const body of deadEnemies) {
-            body.model.position.y -= 0.001 * body.time
-            body.model.rotateZ(0.1 * (Math.random() - 0.5)) // free fall
-            body.time++
-            if (body.time > 100) {
-                body.model.free()
-                deadEnemies.delete(body)
+        for (const body of [...deadBirds.children, ...deadUfos.children]) {
+            body.position.y -= 0.001 * body.userData.time
+            body.rotateZ(0.1 * (Math.random() - 0.5)) // free fall
+            body.userData.time++
+            if (body.userData.time > 100) {
+                body.free()
             }
         }
 
@@ -225,11 +228,11 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
             // Autopilot
             if (getState().upgrades.Autopilot > 0 && pressedKeys.size === 0) { // TODO: add a switch to disable autopilot
                 const findMin = <T>(arr: readonly T[], key: (v: T) => void) => arr.length === 0 ? null : arr.reduce((p, c) => key(p) < key(c) ? p : c, arr[0]!)
-                if (!autopilotTarget || !enemies.has(autopilotTarget) || autopilotTarget.model.position.x < airplane.position.x) {
-                    autopilotTarget = findMin([...enemies].filter((e) => e.model.position.x > airplane.position.x + 0.3), (e) => e.model.position.x)
+                if (!autopilotTarget || ![...birds.children, ...ufos.children].includes(autopilotTarget) || autopilotTarget.position.x < airplane.position.x) {
+                    autopilotTarget = findMin([...birds.children, ...ufos.children].filter((e) => e.position.x > airplane.position.x + 0.3), (e) => e.position.x)
                 }
                 if (autopilotTarget) {
-                    airplane.position.setZ(airplane.position.z * (1 - 0.01 * getState().upgrades.Autopilot) + autopilotTarget.model.position.z * 0.01 * getState().upgrades.Autopilot)
+                    airplane.position.setZ(airplane.position.z * (1 - 0.01 * getState().upgrades.Autopilot) + autopilotTarget.position.z * 0.01 * getState().upgrades.Autopilot)
                 }
             }
         }

@@ -20,7 +20,7 @@ export default async (source: THREE.Object3D) => {
     }))
     enableSelectiveBloom(model)
 
-    const pool = new ObjectPool(new THREE.Object3D().add(model))
+    const models = new ObjectPool(new THREE.Object3D().add(model))
         .onClone((copy) => {
             onBeforeRender.add((time) => {
                 copy.rotation.x += Math.random() * 0.05
@@ -28,31 +28,25 @@ export default async (source: THREE.Object3D) => {
                 copy.rotation.z = Math.PI / 2
             })
         })
-
-    const models = new Set<{
-        time: number
-        model: ReturnType<typeof pool.allocate>
-    }>()
+        .onAllocate(() => ({ time: 0 }))
 
     onUpdate.add((t) => {
         const level = getState().upgrades.Hammer
         if (level === 0) { return }
         if (t % Math.ceil(60 / level) === 0) {
-            const model = pool.allocate()
+            const model = models.allocate()
             model.position.copy(source.position)
-            models.add({ time: 0, model })
         }
-        for (const m of models) {
-            m.time++
-            m.model.position.x += 0.01
-            m.model.position.y = Math.sin(m.time * 0.15) * 0.03
-            m.model.position.z += (Math.random() - 0.5) * 0.01
-            if (m.model.position.x > 2) {
-                m.model.free()
-                models.delete(m)
+        for (const m of models.children) {
+            m.userData.time++
+            m.position.x += 0.01
+            m.position.y = Math.sin(m.userData.time * 0.15) * 0.03
+            m.position.z += (Math.random() - 0.5) * 0.01
+            if (m.position.x > 2) {
+                m.free()
             }
         }
     })
 
-    return pool
+    return models
 }

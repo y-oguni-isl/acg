@@ -12,13 +12,15 @@ type Instance<T extends THREE.Object3D> = T & {
  * Changes to vertices and shaders in the model are shared between all copies. Positions and rotations are maintained independently for each copy.
  * 
  * ```
- * const models = new ObjectPool(model)
- * scene.add(models)
- * const copy = models.allocate() // allocate() copies the `model` if the `models.pool` is empty, attaches the copy to `models`, and returns it.
- * copy.free() // free() detaches the copy from `models` and gives the object back to the `models.pool`.
+ * const pool = new ObjectPool(model)
+ * scene.add(pool)
+ * const copy = pool.allocate() // allocate() copies the `model` if the (private) `pool.pool` is empty, attaches the copy to `pool`, and returns it.
+ * copy.free() // free() detaches the copy from `pool` and gives the object back to the `pool.pool`.
  * ```
  */
-export default class ObjectPool<T extends THREE.Object3D> extends THREE.Object3D {
+export default class ObjectPool<T extends THREE.Object3D> extends THREE.Object3D<Instance<T>>  {
+    declare children: Instance<T>[]
+
     readonly mesh
     private readonly originalPositions
 
@@ -47,7 +49,18 @@ export default class ObjectPool<T extends THREE.Object3D> extends THREE.Object3D
     }
 
     private onCloneListeners = new Set<(copy: Instance<T>) => void>()
-    onClone(f: (copy: Instance<T>) => void) { this.onCloneListeners.add(f); return this }
+    private onAllocateListeners = new Set<(copy: Instance<T>) => T["userData"]>()
+
+    onClone(f: (copy: Instance<T>) => void) {
+        this.onCloneListeners.add(f)
+        return this
+    }
+
+    /** The return value of the callback is assigned to `copy.userData`. */
+    onAllocate<UserData extends Record<string, unknown>>(f: (copy: Instance<T>) => UserData) {
+        this.onAllocateListeners.add(f)
+        return this as any as ObjectPool<Omit<T, "userData"> & { userData: UserData }>
+    }
 
     allocate(): Instance<T> {
         const copy = ((): Instance<T> => {
@@ -66,6 +79,7 @@ export default class ObjectPool<T extends THREE.Object3D> extends THREE.Object3D
             this.onCloneListeners.forEach((f) => f(copy))
             return copy
         })()
+        this.onAllocateListeners.forEach((f) => { Object.assign(copy.userData, f(copy)) })
         this.add(copy)
         return copy
     }
