@@ -251,7 +251,10 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
                     autopilotTarget = findMin(enemiesAlive.flatMap((o) => o.children).filter((e) => e.position.x > airplane.position.x + 0.3), (e) => e.position.x)
                 }
                 if (autopilotTarget) {
-                    airplane.position.setZ(airplane.position.z * (1 - 0.01 * getState().upgrades.Autopilot) + autopilotTarget.position.z * 0.01 * getState().upgrades.Autopilot)
+                    const autopilotSpeed = 0.1 * getState().upgrades.Autopilot
+                    if (Math.abs(autopilotTarget.position.z - airplane.position.z) > 0.02) {
+                        airplaneVelocity.x = Math.min(1.0, Math.max(-1.0, airplaneVelocity.x + Math.sign(autopilotTarget.position.z - airplane.position.z) * autopilotSpeed))
+                    }
                 }
             }
         }
