@@ -8,14 +8,22 @@ import { immer } from "zustand/middleware/immer"
 import SuperJSON from "superjson"
 
 const modelDebuggerStore = create<{
-    stop: boolean
+    stopped: boolean
     object: THREE.Object3D | null
-    objectChangeCount: number,
-}>()((set) => ({
-    stop: false,
-    object: null,
-    objectChangeCount: 0,
-}))
+    version: number,
+    setObject: (obj: THREE.Object3D) => void
+    stop: () => void
+    resume: () => void
+    refreshDebugger: () => void
+}>()(immer((set) => ({
+    stopped: false as boolean,
+    object: null as THREE.Object3D | null,
+    version: 0,
+    setObject: (obj) => { set((d) => { d.object = obj }) },
+    stop: () => { set((d) => { d.stopped = true }) },
+    resume: () => { set((d) => { d.stopped = false }) },
+    refreshDebugger: () => { set((d) => { d.version++ }) },
+})))
 
 const renderingOptionsStore = create<{
     renderingOptions: Record<string, boolean>
@@ -40,7 +48,7 @@ export const getRenderingOption = renderingOptionsStore.getState().getRenderingO
 
 // DOM
 export const Debugger = () => {
-    const state = useStore(modelDebuggerStore)
+    const { object, resume, stop, stopped, refreshDebugger } = useStore(modelDebuggerStore)
     const { renderingOptions, setRenderingOption } = useStore(renderingOptionsStore)
     return <div class="absolute right-56 bottom-1">
         {/* DEBUG: Rendering options */}
@@ -59,23 +67,23 @@ export const Debugger = () => {
         <div class="px-3 pt-1 pb-3 window">
             <h2>[Debug] 3D Models</h2>
             <div>
-                {!state.stop && <button class="px-2" onClick={() => { modelDebuggerStore.setState({ stop: true }) }}>🛑 Stop</button>}
-                {state.stop && <button class="px-2 ml-1" onClick={() => { modelDebuggerStore.setState({ stop: false }) }}>▶️ Resume</button>}
+                {!stopped && <button class="px-2" onClick={() => { stop() }}>🛑 Stop</button>}
+                {stopped && <button class="px-2 ml-1" onClick={() => { resume() }}>▶️ Resume</button>}
             </div>
-            {state.stop && (state.object === null ? <>Double click on objects.</> : <>
-                <h3>{state.object.name}</h3>
+            {stopped && (object === null ? <>Double click on objects.</> : <>
+                <h3>{object.name}</h3>
                 <table>
                     <tr>
                         <td>pos</td>
-                        <td><input class="w-10 mr-1" value={state.object.position.x} onBlur={(ev) => { if (!state.object) { return } state.object.position.x = +ev.currentTarget.value; modelDebuggerStore.setState({ objectChangeCount: state.objectChangeCount + 1 }) }} /></td>
-                        <td><input class="w-10 mr-1" value={state.object.position.y} onBlur={(ev) => { if (!state.object) { return } state.object.position.y = +ev.currentTarget.value; modelDebuggerStore.setState({ objectChangeCount: state.objectChangeCount + 1 }) }} /></td>
-                        <td><input class="w-10 mr-1" value={state.object.position.z} onBlur={(ev) => { if (!state.object) { return } state.object.position.z = +ev.currentTarget.value; modelDebuggerStore.setState({ objectChangeCount: state.objectChangeCount + 1 }) }} /></td>
+                        <td><input class="w-10 mr-1" value={object.position.x} onBlur={(ev) => { if (!object) { return } object.position.x = +ev.currentTarget.value; refreshDebugger() }} /></td>
+                        <td><input class="w-10 mr-1" value={object.position.y} onBlur={(ev) => { if (!object) { return } object.position.y = +ev.currentTarget.value; refreshDebugger() }} /></td>
+                        <td><input class="w-10 mr-1" value={object.position.z} onBlur={(ev) => { if (!object) { return } object.position.z = +ev.currentTarget.value; refreshDebugger() }} /></td>
                     </tr>
                     <tr>
                         <td>rot°</td>
-                        <td><input class="w-10 mr-1" value={state.object.rotation.x / Math.PI * 180} onBlur={(ev) => { if (!state.object) { return } state.object.rotation.x = +ev.currentTarget.value / 180 * Math.PI; modelDebuggerStore.setState({ objectChangeCount: state.objectChangeCount + 1 }) }} /></td>
-                        <td><input class="w-10 mr-1" value={state.object.rotation.y / Math.PI * 180} onBlur={(ev) => { if (!state.object) { return } state.object.rotation.y = +ev.currentTarget.value / 180 * Math.PI; modelDebuggerStore.setState({ objectChangeCount: state.objectChangeCount + 1 }) }} /></td>
-                        <td><input class="w-10 mr-1" value={state.object.rotation.z / Math.PI * 180} onBlur={(ev) => { if (!state.object) { return } state.object.rotation.z = +ev.currentTarget.value / 180 * Math.PI; modelDebuggerStore.setState({ objectChangeCount: state.objectChangeCount + 1 }) }} /></td>
+                        <td><input class="w-10 mr-1" value={object.rotation.x / Math.PI * 180} onBlur={(ev) => { if (!object) { return } object.rotation.x = +ev.currentTarget.value / 180 * Math.PI; refreshDebugger() }} /></td>
+                        <td><input class="w-10 mr-1" value={object.rotation.y / Math.PI * 180} onBlur={(ev) => { if (!object) { return } object.rotation.y = +ev.currentTarget.value / 180 * Math.PI; refreshDebugger() }} /></td>
+                        <td><input class="w-10 mr-1" value={object.rotation.z / Math.PI * 180} onBlur={(ev) => { if (!object) { return } object.rotation.z = +ev.currentTarget.value / 180 * Math.PI; refreshDebugger() }} /></td>
                     </tr>
                 </table>
             </>)}
@@ -94,7 +102,7 @@ export const init3DModelDebugger = (camera: THREE.Camera, renderer: THREE.Render
     transformControls.addEventListener("dragging-changed", (ev) => {
         orbit.enabled = !ev.value
     })
-    transformControls.addEventListener("objectChange", () => { modelDebuggerStore.setState((s) => ({ objectChangeCount: s.objectChangeCount + 1 })) })
+    transformControls.addEventListener("objectChange", () => { modelDebuggerStore.getState().refreshDebugger() })
     renderer.domElement.addEventListener("dblclick", (ev) => {
         transformControls.detach()
         const raycaster = new THREE.Raycaster()
@@ -104,8 +112,8 @@ export const init3DModelDebugger = (camera: THREE.Camera, renderer: THREE.Render
         const intersections = raycaster.intersectObjects(interactiveObjects, true)
         if (intersections[0]?.object === undefined) { return }
         transformControls.attach(intersections[0].object)
-        modelDebuggerStore.setState({ object: intersections[0].object })
+        modelDebuggerStore.getState().setObject(intersections[0].object)
     })
 
-    return () => modelDebuggerStore.getState().stop
+    return () => modelDebuggerStore.getState().stopped
 }

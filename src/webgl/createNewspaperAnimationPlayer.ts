@@ -40,7 +40,7 @@ export default async (scene: THREE.Scene) => {
         startTime = Date.now()
         scene.add(group)
         const news = newsList[newsId]
-        setTimeout(() => { domStore.setState({ news }) }, 2000)
+        setTimeout(() => { domStore.getState().showNews(news) }, 2000)
         setTimeout(() => { scene.remove(group) }, 10000)
     }
 }

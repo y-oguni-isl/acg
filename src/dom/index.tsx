@@ -30,8 +30,12 @@ const Tutorial = () => {
 /** The current state of the DOM (HTML). */
 export const domStore = create<{
     news: readonly [headline: string, text: string] | null
+    showNews: (news: readonly [headline: string, text: string]) => void
+    hideNews: () => void
 }>()(persist(immer((set, get) => ({
     news: null as readonly [headline: string, text: string] | null,
+    showNews: (news) => { set((d) => { d.news = [...news] }) },
+    hideNews: () => { set((d) => { d.news = null }) },
 })), {
     name: "acgDOMStore",
     version: 1,
@@ -106,7 +110,7 @@ const UI = () => {
         newsDialog.current!.showModal()
         newsDialog.current!.style.opacity = "1"
         newsDialog.current!.addEventListener("close", () => {
-            domStore.setState({ news: null })
+            domStore.getState().hideNews()
             getState().addTutorial("nextStage")
         }, { once: true })
     }, [state.news])
