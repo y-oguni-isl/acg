@@ -29,7 +29,8 @@ export const isUpgradeNameHidden = (name: (typeof upgradeNames)[number]) => getS
 export const tutorials = {
     wasd: "You have become a fighter pilot that shoots laser beams. This world is peaceful, so your first mission is to protect farmers from harmful birds.\nThe controls are simple, WASD to move and aim your targets.",
     upgrade: "You can now buy upgrades for your aircraft! To do so, click on the button in the upper left corner of the screen.",
-    nextStage: "You can now move on to the next stage! To do so, click the button in the top right corner of the screen."
+    nextStage: "You can now move on to the next stage! To do so, click the button in the top right corner of the screen.",
+    backToPreviousStage: "If you're finding this stage too difficult, go back to the previous stage and try again after you get more upgrades.",
 }
 
 /** The list of news and their headlines and texts. */
@@ -83,7 +84,14 @@ export const store = create<State>()(persist(immer((set, get) => ({
         }
         get().completeTutorial("upgrade")
     },
-    completeTutorial: (name) => { set((d) => { d.completedTutorials.add(name) }) },
+    completeTutorial: (name) => {
+        set((d) => {
+            d.completedTutorials.add(name)
+            if (name === "nextStage") {
+                d.availableTutorials.add("backToPreviousStage")
+            }
+        })
+    },
     addNews: (name) => {
         if (get().availableNews.has(name)) { return }
         set((d) => { d.availableNews.add(name) })
@@ -99,6 +107,11 @@ export const store = create<State>()(persist(immer((set, get) => ({
             d.stage = d.stageTransitingTo
             d.stageTransitingTo = null
         })
+        if (get().stage === 0) {
+            get().completeTutorial("backToPreviousStage")
+        } else if (get().stage === 1) {
+            get().completeTutorial("nextStage")
+        }
     },
 })), {
     // Options for the "persist" middleware

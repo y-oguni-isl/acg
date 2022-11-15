@@ -125,7 +125,7 @@ const UI = () => {
                 <h2 class="mb-2">Stages</h2>
                 <div>
                     <button class="w-full mb-1" onClick={() => { getState().setStageTransitingTo(0) }}>Earth</button><br />
-                    <button class="w-full mb-1" onClick={() => { getState().setStageTransitingTo(1); getState().completeTutorial("nextStage") }}>Universe</button>
+                    <button class="w-full mb-1" onClick={() => { getState().setStageTransitingTo(1) }}>Universe</button>
                     <button class="w-full mb-1" disabled onClick={() => { /* TODO: */ }}>???</button>
                 </div>
             </div>}
