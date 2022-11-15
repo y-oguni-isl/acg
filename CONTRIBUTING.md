@@ -1,15 +1,11 @@
-# 3Dモデル
-モデルの検索は https://sketchfab.com/search?features=downloadable&licenses=322a749bcfa841b29dff1e8a1bb74b0b&licenses=7c23a1ba438d4306920229c12afcb5f9&licenses=b9ddc40b93e34cdca1fc152f39b9f375&type=models 等でする。ライセンスにNDがついていないほうが良さそう。Free3D (https://free3d.com/) はライセンスの説明がないため避けたほうがいい。
-モデルサイズはできれば500KB以下、最大でも5MB以下が良い。GitHub Pages 上で、3MBで読み込みに1秒前後かかる。
+# 3D Models
+You can search models through websites such as https://sketchfab.com/search?features=downloadable&licenses=322a749bcfa841b29dff1e8a1bb74b0b&licenses=7c23a1ba438d4306920229c12afcb5f9&licenses=b9ddc40b93e34cdca1fc152f39b9f375&type=models
+- Avoid ND licenses: We should avoid using 3D models with the ND ("modified versions can not be distributed") license because we can't tweak their material, and I don't know if it's okay to put them in the github repository.
+- Choose smaller models: The model size should be less than 500KB if possible, and less than 5MB at maximum. On GitHub Pages, 3MB takes around 1 second to load.
+- You can put the downloaded models in `public/models/foobar.glb` and these files can be accessed as `./models/foobar.glb` [because vite copies files in the `public/` directory to the root directory](https://vitejs.dev/guide/assets.html#the-public-directory).
 
-viteは public/ を最上位のディレクトリとして扱う (https://vitejs.dev/guide/assets.html#the-public-directory) ため、public/models/model.glb は models/model.glb として参照できる。
-
-# 座標系
-横がz、奥がx
-TODO: 分かりやすい座標系に直せるなら直したい
-
-# チート
-store を window のプロパティに設定してあり、dev tools の console から呼び出して状態を上書きできる。
+# Cheating
+The `store` in `saveData.ts` is set to a property of `window` so that you can modify its value from the dev tools console.
 
 ```typescript
 store.setState({ money: 100 })
