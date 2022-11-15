@@ -146,7 +146,7 @@ export const store = create<State>()(persist(immer((set, get) => ({
             d.weatherEffectWillBeEnabledIn[d.stage]--
             d.weatherEffectWillBeEnabledInLessThan[d.stage]--
         })
-        if (get().weatherEffectWillBeEnabledIn[get().stage] < 0) {
+        if (get().getWeather()?.enabled) {
             get().addTutorial("weatherEffect")
         }
     },
