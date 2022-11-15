@@ -6,6 +6,9 @@ import createContrailFrag from './createContrail.frag'
 import createContrailVert from './createContrail.vert'
 import { enableSelectiveBloom } from './createSelectiveBloomPass'
 
+const airplaneSpeedAgainstGround = 0.005
+const samplingInterval = 2
+
 export default (source: THREE.Object3D) => {
     const segments = 120
     const mesh = new THREE.Mesh(
@@ -22,9 +25,11 @@ export default (source: THREE.Object3D) => {
     )
     mesh.geometry.setAttribute("uv", new THREE.BufferAttribute(new Float32Array(
         Array(segments).fill(0).flatMap((_, i) => [-1.0, i / (segments - 1), 1.0, i / (segments - 1)])), 2))
-    onUpdate.add(() => {
+    onUpdate.add((t) => {
+        if (t % samplingInterval == 0) { return }
         const positions = mesh.geometry.attributes.position as THREE.BufferAttribute
         for (let i = positions.count - 1; i >= 2; i--) {
+            positions.setX(i, positions.getX(i - 2) - airplaneSpeedAgainstGround * samplingInterval)
             positions.setX(i, positions.getX(i - 2) - 0.01)
             positions.setZ(i, positions.getZ(i - 2))
         }

@@ -112,6 +112,8 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
                     copy.position.z = Math.max(xMin, Math.min(xMax, copy.position.z + (Math.random() - 0.5) * 0.2))
                 } else if (copy.userData.time % 80 <= 3 + 1 + 3) { // after teleportation
                     copy.scale.copy(copy.getOriginalScale().multiply(new THREE.Vector3(1, (copy.userData.time % 80 - (3 + 1)) / 3, 1)))
+                } else {
+                    copy.position.x -= 0.005
                 }
             },
             onKilled: () => { ufos.allocate().position.copy(copy.position) },
