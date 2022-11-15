@@ -102,6 +102,10 @@ const UI = () => {
             .then((res) => res.text())
             .then((html) => { setCreditHTML((c) => c + html) })
             .catch(console.error)
+        fetch("./font/credit.html")
+            .then((res) => res.text())
+            .then((html) => { setCreditHTML((c) => c + html) })
+            .catch(console.error)
     }, [])
 
     useEffect(() => {

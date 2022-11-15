@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+body {
+    font-family: Turpis, serif;
+}
+
+@font-face {
+    font-family: Turpis;
+    src: url('../font/turpls-font/Turpis-GOgVm.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
 .window {
     @apply text-gray-50 backdrop-blur-3xl drop-shadow-lg select-none border-opacity-40 border-2 border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600;
     background: linear-gradient(240deg, rgba(55, 65, 81, 0.144) 0%, rgba(55, 65, 81, 0.4) 100%);
