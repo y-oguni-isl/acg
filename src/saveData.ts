@@ -56,6 +56,14 @@ export type Stage = 0 | 1
 
 export type WeatherEffect = "Rain"
 
+const localStorageKey = "acgSaveData"
+let destroyed = false
+
+const newWeatherEffectETA = (rand = () => Math.random()): Record<Stage, number> => ({
+    0: rand() * updatePerSecond * 60 * 6,
+    1: rand() * updatePerSecond * 60 * 12
+})
+
 type State = {
     stage: Stage
     stageTransitingTo: Stage | null
@@ -78,14 +86,6 @@ type State = {
     getWeather: () => ({ name: WeatherEffect, enabled: boolean } | null)
     stopWeatherEffect: () => void
 }
-
-const localStorageKey = "acgSaveData"
-let destroyed = false
-
-const newWeatherEffectETA = (rand = () => Math.random()): Record<Stage, number> => ({
-    0: rand() * updatePerSecond * 60 * 6,
-    1: rand() * updatePerSecond * 60 * 12
-})
 
 /** This store maintains the stage of game, and it is persisted in the localStorage by the persist() middleware. */
 export const store = create<State>()(persist(immer((set, get) => ({

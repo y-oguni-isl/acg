@@ -4,13 +4,12 @@ import create, { useStore } from "zustand"
 import { immer } from "zustand/middleware/immer"
 import { persist } from "zustand/middleware"
 import { bounties, deleteSaveData, enemyNames, getState, isStageSystemUnlocked, store, tutorials } from "../saveData"
-import { entries } from "../util"
 import { Ref, useEffect, useRef, useState } from "preact/hooks"
 import type { JSXInternal } from "preact/src/jsx"
-import modelDebuggerStore from "../modelDebugger"
 import { enableMapSet } from "immer"
 import SuperJSON from "superjson"
 import { updatePerSecond } from "../hooks"
+import { Debugger } from "../debug"
 
 enableMapSet()
 
@@ -30,20 +29,9 @@ const Tutorial = () => {
 
 /** The current state of the DOM (HTML). */
 export const domStore = create<{
-    renderingOptions: Record<string, boolean>
     news: readonly [headline: string, text: string] | null
-
-    getRenderingOption: (name: string, defaultValue?: boolean) => boolean
-    setRenderingOption: (name: string, value: boolean) => void
 }>()(persist(immer((set, get) => ({
-    renderingOptions: {},
     news: null as readonly [headline: string, text: string] | null,
-
-    getRenderingOption: (name, defaultValue = true) => {
-        set((d) => { if (!(name in d.renderingOptions)) { d.renderingOptions[name] = defaultValue } })
-        return get().renderingOptions[name]!
-    },
-    setRenderingOption: (name, value) => { set((d) => { d.renderingOptions[name] = value }) }
 })), {
     name: "acgDOMStore",
     version: 1,
@@ -69,9 +57,6 @@ export const ephemeralDOMStore = create<{
     setEnemyStatus: (status) => { set((d) => { d.enemyStatus = status }) }
 })))
 
-/** Returns a boolean indicating whether the component should be rendered or not, which can be controlled in the rendering options window. */
-export const getRenderingOption = domStore.getState().getRenderingOption
-
 /** Close the dialog when the user clicks outside the dialog */
 const closeDialogOnClick = (ev: JSXInternal.TargetedMouseEvent<HTMLDialogElement>) => {
     if (ev.target === ev.currentTarget) { (ev.currentTarget as HTMLDialogElement).close() }
@@ -79,34 +64,6 @@ const closeDialogOnClick = (ev: JSXInternal.TargetedMouseEvent<HTMLDialogElement
 
 /** A random text to fill newspapers. */
 const randomText = Array(10000).fill(0).map(() => Array(Math.floor(Math.random() * 6) + 2).fill(0).map(() => "abcdefghijklmnopqrstuvwxyz"[Math.floor(Math.random() * 26)]).join("")).join(" ")
-
-const ModelDebugger = () => {
-    const state = useStore(modelDebuggerStore)
-    return <div class="px-3 pt-1 pb-3 window">
-        <h2>[Debug] 3D Models</h2>
-        <div>
-            {!state.stop && <button class="px-2" onClick={() => { modelDebuggerStore.setState({ stop: true }) }}>🛑 Stop</button>}
-            {state.stop && <button class="px-2 ml-1" onClick={() => { modelDebuggerStore.setState({ stop: false }) }}>▶️ Resume</button>}
-        </div>
-        {state.stop && (state.object === null ? <>Double click on objects.</> : <>
-            <h3>{state.object.name}</h3>
-            <table>
-                <tr>
-                    <td>pos</td>
-                    <td><input class="w-10 mr-1" value={state.object.position.x} onBlur={(ev) => { if (!state.object) { return } state.object.position.x = +ev.currentTarget.value; modelDebuggerStore.setState({ objectChangeCount: state.objectChangeCount + 1 }) }} /></td>
-                    <td><input class="w-10 mr-1" value={state.object.position.y} onBlur={(ev) => { if (!state.object) { return } state.object.position.y = +ev.currentTarget.value; modelDebuggerStore.setState({ objectChangeCount: state.objectChangeCount + 1 }) }} /></td>
-                    <td><input class="w-10 mr-1" value={state.object.position.z} onBlur={(ev) => { if (!state.object) { return } state.object.position.z = +ev.currentTarget.value; modelDebuggerStore.setState({ objectChangeCount: state.objectChangeCount + 1 }) }} /></td>
-                </tr>
-                <tr>
-                    <td>rot°</td>
-                    <td><input class="w-10 mr-1" value={state.object.rotation.x / Math.PI * 180} onBlur={(ev) => { if (!state.object) { return } state.object.rotation.x = +ev.currentTarget.value / 180 * Math.PI; modelDebuggerStore.setState({ objectChangeCount: state.objectChangeCount + 1 }) }} /></td>
-                    <td><input class="w-10 mr-1" value={state.object.rotation.y / Math.PI * 180} onBlur={(ev) => { if (!state.object) { return } state.object.rotation.y = +ev.currentTarget.value / 180 * Math.PI; modelDebuggerStore.setState({ objectChangeCount: state.objectChangeCount + 1 }) }} /></td>
-                    <td><input class="w-10 mr-1" value={state.object.rotation.z / Math.PI * 180} onBlur={(ev) => { if (!state.object) { return } state.object.rotation.z = +ev.currentTarget.value / 180 * Math.PI; modelDebuggerStore.setState({ objectChangeCount: state.objectChangeCount + 1 }) }} /></td>
-                </tr>
-            </table>
-        </>)}
-    </div>
-}
 
 const EnemyStats = () => {
     const enemyStatus = useStore(ephemeralDOMStore, (s) => s.enemyStatus)
@@ -187,22 +144,7 @@ const UI = () => {
             <EnemyStats />
         </div>
 
-        <div class="absolute right-56 bottom-1">
-            {/* DEBUG: Rendering options */}
-            <div class="px-3 pt-1 pb-3 window mb-1">
-                <h2>[Debug] Rendering</h2>
-                <div>
-                    {entries(state.renderingOptions).map(([name, checked]) => <label class="block">
-                        <input type="checkbox" class="mr-1" checked={checked} onClick={() => { state.setRenderingOption(name, !checked) }} />
-                        <span>{name}</span>
-                    </label>)}
-                </div>
-                <button class="px-4 hover:bg-opacity-60" onClick={() => { location.reload() }}>Apply</button>
-            </div>
-
-            {/* DEBUG: 3D model debugger */}
-            <ModelDebugger />
-        </div>
+        <Debugger />
 
         {/* The buttons at the left bottom corner */}
         <div class="absolute left-1 bottom-1 px-5 pb-1 window">

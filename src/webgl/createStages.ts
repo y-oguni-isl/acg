@@ -1,6 +1,6 @@
 import * as THREE from "three"
 import { ShaderMaterial } from "three"
-import { getRenderingOption } from "../dom"
+import { getRenderingOption } from "../debug"
 import { onBeforeRender } from "../hooks"
 import { getState, subscribe } from "../saveData"
 import { call } from "../util"

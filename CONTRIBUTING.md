@@ -10,3 +10,12 @@ The `store` in `saveData.ts` is set to a property of `window` so that you can mo
 ```typescript
 store.setState({ money: 100 })
 ```
+
+## Directory Structure
+| Path | Purpose |
+|-|-|
+| src/main.ts | The entry point and the main game/render loop |
+| src/debug.tsx | exports debugging components that should be removed in production. |
+| src/saveData.ts | exports the centralized store of the game state. |
+| src/dom/ | Preact components |
+| src/webgl/ | Three.js objects |

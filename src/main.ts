@@ -7,11 +7,11 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise"
 import { onBeforeRender, onPreprocess, onUpdate, updatePerSecond } from './hooks'
 import { bounties, enemyNames, getState, subscribe } from './saveData'
-import { ephemeralDOMStore, getRenderingOption } from './dom'
+import { ephemeralDOMStore } from './dom'
 import { call } from './util'
 import * as webgl from "./webgl"
-import modelDebuggerStore, { init3DModelDebugger } from './modelDebugger'
 import createStageTransitionPass from './webgl/createStageTransitionPass'
+import { getRenderingOption, init3DModelDebugger } from './debug'
 
 const scene = new THREE.Scene()
 const show = <T extends THREE.Object3D>(obj: T, renderingOptionLabel?: string): T => {
@@ -291,13 +291,15 @@ if (stats) {
 }
 
 {
+    const isStopped = init3DModelDebugger(camera, renderer, scene)
+
     const prevTime = { render: 0, update: 0 }
     let updateCount = 0
     renderer.setAnimationLoop((time: number): void => {
         // FPS monitor
         stats?.update()
 
-        if (modelDebuggerStore.getState().stop) {
+        if (isStopped()) {
             prevTime.update = prevTime.render = Date.now()
         } else {
             // onUpdate
@@ -318,9 +320,6 @@ if (stats) {
         effectComposer.render()
     })
 }
-
-// 3D model debugger
-init3DModelDebugger(camera, renderer, scene)
 
 // Audio
 const playAudio = () => {
