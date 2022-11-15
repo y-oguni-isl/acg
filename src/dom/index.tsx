@@ -10,6 +10,7 @@ import { enableMapSet } from "immer"
 import SuperJSON from "superjson"
 import { updatePerSecond } from "../hooks"
 import { Debugger } from "../debug"
+import Autolinker from "autolinker"
 
 enableMapSet()
 
@@ -96,15 +97,15 @@ const UI = () => {
     useEffect(() => {
         fetch("./audio/credit.html")
             .then((res) => res.text())
-            .then((html) => { setCreditHTML((c) => c + html) })
+            .then((html) => { setCreditHTML((c) => c + Autolinker.link(html)) })
             .catch(console.error)
         fetch("./models/credit.html")
             .then((res) => res.text())
-            .then((html) => { setCreditHTML((c) => c + html) })
+            .then((html) => { setCreditHTML((c) => c + Autolinker.link(html)) })
             .catch(console.error)
         fetch("./font/credit.html")
             .then((res) => res.text())
-            .then((html) => { setCreditHTML((c) => c + html) })
+            .then((html) => { setCreditHTML((c) => c + Autolinker.link(html)) })
             .catch(console.error)
     }, [])
 
@@ -166,10 +167,10 @@ const UI = () => {
         </div>
 
         {/* Credits */}
-        <dialog ref={creditDialog} class="p-2" onClick={closeDialogOnClick}>
+        <dialog ref={creditDialog} class="window p-2" onClick={closeDialogOnClick}>
             <div class="p-5">
                 <h1 class="text-xl mb-2">Credits</h1>
-                <ul dangerouslySetInnerHTML={{ __html: creditHTML ?? "" }} class="w-full h-full block [&_li]:mb-2 [&_h2]:font-bold"></ul>
+                <ul dangerouslySetInnerHTML={{ __html: creditHTML ?? "" }} class="w-full h-full block [&_li]:mb-2 [&_h2]:font-bold [&_a]:text-violet-300 select-text"></ul>
             </div>
         </dialog>
 

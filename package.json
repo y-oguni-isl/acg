@@ -18,7 +18,8 @@
     "zustand": "^4.1.4",
     "immer": "^9.0.16",
     "preact": "^10.11.2",
-    "superjson": "^1.11.0"
+    "superjson": "^1.11.0",
+    "autolinker": "^4.0.0"
   },
   "devDependencies": {
     "@types/three": "^0.144.0",
