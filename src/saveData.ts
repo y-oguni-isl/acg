@@ -20,7 +20,7 @@ const basePrice = {
     placeholder6: 100 * 15 ** 7,
 } satisfies Record<typeof upgradeNames[number], number>
 
-export const price = (name: (typeof upgradeNames)[number]) => basePrice[name] * 1.25 ** getState().upgrades[name]
+export const price = (name: (typeof upgradeNames)[number]) => basePrice[name] * 2 ** getState().upgrades[name]
 
 /** If true, the name of the upgrade is shown as ??? */
 export const isUpgradeNameHidden = (name: (typeof upgradeNames)[number]) => getState().upgrades[name] === 0 && getState().money < price(name) / 2 * 3
