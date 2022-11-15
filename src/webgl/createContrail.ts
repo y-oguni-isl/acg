@@ -4,6 +4,7 @@ import { onUpdate } from '../hooks'
 import { subscribe } from '../saveData'
 import createContrailFrag from './createContrail.frag'
 import createContrailVert from './createContrail.vert'
+import { enableSelectiveBloom } from './createSelectiveBloomPass'
 
 export default (source: THREE.Object3D) => {
     const segments = 120
@@ -34,6 +35,7 @@ export default (source: THREE.Object3D) => {
         mesh.geometry.attributes.position!.needsUpdate = true
         mesh.geometry.computeVertexNormals()
     })
+    enableSelectiveBloom(mesh)
 
     subscribe((state, prev) => {
         if (state.stage === prev.stage) { return }
