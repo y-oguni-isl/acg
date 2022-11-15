@@ -136,12 +136,3 @@ export const deleteSaveData = () => {
     destroyed = true
     localStorage.removeItem(localStorageKey)
 }
-
-getState().addTutorial("wasd")
-
-window.addEventListener("keyup", (ev) => {
-    if (["KeyW", "KeyS", "KeyA", "KeyD"].includes(ev.code) &&
-        getState().availableTutorials.has("wasd")) {
-        getState().completeTutorial("wasd")
-    }
-})
