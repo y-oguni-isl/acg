@@ -3,13 +3,14 @@ import Upgrades from "./upgrades"
 import create, { useStore } from "zustand"
 import { immer } from "zustand/middleware/immer"
 import { persist } from "zustand/middleware"
-import { deleteSaveData, getState, store, tutorials } from "../saveData"
+import { bounties, deleteSaveData, enemyNames, getState, isStageSystemUnlocked, store, tutorials } from "../saveData"
 import { entries } from "../util"
 import { Ref, useEffect, useRef, useState } from "preact/hooks"
 import type { JSXInternal } from "preact/src/jsx"
 import modelDebuggerStore from "../modelDebugger"
 import { enableMapSet } from "immer"
 import SuperJSON from "superjson"
+import { updatePerSecond } from "../hooks"
 
 enableMapSet()
 
@@ -53,14 +54,19 @@ export const domStore = create<{
 }))
 
 // Loading messages should not be persisted
+type EnemyStatus = { hp: number, name: typeof enemyNames[number] }  // TODO: name: string, maxHP: number
 export const ephemeralDOMStore = create<{
     loadingMessage: Map<string, string>
+    enemyStatus: EnemyStatus | null
     setLoadingMessage: (key: string, message: string) => void,
     removeLoadingMessage: (key: string) => void,
+    setEnemyStatus: (status: EnemyStatus) => void
 }>()(immer((set, get) => ({
     loadingMessage: new Map(),
+    enemyStatus: null as (EnemyStatus | null),
     setLoadingMessage: (key, message) => { set((d) => { d.loadingMessage.set(key, message) }) },
     removeLoadingMessage: (key: string) => { set((d) => { d.loadingMessage.delete(key) }) },
+    setEnemyStatus: (status) => { set((d) => { d.enemyStatus = status }) }
 })))
 
 /** Returns a boolean indicating whether the component should be rendered or not, which can be controlled in the rendering options window. */
@@ -101,14 +107,30 @@ const ModelDebugger = () => {
         </>)}
     </div>
 }
+
+const EnemyStats = () => {
+    const enemyStatus = useStore(ephemeralDOMStore, (s) => s.enemyStatus)
+    if (!enemyStatus) { return <></> }
+    return <div class="px-3 pt-1 pb-3 window mt-1 mb-1">
+        <h2 class="mb-2">Stats</h2>
+        <div>
+            <table>
+                <tr><td class="pr-1">HP</td><td>{Math.max(0, Math.round(enemyStatus.hp))}</td></tr>
+                <tr><td class="pr-1">Money</td><td>{bounties[enemyStatus.name]}</td></tr>
+            </table>
+        </div>
+    </div>
+}
+
 const UI = () => {
     const state = useStore(domStore)
     const newsDialog = useRef() as Ref<HTMLDialogElement>
     const creditDialog = useRef() as Ref<HTMLDialogElement>
     const [creditHTML, setCreditHTML] = useState<string>("")
-    const isStageWindowVisible = useStore(store, (s) => s.availableNews.has("aliensComing"))
-    const isWeatherWindowVisible = useStore(store, (s) => s.completedTutorials.has("nextStage"))
+    const isStageWindowVisible = useStore(store, isStageSystemUnlocked)
     const loadingMessage = useStore(ephemeralDOMStore, (s) => s.loadingMessage)
+    const weather = useStore(store, (s) => s.getWeather())
+    const weatherEffectWillBeEnabledInLessThan = useStore(store, (s) => Math.ceil(s.weatherEffectWillBeEnabledInLessThan[s.stage] / updatePerSecond / 60))
 
     useEffect(() => {
         fetch("./audio/credit.html")
@@ -139,7 +161,7 @@ const UI = () => {
         {/* Tutorial message */}
         <Tutorial />
 
-        <div class="absolute right-1 top-1">
+        <div class="absolute right-1 top-1 w-52">
             {/* Stages */}
             {isStageWindowVisible && <div class="px-3 pt-1 pb-3 window">
                 <h2 class="mb-2">Stages</h2>
@@ -151,18 +173,23 @@ const UI = () => {
             </div>}
 
             {/* Weather */}
-            {isWeatherWindowVisible && <div class="px-3 pt-1 pb-3 window mt-1 mb-1">
+            {weather !== null && <div class="px-3 pt-1 pb-3 window mt-1 mb-1">
                 <h2 class="mb-2">Weather</h2>
                 <div>
                     <table>
-                        <tr><td class="pr-1">{">"}</td><td class="font-bold">Normal</td></tr>
-                        <tr><td class="pr-1"></td><td>Rain</td></tr>
+                        <tr><td class="pr-1">{!weather.enabled && ">"}</td><td class={!weather.enabled ? "font-bold" : ""}>Normal</td></tr>
+                        <tr><td class="pr-1">{weather.enabled && ">"}</td><td class={weather.enabled ? "font-bold" : ""}>{weather.name}{!weather.enabled && <> (in {"<" + weatherEffectWillBeEnabledInLessThan} min{weatherEffectWillBeEnabledInLessThan !== 1 && "s"})</>}</td></tr>
                     </table>
                 </div>
             </div>}
 
+            {/* Enemy */}
+            <EnemyStats />
+        </div>
+
+        <div class="absolute right-56 bottom-1">
             {/* DEBUG: Rendering options */}
-            <div class="px-3 pt-1 pb-3 window">
+            <div class="px-3 pt-1 pb-3 window mb-1">
                 <h2>[Debug] Rendering</h2>
                 <div>
                     {entries(state.renderingOptions).map(([name, checked]) => <label class="block">

@@ -37,16 +37,17 @@ const Upgrades = () => {
             <h2 class="mb-2">Upgrades</h2>
             {entries(upgrades)
                 .filter((_, i, arr) => i < 2 || arr[i - 1]![1] > 0 || arr[i - 2]![1] > 0)
-                .map(([name, count], i) => <UpgradeItem key={name} name={name} count={count} rowNumber={i} />)}
+                .map(([name, count], i) => <Row key={name} name={name} count={count} rowNumber={i} />)}
         </div>
     </div>
 }
 
-const UpgradeItem = (props: { name: typeof upgradeNames[number], count: number, rowNumber: number }) => {
+const Row = (props: { name: typeof upgradeNames[number], count: number, rowNumber: number }) => {
     const buyUpgrade = useStore(store, (s) => s.buyUpgrade)
     const money = useStore(store, (s) => s.money)
     const [mouseHover, setMouseHover] = useState(false)
     const [, update] = useState({})
+    const weather = useStore(store, (s) => s.getWeather())
 
     useEffect(() => {
         const timer = setInterval(() => { update({}) }, 1000 / 60) // Update animation
@@ -66,7 +67,7 @@ const UpgradeItem = (props: { name: typeof upgradeNames[number], count: number, 
         onMouseLeave={() => { setMouseHover(false) }}>
         <div class="px-2 hover:bg-[linear-gradient(0deg,rgba(255,255,255,1)_0%,rgba(255,255,255,0)_10%)]">
             <span class="inline-block w-28">{isUpgradeNameHidden(props.name) ? "???" : props.name}</span>
-            <span class="float-right">{props.count}</span>
+            <span class="float-right">{props.count}{props.name === "Autopilot" && weather?.enabled && " (-5)"}</span>
         </div>
         {mouseHover && <div class="absolute left-full top-0 ml-1 px-3 tooltip whitespace-nowrap">
             {money} / {price(props.name)}

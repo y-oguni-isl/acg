@@ -3,6 +3,7 @@ import { persist } from "zustand/middleware"
 import { immer } from 'zustand/middleware/immer'
 import { enableMapSet } from "immer"
 import SuperJSON from 'superjson'
+import { updatePerSecond } from './hooks'
 
 enableMapSet()
 
@@ -22,8 +23,19 @@ const basePrice = {
 
 export const price = (name: (typeof upgradeNames)[number]) => basePrice[name] * 2 ** getState().upgrades[name]
 
+export const enemyNames = ["Bird", "UFO", "Weather Effect UFO"] as const
+
+export const bounties = {
+    Bird: 1,
+    UFO: 100,
+    "Weather Effect UFO": 1000,
+} satisfies Record<typeof enemyNames[number], number>
+
 /** If true, the name of the upgrade is shown as ??? */
 export const isUpgradeNameHidden = (name: (typeof upgradeNames)[number]) => getState().upgrades[name] === 0 && getState().money < price(name) / 2 * 3
+
+export const isStageSystemUnlocked = (s: Pick<State, "availableNews">) => s.availableNews.has("aliensComing")
+export const isWeatherSystemUnlocked = () => getState().completedTutorials.has("nextStage")
 
 /** The list of tutorials and their texts. */
 export const tutorials = {
@@ -31,6 +43,7 @@ export const tutorials = {
     upgrade: "You can now buy upgrades for your aircraft! To do so, click on the button in the upper left corner of the screen.",
     nextStage: "You can now move on to the next stage! To do so, click the button in the top right corner of the screen.",
     backToPreviousStage: "If you're finding this stage too difficult, go back to the previous stage and try again after you get more upgrades.",
+    weatherEffect: "We need to kill a red UFO in order to stop the rain. The UFO has a device that can manipulate the weather, and the rain is interfering with the autopilot system.",
 }
 
 /** The list of news and their headlines and texts. */
@@ -41,6 +54,8 @@ export const newsList = {
 
 export type Stage = 0 | 1
 
+export type WeatherEffect = "Rain"
+
 type State = {
     stage: Stage
     stageTransitingTo: Stage | null
@@ -49,6 +64,8 @@ type State = {
     completedTutorials: Set<keyof typeof tutorials>
     availableNews: Set<keyof typeof newsList>
     availableTutorials: Set<keyof typeof tutorials>
+    weatherEffectWillBeEnabledIn: Record<Stage, number>  // the weather effect is enabled if countdown <= 0
+    weatherEffectWillBeEnabledInLessThan: Record<Stage, number>
 
     addMoney: (delta: number) => void
     buyUpgrade: (name: typeof upgradeNames[number]) => void
@@ -57,12 +74,20 @@ type State = {
     addTutorial: (name: keyof typeof tutorials) => void
     setStageTransitingTo: (stage: Stage) => void
     completeStageTransition: () => void
+    countdown: () => void
+    getWeather: () => ({ name: WeatherEffect, enabled: boolean } | null)
+    stopWeatherEffect: () => void
 }
 
 const localStorageKey = "acgSaveData"
 let destroyed = false
 
-/** This store maintains the stage of game, and it is persisted in the localStorage by the persiste() middleware. */
+const newWeatherEffectETA = (rand = () => Math.random()): Record<Stage, number> => ({
+    0: rand() * updatePerSecond * 60 * 6,
+    1: rand() * updatePerSecond * 60 * 12
+})
+
+/** This store maintains the stage of game, and it is persisted in the localStorage by the persist() middleware. */
 export const store = create<State>()(persist(immer((set, get) => ({
     stage: 0 as Stage,
     stageTransitingTo: null as Stage | null,
@@ -71,6 +96,8 @@ export const store = create<State>()(persist(immer((set, get) => ({
     completedTutorials: new Set(),
     availableNews: new Set(),
     availableTutorials: new Set(),
+    weatherEffectWillBeEnabledIn: newWeatherEffectETA(),
+    weatherEffectWillBeEnabledInLessThan: newWeatherEffectETA(() => 1),
 
     addMoney: (delta) => {
         set((d) => { d.money += delta })
@@ -113,10 +140,32 @@ export const store = create<State>()(persist(immer((set, get) => ({
             get().completeTutorial("nextStage")
         }
     },
+    countdown: () => {
+        if (!isWeatherSystemUnlocked()) { return }
+        set((d) => {
+            d.weatherEffectWillBeEnabledIn[d.stage]--
+            d.weatherEffectWillBeEnabledInLessThan[d.stage]--
+        })
+        if (get().weatherEffectWillBeEnabledIn[get().stage] < 0) {
+            get().addTutorial("weatherEffect")
+        }
+    },
+    getWeather: () => {
+        if (!isWeatherSystemUnlocked()) { return null }
+        const enabled = get().weatherEffectWillBeEnabledIn[get().stage] <= 0
+        if (get().stage === 0) { return { name: "Rain", enabled } }
+        return null  // unimplemented
+    },
+    stopWeatherEffect: () => {
+        set((d) => {
+            d.weatherEffectWillBeEnabledIn[d.stage] = newWeatherEffectETA()[d.stage]
+            d.weatherEffectWillBeEnabledInLessThan[d.stage] = newWeatherEffectETA(() => 1)[d.stage]
+        })
+    },
 })), {
     // Options for the "persist" middleware
     name: localStorageKey,
-    version: 2,
+    version: 3,
     // migrate: (state, version) => {
     //     if (version === 0) { state.foo = "bar" }
     //     return state as State

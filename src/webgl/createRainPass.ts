@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
 import { onBeforeRender } from '../hooks'
+import { getState, subscribe } from '../saveData'
 import rainFrag from './createRainPass.frag'
 import rainVert from './createRainPass.vert'
 
@@ -53,6 +54,12 @@ export default (camera: THREE.PerspectiveCamera, blur: boolean) => {
     onBeforeRender.add((time) => {
         pass.uniforms.aspect!.value = camera.aspect
         pass.uniforms.time!.value = time;
+    })
+
+    pass.enabled = getState().getWeather()?.name === "Rain" && !!getState().getWeather()?.enabled
+    subscribe((state, prev) => {
+        if (state.weatherEffectWillBeEnabledIn === prev.weatherEffectWillBeEnabledIn) { return }
+        pass.enabled = getState().getWeather()?.name === "Rain" && !!getState().getWeather()?.enabled
     })
 
     return pass
