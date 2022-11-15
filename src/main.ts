@@ -1,3 +1,15 @@
+{
+    // Close other browser tabs
+    const broadcastChannel = new BroadcastChannel("acg")
+    broadcastChannel.addEventListener("message", (ev) => {
+        if (ev.data === "hello") {
+            location.href = "./tab_already_open.html"
+        }
+    })
+    broadcastChannel.postMessage("hello")
+}
+
+
 import 'typed-query-selector'
 import * as Stats from "stats.js"
 import * as THREE from 'three'
