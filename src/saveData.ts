@@ -69,6 +69,7 @@ const newWeatherEffectETA = (rand = () => Math.random()): Record<typeof stageNam
 })
 
 type State = {
+    gameSessionId: string
     stage: typeof stageNames[number]
     stageTransitingTo: typeof stageNames[number] | null
     money: number
@@ -82,6 +83,7 @@ type State = {
     canTranscend: boolean
     transcending: boolean
     transcendence: number
+    cheated: boolean
 
     addMoney: (delta: number) => void
     buyUpgrade: (name: typeof upgradeNames[number]) => void
@@ -97,10 +99,12 @@ type State = {
     transcend: () => void
     cancelTranscending: () => void
     confirmTranscending: () => void
+    cheat: () => void
 }
 
 /** This store maintains the stage of game, and it is persisted in the localStorage by the persist() middleware. */
 export const store = create<State>()(persist(immer((set, get) => ({
+    gameSessionId: crypto.randomUUID(),
     stage: "Earth" as typeof stageNames[number],
     stageTransitingTo: null as typeof stageNames[number] | null,
     money: 0,
@@ -113,6 +117,7 @@ export const store = create<State>()(persist(immer((set, get) => ({
     canTranscend: false as boolean,
     transcending: false as boolean,
     transcendence: 0,
+    cheated: false,
 
     addMoney: (delta) => {
         set((d) => { d.money += delta })
@@ -194,6 +199,7 @@ export const store = create<State>()(persist(immer((set, get) => ({
             d.transcendence++
         })
     },
+    cheat: () => { set((d) => { d.cheated = true }) },
 })), {
     // Options for the "persist" middleware
     name: localStorageKey,
@@ -208,7 +214,12 @@ export const store = create<State>()(persist(immer((set, get) => ({
     deserialize: (s) => SuperJSON.parse(s) as any,
 }));
 
-(window as any).store = store
+(window as any).store = new Proxy(store, {
+    get(target, p, receiver) {
+        getState().cheat()
+        return Reflect.get(target, p, receiver)
+    },
+})
 
 export const getState = store.getState
 export const subscribe = store.subscribe
@@ -216,4 +227,13 @@ export const deleteSaveData = () => {
     store.destroy()
     destroyed = true
     localStorage.removeItem(localStorageKey)
+}
+
+// Send analytics to balance the game 
+if (import.meta.env.VITE_ANALYTICS_ADDR && location.hostname.endsWith(".github.io")) {
+    localStorage.userId ??= crypto.randomUUID()
+    const send = (event?: string) => { fetch(import.meta.env.VITE_ANALYTICS_ADDR ?? "", { method: "POST", body: JSON.stringify({ userId: localStorage.userId, event, ...store.getState() }) }) }  // beacon didn't work
+    setInterval(() => send(), 1000 * 60)
+    send("start")
+    document.addEventListener("visibilitychange", () => { send(document.visibilityState) })
 }
