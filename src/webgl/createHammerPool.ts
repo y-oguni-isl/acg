@@ -45,7 +45,7 @@ export default async (source: THREE.Object3D) => {
             m.position.x += m.userData.velocity.x * 0.01
             m.position.y = Math.sin(m.userData.time * 0.15) * 0.03
             m.position.z += m.userData.velocity.y * 0.01
-            if (m.position.x > 2 || Math.abs(m.position.z) > 1) {
+            if (m.position.x > 4 || Math.abs(m.position.z) > 1) {
                 m.free()
             }
         }
