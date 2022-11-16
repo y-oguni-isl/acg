@@ -218,7 +218,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
             // Collisions between the enemy and the player's attacks
             for (const hammer of hammers?.children ?? []) {
                 if (hammer.position.distanceTo(enemy.position) < enemy.userData.radius + 0.02) {
-                    enemy.userData.hp -= 600 * (getState().upgrades['ATK×2'] + 1)
+                    enemy.userData.hp -= 2000 * (getState().upgrades['ATK×2'] + 1)
                     hammer.free()
                 }
             }
