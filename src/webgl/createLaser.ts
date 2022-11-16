@@ -16,7 +16,7 @@ export default (source: THREE.Object3D) => {
     onBeforeRender.add((time) => {
         uniforms.time.value = time
         uniforms.count.value = getState().upgrades.Laser
-        call(mesh, { position: { setX: source.position.x + 1, setZ: source.position.z } })
+        call(mesh, { position: { setX: source.position.x + 1, setY: source.position.y + 0.01, setZ: source.position.z } })
     })
 
     const mesh = call(new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShaderMaterial({

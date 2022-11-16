@@ -36,6 +36,7 @@ export const isUpgradeNameHidden = (name: (typeof upgradeNames)[number]) => getS
 
 export const isStageSystemUnlocked = (s: Pick<State, "availableNews">) => s.availableNews.has("aliensComing")
 export const isWeatherSystemUnlocked = () => getState().completedTutorials.has("nextStage")
+export const isVerticalMoveUnlocked = () => false  // TODO:
 
 /** The list of tutorials and their texts. */
 export const tutorials = {

@@ -9,7 +9,6 @@
     broadcastChannel.postMessage("hello")
 }
 
-
 import 'typed-query-selector'
 import * as Stats from "stats.js"
 import * as THREE from 'three'
@@ -18,7 +17,7 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js"
 import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise"
 import { onBeforeRender, onPreprocess, onUpdate, updatePerSecond } from './hooks'
-import { bounties, enemyNames, getState, subscribe } from './saveData'
+import { bounties, enemyNames, getState, isVerticalMoveUnlocked, subscribe } from './saveData'
 import { ephemeralDOMStore } from './dom'
 import { call } from './util'
 import * as webgl from "./webgl"
@@ -183,7 +182,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
                     hammer.free()
                 }
             }
-            if (Math.abs(enemy.position.z - airplane.position.z) < 0.03 && enemy.position.x > airplane.position.x) {
+            if (Math.abs(enemy.position.z - airplane.position.z) < 0.03 && Math.abs(enemy.position.y - airplane.position.y) < 0.03 && enemy.position.x > airplane.position.x) {
                 // Show a hit effect
                 if (!enemy.userData.laserHitEffect) {
                     enemy.userData.laserHitEffect = laserHitEffects.allocate()
@@ -241,6 +240,12 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
             if (pressedKeys.has("KeyA")) { airplaneVelocity.x = Math.max(-1, Math.min(0, airplaneVelocity.x) - 0.3) }
             if (pressedKeys.has("KeyW")) { airplaneVelocity.y = Math.min(1, Math.max(0, airplaneVelocity.y) + 0.3) }
             if (pressedKeys.has("KeyS")) { airplaneVelocity.y = Math.max(-1, Math.min(0, airplaneVelocity.y) - 0.3) }
+            if (pressedKeys.has("Space") && isVerticalMoveUnlocked()) {
+                airplane.position.y = Math.min(0.1, airplane.position.y + 0.005)
+            } else {
+                airplane.position.y = Math.max(0, airplane.position.y - 0.005)
+            }
+
             if (pressedKeys.size === 0) { airplaneVelocity.multiplyScalar(0.5) }
             if (airplaneVelocity.length() > 1) { airplaneVelocity.normalize() }
             airplane.position.setZ(Math.min(xMax, Math.max(xMin, airplane.position.z + airplaneVelocity.x * 0.015)))

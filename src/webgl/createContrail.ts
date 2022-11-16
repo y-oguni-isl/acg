@@ -30,12 +30,14 @@ export default (source: THREE.Object3D) => {
         const positions = mesh.geometry.attributes.position as THREE.BufferAttribute
         for (let i = positions.count - 1; i >= 2; i--) {
             positions.setX(i, positions.getX(i - 2) - airplaneSpeedAgainstGround * samplingInterval)
-            positions.setX(i, positions.getX(i - 2) - 0.01)
+            positions.setY(i, positions.getY(i - 2))
             positions.setZ(i, positions.getZ(i - 2))
         }
         positions.setX(0, source.position.x)
+        positions.setY(0, source.position.y)
         positions.setZ(0, source.position.z + 0.1)
         positions.setX(1, source.position.x)
+        positions.setY(1, source.position.y)
         positions.setZ(1, source.position.z - 0.1)
         mesh.geometry.attributes.position!.needsUpdate = true
         mesh.geometry.computeVertexNormals()
