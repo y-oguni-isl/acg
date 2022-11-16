@@ -113,6 +113,10 @@ const UI = () => {
             .then((res) => res.text())
             .then((html) => { setCreditHTML((c) => c + Autolinker.link(html)) })
             .catch(console.error)
+        fetch("./lib_credit.html")
+            .then((res) => res.text())
+            .then((html) => { setCreditHTML((c) => c + Autolinker.link(html)) })
+            .catch(console.error)
     }, [])
 
     useEffect(() => {
@@ -139,6 +143,7 @@ const UI = () => {
                 <h2 class="mb-2">Stages</h2>
                 <div>{stageNames.map((name) =>
                     <button
+                        tabIndex={-1}
                         class="w-full mb-1"
                         onClick={() => { getState().setStageTransitingTo(name) }}
                         disabled={!areStageNamesVisible_[name]}>
@@ -179,7 +184,7 @@ const UI = () => {
         <dialog ref={creditDialog} class="window p-2" onClick={closeDialogOnClick}>
             <div class="p-5">
                 <h1 class="text-xl mb-2">Credits</h1>
-                <ul dangerouslySetInnerHTML={{ __html: creditHTML ?? "" }} class="w-full h-full block [&_li]:mb-2 [&_h2]:font-bold [&_a]:text-violet-300 select-text"></ul>
+                <ul dangerouslySetInnerHTML={{ __html: creditHTML ?? "" }} class="w-full h-full block [&_li]:mb-2 [&_h2]:font-bold [&_a]:text-violet-300 select-text list-disc ml-5"></ul>
             </div>
         </dialog>
 

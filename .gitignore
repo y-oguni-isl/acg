@@ -4,3 +4,4 @@
 node_modules/
 .pnpm-store/
 dist/
+public/lib_credit.html
