@@ -16,6 +16,11 @@ body {
 .window {
     @apply text-gray-50 backdrop-blur-3xl drop-shadow-lg select-none border-opacity-40 border-2 border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600;
     background: linear-gradient(240deg, rgba(55, 65, 81, 0.144) 0%, rgba(55, 65, 81, 0.4) 100%);
+
+    &.gold {
+        @apply border-t-yellow-400 border-l-yellow-400 border-b-yellow-600 border-r-yellow-600;
+        background: linear-gradient(240deg, rgba(255, 202, 27, 0.856) 0%, rgba(255, 231, 16, 0.4) 100%);
+    }
 }
 
 .window h2 { @apply font-bold; }
@@ -23,10 +28,19 @@ body {
 button {
     @apply text-gray-50 backdrop-blur-3xl drop-shadow-lg select-none border-opacity-40 border-2 border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600;
     background: linear-gradient(240deg, rgb(55, 65, 81, 0.7) 0%, rgb(55, 65, 81, 0.7) 100%);
-}
 
-button:hover:not(:disabled) {
-    animation: 0.1s forwards alternate button-hover;
+    &:hover:not(:disabled) {
+        animation: 0.1s forwards alternate button-hover;
+    }
+
+    .gold & {
+        @apply border-t-yellow-400 border-l-yellow-400 border-b-yellow-600 border-r-yellow-600;
+        background: linear-gradient(240deg, rgba(255, 202, 27, 0.8) 0%, rgba(255, 231, 16, 0.7) 100%);
+
+        &:hover:not(:disabled) {
+            animation: none;
+        }
+    }
 }
 
 .tooltip {

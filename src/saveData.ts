@@ -35,7 +35,7 @@ export const bounties = {
 /** If true, the name of the upgrade is shown as ??? */
 export const isUpgradeNameHidden = (name: (typeof upgradeNames)[number]) => getState().upgrades[name] === 0 && getState().money < price(name) / 2 * 3
 export const isWeatherSystemUnlocked = () => getState().completedTutorials.has("nextStage")
-export const isVerticalMoveUnlocked = () => getState().availableTutorials.has("ending")
+export const isVerticalMoveUnlocked = () => false
 
 /** The list of tutorials and their texts. */
 export const tutorials = {
@@ -44,7 +44,8 @@ export const tutorials = {
     nextStage: "You can now move on to the next stage! To do so, click the button in the top right corner of the screen.",
     backToPreviousStage: "If you're finding this stage too difficult, go back to the previous stage and try again after you get more upgrades.",
     weatherEffect: "We need to kill a UFO in order to stop the rain. The UFO has a device that can manipulate the weather, and the rain is interfering with the autopilot system.",
-    ending: "Congratulations, you have saved the world from the aliens. Thanks for playing! As a bonus, you can fly around vertically with the space key from now on.",
+    ending: "Congratulations, you have saved the world from the aliens. Thanks for playing!",
+    // TODO: "As a bonus, you can fly around vertically with the space key from now on."
 }
 
 /** The list of news and their headlines and texts. */
@@ -78,6 +79,9 @@ type State = {
     availableTutorials: Set<keyof typeof tutorials>
     weatherEffectWillBeEnabledIn: Record<typeof stageNames[number], number>  // the weather effect is enabled if countdown <= 0
     weatherEffectWillBeEnabledInLessThan: Record<typeof stageNames[number], number>
+    canTranscend: boolean
+    transcending: boolean
+    transcendence: number
 
     addMoney: (delta: number) => void
     buyUpgrade: (name: typeof upgradeNames[number]) => void
@@ -89,6 +93,10 @@ type State = {
     countdown: () => void
     getWeather: () => ({ name: WeatherEffect, enabled: boolean } | null)
     stopWeatherEffect: () => void
+    defeatedFinalBoss: () => void
+    transcend: () => void
+    cancelTranscending: () => void
+    confirmTranscending: () => void
 }
 
 /** This store maintains the stage of game, and it is persisted in the localStorage by the persist() middleware. */
@@ -102,6 +110,9 @@ export const store = create<State>()(persist(immer((set, get) => ({
     availableTutorials: new Set(),
     weatherEffectWillBeEnabledIn: newWeatherEffectETA(),
     weatherEffectWillBeEnabledInLessThan: newWeatherEffectETA(() => 1),
+    canTranscend: false as boolean,
+    transcending: false as boolean,
+    transcendence: 0,
 
     addMoney: (delta) => {
         set((d) => { d.money += delta })
@@ -131,6 +142,7 @@ export const store = create<State>()(persist(immer((set, get) => ({
     setStageTransitingTo: (stage) => {
         if (get().stage === stage) { return }
         set((d) => { d.stageTransitingTo = stage })
+        if (get().availableTutorials.has("ending")) { get().completeTutorial("ending") }
     },
     completeStageTransition: () => {
         set((d) => {
@@ -164,6 +176,22 @@ export const store = create<State>()(persist(immer((set, get) => ({
         set((d) => {
             d.weatherEffectWillBeEnabledIn[d.stage] = newWeatherEffectETA()[d.stage]
             d.weatherEffectWillBeEnabledInLessThan[d.stage] = newWeatherEffectETA(() => 1)[d.stage]
+        })
+    },
+    defeatedFinalBoss: () => {
+        set((d) => { d.canTranscend = true })
+        getState().addTutorial("ending")
+    },
+    transcend: () => {
+        set((d) => { d.transcending = true })
+        if (get().availableTutorials.has("ending")) { get().completeTutorial("ending") }
+    },
+    cancelTranscending: () => { set((d) => { d.transcending = false }) },
+    confirmTranscending: () => {
+        set((d) => {
+            if (!d.transcending) { return }
+            d.transcending = false
+            d.transcendence++
         })
     },
 })), {

@@ -99,6 +99,7 @@ const UI = () => {
     const loadingMessage = useStore(ephemeralDOMStore, (s) => s.loadingMessage)
     const weather = useStore(store, (s) => s.getWeather())
     const weatherEffectWillBeEnabledInLessThan = useStore(store, (s) => Math.ceil(s.weatherEffectWillBeEnabledInLessThan[s.stage] / updatePerSecond / 60))
+    const transcending = useStore(store, (s) => s.transcending)
 
     useEffect(() => {
         fetch("./audio/credit.html")
@@ -130,6 +131,27 @@ const UI = () => {
         }, { once: true })
     }, [state.news])
 
+    if (transcending) {
+        return <div class="absolute window w-full h-full">
+            <div class="m-auto w-fit h-fit text-center p-[30vh]">
+                <h2>Transcending...</h2>
+                <p class="my-4">
+                    Enemies in the next world will have 500x the HP and money.
+                </p>
+                {/*
+                TODO: The bonus for this ascension is .... A new stage will be unlocked at the next ascension.
+                Choose a bonus:
+                <ul class="list-disc ml-6">
+                    <li>ATK×2</li>
+                    <li>Enemy×2</li>
+                </ul> */}
+                <div class="float-right">
+                    <span class="gold"><button class="px-8" onClick={() => { getState().confirmTranscending() }}>Confirm</button></span>
+                    <button class="px-8 ml-2" onClick={() => { getState().cancelTranscending() }}>Cancel</button>
+                </div>
+            </div>
+        </div>
+    }
     return <>
         {/* Upgrades */}
         <Upgrades />

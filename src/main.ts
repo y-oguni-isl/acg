@@ -114,7 +114,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
         webgl.createBirdPool(true).then((m) => show(m.onAllocate((copy): Enemy => ({
             name: "Bird",
             time: 0,
-            hp: 15 * (1 + Math.random()),
+            hp: 15 * (1 + Math.random()) * (500 ** getState().transcendence),
             laserHitEffect: null,
             update: () => { copy.position.x -= 0.01 },
             onKilled: () => { deadBirds.allocate().position.copy(copy.position) },
@@ -123,7 +123,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
         webgl.createUFOPool().then((m) => show(m.onAllocate((copy): Enemy => ({
             name: "UFO",
             time: 0,
-            hp: 300 * (1 + Math.random()),
+            hp: 300 * (1 + Math.random()) * (500 ** getState().transcendence),
             laserHitEffect: null,
             update: () => {
                 if (copy.userData.time % 80 <= 3) { // before teleportation
@@ -143,7 +143,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
         webgl.createUFOPool().then((m) => show(m.onAllocate((copy): Enemy => ({
             name: "Weather Effect UFO",
             time: 0,
-            hp: 1500,
+            hp: 1500 * (500 ** getState().transcendence),
             laserHitEffect: null,
             update: () => { /* skip*/ },
             onKilled: () => {
@@ -157,12 +157,12 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
         webgl.createEnemyPlanet().then((m) => show(m.onAllocate((copy): Enemy => ({
             name: "Planet",
             time: 0,
-            hp: 100000000,
+            hp: 150000 * (500 ** getState().transcendence),
             laserHitEffect: null,
             update: () => { /* skip */ },
             onKilled: () => {
                 deadEnemyPlanets.allocate().position.copy(copy.position)
-                getState().addTutorial("ending")
+                getState().defeatedFinalBoss()
             },
             radius: 1,
         })), "enemyPlanet")),
@@ -180,7 +180,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
 
     // Delete everything when switching to another stage
     subscribe((state, prev) => {
-        if (state.stage === prev.stage) { return }
+        if (state.stage === prev.stage && state.transcendence === prev.transcendence) { return }
         for (const obj of [...enemiesAlive.flatMap((o) => o.children), ...enemiesDead.flatMap((o) => o.children)]) {
             obj.free()
         }
@@ -207,7 +207,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
         if (getState().stage === "Universe" && t % 31 === 0 && getState().availableNews.has("aliensComing")) {
             ufos.allocate().position.set(2, 0, ((t * 0.06) % 1) * (xMax - xMin) + xMin)
         }
-        if (getState().stage === "Final" && enemyPlanets.children.length === 0 && !getState().availableTutorials.has("ending")) {
+        if (getState().stage === "Final" && enemyPlanets.children.length === 0 && !getState().canTranscend) {
             enemyPlanets.allocate().position.set(4, 0, 0)
         }
 
@@ -244,7 +244,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
             if (enemy.position.x < -1 || enemy.userData.hp <= 0) {
                 if (enemy.userData.hp <= 0) {
                     enemy.userData.onKilled()
-                    getState().addMoney(bounties[enemy.userData.name])
+                    getState().addMoney(bounties[enemy.userData.name] * (500 ** getState().transcendence))
                 }
                 enemy.free()
                 enemy.userData.laserHitEffect?.free()
@@ -294,7 +294,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
             if ((getState().getWeather()?.enabled ? getState().upgrades.Autopilot - 5 : getState().upgrades.Autopilot) > 0 && pressedKeys.size === 0) { // TODO: add a switch to disable autopilot
                 const findMin = <T>(arr: readonly T[], key: (v: T) => void) => arr.length === 0 ? null : arr.reduce((p, c) => key(p) < key(c) ? p : c, arr[0]!)
                 if (!autopilotTarget || !enemiesAlive.flatMap((o) => o.children).includes(autopilotTarget) || autopilotTarget.position.x < airplane.position.x) {
-                    autopilotTarget = findMin(enemiesAlive.flatMap((o) => o.children).filter((e) => e.position.x > airplane.position.x + 0.3), (e) => e.position.x)
+                    autopilotTarget = findMin(enemiesAlive.flatMap((o) => o.children).filter((e) => e.position.x > airplane.position.x + 0.3 && e.userData.name !== "Weather Effect UFO"), (e) => e.position.x)
                 }
                 if (autopilotTarget) {
                     const autopilotSpeed = 0.1 * getState().upgrades.Autopilot
@@ -365,7 +365,7 @@ if (stats) {
         // FPS monitor
         stats?.update()
 
-        if (isStopped()) {
+        if (isStopped() || getState().transcending) {
             prevTime.update = prevTime.render = Date.now()
         } else {
             // onUpdate

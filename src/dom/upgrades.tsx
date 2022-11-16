@@ -32,13 +32,20 @@ const buildProgressBarStyle = (name: typeof upgradeNames[number], rowNumber: num
 const Upgrades = () => {
     const upgrades = useStore(store, (s) => s.upgrades)
 
-    return <div class="absolute left-1 top-1">
+    return <div class="absolute left-1 top-1 w-56">
         <div class="px-3 pt-1 pb-3 window">
             <h2 class="mb-2">Upgrades</h2>
             {entries(upgrades)
                 .filter((_, i, arr) => i < 2 || arr[i - 1]![1] > 0 || arr[i - 2]![1] > 0)
                 .map(([name, count], i) => <Row key={name} name={name} count={count} rowNumber={i} />)}
         </div>
+        {getState().canTranscend && <div class="px-3 pt-1 pb-3 window gold mt-1">
+            <p class="text-xs mb-2">
+                You have reached the point of singularity and can transcended to a higher plane of existence. All your progress will be reset, but you will receive a bonus based on your previous progress.
+            </p>
+            {/* Higher plane of existence = enemies have more HP and money */}
+            <button class="w-full" tabIndex={-1} onClick={() => { getState().transcend() }}>Transcend</button>
+        </div>}
     </div>
 }
 
