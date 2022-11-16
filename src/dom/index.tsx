@@ -3,7 +3,7 @@ import Upgrades from "./upgrades"
 import create, { useStore } from "zustand"
 import { immer } from "zustand/middleware/immer"
 import { persist } from "zustand/middleware"
-import { bounties, deleteSaveData, enemyNames, getState, areStageNamesVisible, store, tutorials, stageNames } from "../saveData"
+import { bounties, deleteSaveData, enemyNames, getState, store, tutorials, stageNames } from "../saveData"
 import { Ref, useEffect, useRef, useState } from "preact/hooks"
 import type { JSXInternal } from "preact/src/jsx"
 import { enableMapSet } from "immer"
@@ -89,7 +89,13 @@ const UI = () => {
     const newsDialog = useRef() as Ref<HTMLDialogElement>
     const creditDialog = useRef() as Ref<HTMLDialogElement>
     const [creditHTML, setCreditHTML] = useState<string>("")
-    const areStageNamesVisible_ = useStore(store, areStageNamesVisible)
+    const areStageNamesVisible_ = useStore(store, (s): { [k in typeof stageNames[number]]: boolean } => {
+        return {
+            Earth: s.availableNews.has("aliensComing"),
+            Universe: s.availableNews.has("aliensComing"),
+            Final: s.availableNews.has("aliensComing") && s.upgrades['ATK×2'] > 0,
+        }
+    })
     const loadingMessage = useStore(ephemeralDOMStore, (s) => s.loadingMessage)
     const weather = useStore(store, (s) => s.getWeather())
     const weatherEffectWillBeEnabledInLessThan = useStore(store, (s) => Math.ceil(s.weatherEffectWillBeEnabledInLessThan[s.stage] / updatePerSecond / 60))

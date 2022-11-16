@@ -55,13 +55,6 @@ export const newsList = {
 
 export const stageNames = ["Earth", "Universe", "Final"] as const
 
-/** The stage name is shown as ??? if true. If all are false the map list will not be shown. */
-export const areStageNamesVisible = (s: State): { [k in typeof stageNames[number]]: boolean } => ({
-    Earth: s.availableNews.has("aliensComing"),
-    Universe: s.availableNews.has("aliensComing"),
-    Final: s.availableNews.has("aliensComing") && s.upgrades['ATK×2'] > 0,
-})
-
 export type WeatherEffect = "Rain"
 
 const localStorageKey = "acgSaveData"
