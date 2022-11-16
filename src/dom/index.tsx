@@ -3,7 +3,7 @@ import Upgrades from "./upgrades"
 import create, { useStore } from "zustand"
 import { immer } from "zustand/middleware/immer"
 import { persist } from "zustand/middleware"
-import { bounties, deleteSaveData, enemyNames, getState, isStageSystemUnlocked, store, tutorials } from "../saveData"
+import { bounties, deleteSaveData, enemyNames, getState, areStageNamesVisible, store, tutorials, stageNames } from "../saveData"
 import { Ref, useEffect, useRef, useState } from "preact/hooks"
 import type { JSXInternal } from "preact/src/jsx"
 import { enableMapSet } from "immer"
@@ -89,7 +89,7 @@ const UI = () => {
     const newsDialog = useRef() as Ref<HTMLDialogElement>
     const creditDialog = useRef() as Ref<HTMLDialogElement>
     const [creditHTML, setCreditHTML] = useState<string>("")
-    const isStageWindowVisible = useStore(store, isStageSystemUnlocked)
+    const areStageNamesVisible_ = useStore(store, areStageNamesVisible)
     const loadingMessage = useStore(ephemeralDOMStore, (s) => s.loadingMessage)
     const weather = useStore(store, (s) => s.getWeather())
     const weatherEffectWillBeEnabledInLessThan = useStore(store, (s) => Math.ceil(s.weatherEffectWillBeEnabledInLessThan[s.stage] / updatePerSecond / 60))
@@ -129,12 +129,15 @@ const UI = () => {
 
         <div class="absolute right-1 top-1 w-52">
             {/* Stages */}
-            {isStageWindowVisible && <div class="px-3 pt-1 pb-3 window">
+            {Object.values(areStageNamesVisible_).some((v) => v) && <div class="px-3 pt-1 pb-3 window">
                 <h2 class="mb-2">Stages</h2>
-                <div>
-                    <button class="w-full mb-1" onClick={() => { getState().setStageTransitingTo(0) }}>Earth</button><br />
-                    <button class="w-full mb-1" onClick={() => { getState().setStageTransitingTo(1) }}>Universe</button>
-                    <button class="w-full mb-1" disabled onClick={() => { /* TODO: */ }}>???</button>
+                <div>{stageNames.map((name) =>
+                    <button
+                        class="w-full mb-1"
+                        onClick={() => { getState().setStageTransitingTo(name) }}
+                        disabled={!areStageNamesVisible_[name]}>
+                        {areStageNamesVisible_[name] ? name : "???"}
+                    </button>)}
                 </div>
             </div>}
 

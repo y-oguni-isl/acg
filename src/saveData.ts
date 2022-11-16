@@ -33,8 +33,6 @@ export const bounties = {
 
 /** If true, the name of the upgrade is shown as ??? */
 export const isUpgradeNameHidden = (name: (typeof upgradeNames)[number]) => getState().upgrades[name] === 0 && getState().money < price(name) / 2 * 3
-
-export const isStageSystemUnlocked = (s: Pick<State, "availableNews">) => s.availableNews.has("aliensComing")
 export const isWeatherSystemUnlocked = () => getState().completedTutorials.has("nextStage")
 export const isVerticalMoveUnlocked = () => false  // TODO:
 
@@ -53,35 +51,45 @@ export const newsList = {
     hammer: ["UFO Researchers Develop Device That Can Float Hammers In Air", "A team of UFO researchers say they have invented a device that can float hammers in mid-air. The team says the device uses \"anti - gravity\" technology to achieve the feat. The device, which the team has dubbed the \"Hammer levitator\", consists of a frame made of aluminum tubing, with a ring of magnets mounted on the top. The device is placed over a hammer, and when it is turned on, the magnets create a magnetic field that levitates the hammer. The device is the latest invention from a team of UFO researchers that has been making headlines in recent years for their unorthodox methods. The team says they are now working on a device that they believe could allow humans to fly."],
 } as const satisfies { readonly [k: string]: readonly [title: string, text: string] }
 
-export type Stage = 0 | 1
+export const stageNames = ["Earth", "Universe", "Final"] as const
+
+/** The stage name is shown as ??? if true. If all are false the map list will not be shown. */
+export const areStageNamesVisible = (s: State): { [k in typeof stageNames[number]]: boolean } => ({
+    Earth: s.availableNews.has("aliensComing"),
+    Universe: s.availableNews.has("aliensComing"),
+    Final: s.availableNews.has("aliensComing") && s.upgrades['ATK×2'] > 0,
+})
 
 export type WeatherEffect = "Rain"
 
 const localStorageKey = "acgSaveData"
 let destroyed = false
 
-const newWeatherEffectETA = (rand = () => Math.random()): Record<Stage, number> => ({
-    0: rand() * updatePerSecond * 60 * 6,
-    1: rand() * updatePerSecond * 60 * 12
+/** The interval of the weather effects. */
+const newWeatherEffectETA = (rand = () => Math.random()): Record<typeof stageNames[number], number> => ({
+    Earth: rand() * updatePerSecond * 60 * 6,
+    Universe: rand() * updatePerSecond * 60 * 12,
+    Final: rand() * updatePerSecond * 60 * 12,
 })
 
 type State = {
-    stage: Stage
-    stageTransitingTo: Stage | null
+    stage: typeof stageNames[number]
+    stageTransitingTo: typeof stageNames[number] | null
     money: number
+    /** The number of upgrades purchased by the player. */
     upgrades: Record<typeof upgradeNames[number], number>
     completedTutorials: Set<keyof typeof tutorials>
     availableNews: Set<keyof typeof newsList>
     availableTutorials: Set<keyof typeof tutorials>
-    weatherEffectWillBeEnabledIn: Record<Stage, number>  // the weather effect is enabled if countdown <= 0
-    weatherEffectWillBeEnabledInLessThan: Record<Stage, number>
+    weatherEffectWillBeEnabledIn: Record<typeof stageNames[number], number>  // the weather effect is enabled if countdown <= 0
+    weatherEffectWillBeEnabledInLessThan: Record<typeof stageNames[number], number>
 
     addMoney: (delta: number) => void
     buyUpgrade: (name: typeof upgradeNames[number]) => void
     completeTutorial: (name: keyof typeof tutorials) => void
     addNews: (name: keyof typeof newsList) => void
     addTutorial: (name: keyof typeof tutorials) => void
-    setStageTransitingTo: (stage: Stage) => void
+    setStageTransitingTo: (stage: typeof stageNames[number]) => void
     completeStageTransition: () => void
     countdown: () => void
     getWeather: () => ({ name: WeatherEffect, enabled: boolean } | null)
@@ -90,8 +98,8 @@ type State = {
 
 /** This store maintains the stage of game, and it is persisted in the localStorage by the persist() middleware. */
 export const store = create<State>()(persist(immer((set, get) => ({
-    stage: 0 as Stage,
-    stageTransitingTo: null as Stage | null,
+    stage: "Earth" as typeof stageNames[number],
+    stageTransitingTo: null as typeof stageNames[number] | null,
     money: 0,
     upgrades: Object.fromEntries(upgradeNames.map((name) => [name, 0])) as Record<typeof upgradeNames[number], number>,
     completedTutorials: new Set(),
@@ -135,9 +143,9 @@ export const store = create<State>()(persist(immer((set, get) => ({
             d.stage = d.stageTransitingTo
             d.stageTransitingTo = null
         })
-        if (get().stage === 0) {
+        if (get().stage === "Earth") {
             get().completeTutorial("backToPreviousStage")
-        } else if (get().stage === 1) {
+        } else if (get().stage === "Universe") {
             get().completeTutorial("nextStage")
         }
     },
@@ -154,7 +162,7 @@ export const store = create<State>()(persist(immer((set, get) => ({
     getWeather: () => {
         if (!isWeatherSystemUnlocked()) { return null }
         const enabled = get().weatherEffectWillBeEnabledIn[get().stage] <= 0
-        if (get().stage === 0) { return { name: "Rain", enabled } }
+        if (get().stage === "Earth") { return { name: "Rain", enabled } }
         return null  // unimplemented
     },
     stopWeatherEffect: () => {
@@ -166,7 +174,7 @@ export const store = create<State>()(persist(immer((set, get) => ({
 })), {
     // Options for the "persist" middleware
     name: localStorageKey,
-    version: 5,
+    version: 6,
     // migrate: (state, version) => {
     //     if (version === 0) { state.foo = "bar" }
     //     return state as State

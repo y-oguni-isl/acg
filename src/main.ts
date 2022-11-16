@@ -17,9 +17,9 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js"
 import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise"
 import { onBeforeRender, onPreprocess, onUpdate, updatePerSecond } from './hooks'
-import { bounties, enemyNames, getState, isVerticalMoveUnlocked, subscribe } from './saveData'
+import { bounties, enemyNames, getState, isVerticalMoveUnlocked, stageNames, subscribe } from './saveData'
 import { ephemeralDOMStore } from './dom'
-import { call } from './util'
+import { call, entries } from './util'
 import * as webgl from "./webgl"
 import createStageTransitionPass from './webgl/createStageTransitionPass'
 import { getRenderingOption, init3DModelDebugger } from './debug'
@@ -50,7 +50,26 @@ const yMax = 0.3   // x
 const yMin = -0.3  // x
 
 if (getRenderingOption("contrail")) { show(webgl.createContrail(airplane)) }
-if (getRenderingOption("skybox")) { show(webgl.createStages()) }
+if (getRenderingOption("skybox")) {
+    const stages = show(new THREE.Group())
+    for (const [name, obj] of entries({
+        Earth: webgl.createStage1(),
+        Universe: webgl.createStage2(),
+        Final: webgl.createStage3(),
+    } as const satisfies { [k in typeof stageNames[number]]: THREE.Object3D })) {
+        obj.name = name
+        stages.add(obj)
+    }
+
+    // Switch the stages' visibility
+    for (const stage of stages.children) { stage.visible = false }
+    stages.getObjectByName(getState().stage)!.visible = true
+    subscribe((state, prev) => {
+        if (state.stage === prev.stage) { return }
+        for (const stage of stages.children) { stage.visible = false }
+        stages.getObjectByName(getState().stage)!.visible = true
+    })
+}
 if (getRenderingOption("laser")) { show(webgl.laser(airplane)) }
 if (getRenderingOption("axis")) { show(new THREE.AxesHelper()) }
 
@@ -161,14 +180,14 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
     // Main game loop
     onUpdate.add((t) => {
         // Spawn enemies
-        if (getState().stage === 0 && t % 5 === 0) {
+        if (getState().stage === "Earth" && t % 5 === 0) {
             birds.allocate().position.set(2, 0, ((t * 0.06) % 1) * (xMax - xMin) + xMin)
         }
-        if (getState().stage === 1 && t % 31 === 0 && getState().availableNews.has("aliensComing")) {
-            ufos.allocate().position.set(2, 0, ((t * 0.06) % 1) * (xMax - xMin) + xMin)
-        }
-        if (getState().stage === 0 && getState().getWeather()?.enabled && weatherEffectUfos.children.length === 0) {
+        if (getState().stage === "Earth" && getState().getWeather()?.enabled && weatherEffectUfos.children.length === 0) {
             weatherEffectUfos.allocate().position.set(1, 0, Math.random() * (xMax - xMin) + xMin)
+        }
+        if (getState().stage === "Universe" && t % 31 === 0 && getState().availableNews.has("aliensComing")) {
+            ufos.allocate().position.set(2, 0, ((t * 0.06) % 1) * (xMax - xMin) + xMin)
         }
 
         for (const enemy of enemiesAlive.flatMap((o) => o.children)) {
@@ -231,7 +250,6 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
                 stageTransitionPass.play(() => {
                     airplane.position.x = 0
                     scene.rotation.set(0, 0, 0)
-                    camera.lookAt(new THREE.Vector3(0, 0, 0))
                 })
             }
         } else {
@@ -311,13 +329,18 @@ if (stats) {
     stats.dom.style.top = ""
     document.body.append(stats.dom)
 }
-
 {
     const isStopped = init3DModelDebugger(camera, renderer, scene)
 
     const prevTime = { render: 0, update: 0 }
     let updateCount = 0
     renderer.setAnimationLoop((time: number): void => {
+        if (getState().stage === "Final") {
+            camera.lookAt(new THREE.Vector3(0.5, 0, 0))
+        } else {
+            camera.lookAt(new THREE.Vector3(0, 0, 0))
+        }
+
         // FPS monitor
         stats?.update()
 
