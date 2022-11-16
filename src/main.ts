@@ -96,6 +96,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
         laserHitEffect: ReturnType<typeof laserHitEffects.allocate> | null
         update: () => void
         onKilled: () => void
+        radius: number
     }
 
     // Parallel download
@@ -104,9 +105,11 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
         birds,
         ufos,
         weatherEffectUfos,
+        enemyPlanets,
         deadBirds,
         deadUfos,
         deadWeatherEffectUfos,
+        deadEnemyPlanets,
     ] = await Promise.all([
         !getRenderingOption("hammer") ? null : webgl.createHammerPool(airplane).then(show),
         webgl.createBirdPool(true).then((m) => show(m.onAllocate((copy): Enemy => ({
@@ -116,6 +119,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
             laserHitEffect: null,
             update: () => { copy.position.x -= 0.01 },
             onKilled: () => { deadBirds.allocate().position.copy(copy.position) },
+            radius: 0.03,
         })), "birds")),
         webgl.createUFOPool().then((m) => show(m.onAllocate((copy): Enemy => ({
             name: "UFO",
@@ -135,27 +139,42 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
                 }
             },
             onKilled: () => { ufos.allocate().position.copy(copy.position) },
+            radius: 0.03,
         })), "UFO")),
         webgl.createUFOPool().then((m) => show(m.onAllocate((copy): Enemy => ({
             name: "Weather Effect UFO",
             time: 0,
             hp: 1500,
             laserHitEffect: null,
-            update: () => { },  // this enemy doesn't move
+            update: () => { /* skip*/ },
             onKilled: () => {
                 deadWeatherEffectUfos.allocate().position.copy(copy.position)
 
                 getState().stopWeatherEffect()
                 getState().completeTutorial("weatherEffect")
             },
+            radius: 0.03,
         })), "weatherEffectUFO")),
+        webgl.createEnemyPlanet().then((m) => show(m.onAllocate((copy): Enemy => ({
+            name: "Planet",
+            time: 0,
+            hp: 100000000,
+            laserHitEffect: null,
+            update: () => { /* skip */ },
+            onKilled: () => {
+                deadEnemyPlanets.allocate().position.copy(copy.position)
+                getState().addTutorial("ending")
+            },
+            radius: 1,
+        })), "enemyPlanet")),
         webgl.createBirdPool(false).then((m) => show(m.onAllocate(() => ({ time: 0 })), "deadBirds")),
         webgl.createUFOPool().then((m) => show(m.onAllocate(() => ({ time: 0 })), "deadUFO")),
         webgl.createUFOPool().then((m) => show(m.onAllocate(() => ({ time: 0 })), "deadWeatherEffectUFO")),
+        webgl.createEnemyPlanet().then((m) => show(m.onAllocate(() => ({ time: 0 })), "deadEnemyPlanet")),
     ])
 
-    const enemiesAlive = [birds, ufos, weatherEffectUfos]
-    const enemiesDead = [deadBirds, deadUfos, deadWeatherEffectUfos]
+    const enemiesAlive = [birds, ufos, weatherEffectUfos, enemyPlanets]
+    const enemiesDead = [deadBirds, deadUfos, deadWeatherEffectUfos, deadEnemyPlanets]
 
     // hit effect
     const laserHitEffects = show(new webgl.ObjectPool(webgl.enableSelectiveBloom(new THREE.Mesh(new THREE.IcosahedronGeometry(0.006), new THREE.MeshBasicMaterial({ color: 0xff66ff })))), "hitEffects")
@@ -189,6 +208,9 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
         if (getState().stage === "Universe" && t % 31 === 0 && getState().availableNews.has("aliensComing")) {
             ufos.allocate().position.set(2, 0, ((t * 0.06) % 1) * (xMax - xMin) + xMin)
         }
+        if (getState().stage === "Final" && enemyPlanets.children.length === 0 && !getState().availableTutorials.has("ending")) {
+            enemyPlanets.allocate().position.set(4, 0, 0)
+        }
 
         for (const enemy of enemiesAlive.flatMap((o) => o.children)) {
             // Move enemies
@@ -196,12 +218,12 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
 
             // Collisions between the enemy and the player's attacks
             for (const hammer of hammers?.children ?? []) {
-                if (hammer.position.distanceTo(enemy.position) < 0.05) {
+                if (hammer.position.distanceTo(enemy.position) < enemy.userData.radius + 0.02) {
                     enemy.userData.hp -= 600 * (getState().upgrades['ATK×2'] + 1)
                     hammer.free()
                 }
             }
-            if (Math.abs(enemy.position.z - airplane.position.z) < 0.03 && Math.abs(enemy.position.y - airplane.position.y) < 0.03 && enemy.position.x > airplane.position.x) {
+            if (Math.abs(enemy.position.z - airplane.position.z) < enemy.userData.radius && Math.abs(enemy.position.y - airplane.position.y) < enemy.userData.radius && enemy.position.x > airplane.position.x) {
                 // Show a hit effect
                 if (!enemy.userData.laserHitEffect) {
                     enemy.userData.laserHitEffect = laserHitEffects.allocate()
@@ -259,7 +281,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
             if (pressedKeys.has("KeyW")) { airplaneVelocity.y = Math.min(1, Math.max(0, airplaneVelocity.y) + 0.3) }
             if (pressedKeys.has("KeyS")) { airplaneVelocity.y = Math.max(-1, Math.min(0, airplaneVelocity.y) - 0.3) }
             if (pressedKeys.has("Space") && isVerticalMoveUnlocked()) {
-                airplane.position.y = Math.min(0.1, airplane.position.y + 0.005)
+                airplane.position.y = Math.min(0.5, airplane.position.y + 0.005)
             } else {
                 airplane.position.y = Math.max(0, airplane.position.y - 0.005)
             }

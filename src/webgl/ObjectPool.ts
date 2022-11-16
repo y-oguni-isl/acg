@@ -24,10 +24,6 @@ export default class ObjectPool<T extends THREE.Object3D> extends THREE.Object3D
     readonly mesh
     private readonly originalPositions
 
-    static async fromBuilder<T extends THREE.Object3D>(builder: () => Promise<T>) {
-        return new ObjectPool<T>(await builder())
-    }
-
     constructor(private readonly model: T) {
         super()
         let mesh!: THREE.Mesh<THREE.BufferGeometry, THREE.Material>

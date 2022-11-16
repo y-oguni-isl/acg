@@ -23,18 +23,19 @@ const basePrice = {
 
 export const price = (name: (typeof upgradeNames)[number]) => basePrice[name] * 2 ** getState().upgrades[name]
 
-export const enemyNames = ["Bird", "UFO", "Weather Effect UFO"] as const
+export const enemyNames = ["Bird", "UFO", "Weather Effect UFO", "Planet"] as const
 
 export const bounties = {
     Bird: 1,
     UFO: 100,
     "Weather Effect UFO": 1000,
+    Planet: 10000,
 } satisfies Record<typeof enemyNames[number], number>
 
 /** If true, the name of the upgrade is shown as ??? */
 export const isUpgradeNameHidden = (name: (typeof upgradeNames)[number]) => getState().upgrades[name] === 0 && getState().money < price(name) / 2 * 3
 export const isWeatherSystemUnlocked = () => getState().completedTutorials.has("nextStage")
-export const isVerticalMoveUnlocked = () => false  // TODO:
+export const isVerticalMoveUnlocked = () => getState().availableTutorials.has("ending")
 
 /** The list of tutorials and their texts. */
 export const tutorials = {
@@ -43,6 +44,7 @@ export const tutorials = {
     nextStage: "You can now move on to the next stage! To do so, click the button in the top right corner of the screen.",
     backToPreviousStage: "If you're finding this stage too difficult, go back to the previous stage and try again after you get more upgrades.",
     weatherEffect: "We need to kill a UFO in order to stop the rain. The UFO has a device that can manipulate the weather, and the rain is interfering with the autopilot system.",
+    ending: "Congratulations, you have saved the world from the aliens. Thanks for playing! As a bonus, you can fly around vertically with the space key from now on.",
 }
 
 /** The list of news and their headlines and texts. */
