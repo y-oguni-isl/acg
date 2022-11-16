@@ -408,3 +408,6 @@ window.addEventListener("keyup", (ev) => {
         getState().completeTutorial("wasd")
     }
 })
+
+// Without this, code that awaits between the instantiation of an Three.js object and addEventlistener("resize",) goes wrong if the window is resized while awaiting.
+window.dispatchEvent(new UIEvent("resize"))
