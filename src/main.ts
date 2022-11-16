@@ -21,7 +21,6 @@ import { bounties, enemyNames, getState, isVerticalMoveUnlocked, stageNames, sub
 import { ephemeralDOMStore } from './dom'
 import { call, entries } from './util'
 import * as webgl from "./webgl"
-import createStageTransitionPass from './webgl/createStageTransitionPass'
 import { getRenderingOption, init3DModelDebugger } from './debug'
 
 const scene = new THREE.Scene()
@@ -323,7 +322,7 @@ document.body.appendChild(renderer.domElement)
 
 // Post processing
 const effectComposer = new EffectComposer(renderer)
-const stageTransitionPass = createStageTransitionPass()
+const stageTransitionPass = webgl.createStageTransitionPass()
 {
     const renderPass = new RenderPass(scene, camera)
     effectComposer.addPass(renderPass)
