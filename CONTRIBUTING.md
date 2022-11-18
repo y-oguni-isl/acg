@@ -56,7 +56,9 @@ const store = create<{
     foo: 1,
     bar: 2,
     setFoo: (value) => { set((d) => { d.foo = value }) },
-}))))
+})), {
+    name: "sample-store",  // the name of the store, that is used as a key for the localStorage
+}))
 store.getState().foo  // 2
 store.getState().setFoo(5)
 store.setState((d) => { d.foo = 5 }) // Using setState is discouraged, because it makes it difficult to add code to run when the value changes. (You can also use subscribe(), but it obfuscates the execution order.)
