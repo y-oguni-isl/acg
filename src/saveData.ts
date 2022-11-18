@@ -204,11 +204,6 @@ export const store = create<State>()(persist(immer((set, get) => ({
     // Options for the "persist" middleware
     name: localStorageKey,
     version: 6,
-    // migrate: (state, version) => {
-    //     if (version === 0) { state.foo = "bar" }
-    //     return state as State
-    // },
-
     // Allow saving Map, Set, etc.
     serialize: (s) => { if (destroyed) { throw new Error("destroyed") } return SuperJSON.stringify(s) },
     deserialize: (s) => SuperJSON.parse(s) as any,

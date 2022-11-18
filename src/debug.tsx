@@ -38,6 +38,7 @@ const renderingOptionsStore = create<{
     setRenderingOption: (name, value) => { set((d) => { d.renderingOptions[name] = value }) },
 })), {
     name: "acgRenderingOptions",
+    version: 1,
     // Allow saving Map, Set, etc.
     serialize: (s) => { return SuperJSON.stringify(s) },
     deserialize: (s) => SuperJSON.parse(s) as any,
@@ -61,6 +62,8 @@ export const Debugger = () => {
                 </label>)}
             </div>
             <button class="px-4 hover:bg-opacity-60" onClick={() => { location.reload() }}>Apply</button>
+            <button class="px-4 hover:bg-opacity-60" onClick={() => { Object.keys(renderingOptions).forEach((k) => setRenderingOption(k, true)) }}>Enable All</button>
+            <button class="px-4 hover:bg-opacity-60" onClick={() => { Object.keys(renderingOptions).forEach((k) => setRenderingOption(k, false)) }}>Disable All</button>
         </div>
 
         {/* DEBUG: 3D model debugger */}

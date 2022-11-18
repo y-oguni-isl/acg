@@ -27,14 +27,10 @@ import { getRenderingOption, init3DModelDebugger } from './debug'
 const scene = new THREE.Scene()
 
 /** An utility function to add the `obj` to the `scene`. */
-const show = <T extends THREE.Object3D>(obj: T, renderingOptionLabel?: string): T => {
-    if (renderingOptionLabel && !getRenderingOption(renderingOptionLabel)) { return obj }
-    scene.add(obj)
-    return obj
-}
+const show = <T extends THREE.Object3D>(obj: T): T => { scene.add(obj); return obj }
 
 // Airplane
-const airplane = show(!getRenderingOption("airplane") ? new THREE.Object3D() : await webgl.loadGLTF("models/low-poly_airplane.glb", 0.05))
+const airplane = show(await webgl.loadGLTF("models/low-poly_airplane.glb", 0.05))
 let airplaneVelocity = new THREE.Vector2(0.0, 0.0)
 {
     const rotationNoise = new SimplexNoise()
@@ -55,8 +51,8 @@ const xMin = -0.5  // down
 const yMax = 0.3   // right
 const yMin = -0.3  // left
 
-if (getRenderingOption("contrail")) { show(webgl.createContrail(airplane)) }
-if (getRenderingOption("skybox")) {
+show(webgl.createContrail(airplane))
+{
     const stages = show(new THREE.Group())
     for (const [name, obj] of entries({
         Earth: webgl.createStage1(),
@@ -76,15 +72,15 @@ if (getRenderingOption("skybox")) {
         stages.getObjectByName(getState().stage)!.visible = true
     })
 }
-if (getRenderingOption("laser")) { show(webgl.laser(airplane)) }
-if (getRenderingOption("axis")) { show(new THREE.AxesHelper()) }
+show(webgl.laser(airplane))
+show(new THREE.AxesHelper())
 
 // Camera
 const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10), { position: { set: [-0.5, 0.6, 0] } })
 
 // Newspapers
 {
-    const startNewspaperAnimation = !getRenderingOption("newspaper") ? null : webgl.newsAnimation(scene)
+    const startNewspaperAnimation = webgl.newsAnimation(scene)
     subscribe((s, prev) => {
         if (s.availableNews === prev.availableNews) { return }
         const addedNews = [...s.availableNews].filter((n) => !prev.availableNews.has(n))[0]
@@ -117,7 +113,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
         deadWeatherEffectUfos,
         deadEnemyPlanets,
     ] = await Promise.all([
-        !getRenderingOption("hammer") ? null : webgl.createHammerPool(airplane).then(show),
+        webgl.createHammerPool(airplane).then(show),
         webgl.createBirdPool(true).then((m) => show(m.onAllocate((copy): Enemy => ({
             name: "Bird",
             time: 0,
@@ -126,7 +122,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
             update: () => { copy.position.x -= 0.01 },
             onKilled: () => { deadBirds.allocate().position.copy(copy.position) },
             radius: 0.03,
-        })), "birds")),
+        })))),
         webgl.createUFOPool().then((m) => show(m.onAllocate((copy): Enemy => ({
             name: "UFO",
             time: 0,
@@ -146,7 +142,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
             },
             onKilled: () => { ufos.allocate().position.copy(copy.position) },
             radius: 0.03,
-        })), "UFO")),
+        })))),
         webgl.createUFOPool().then((m) => show(m.onAllocate((copy): Enemy => ({
             name: "Weather Effect UFO",
             time: 0,
@@ -160,7 +156,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
                 getState().completeTutorial("weatherEffect")
             },
             radius: 0.03,
-        })), "weatherEffectUFO")),
+        })))),
         webgl.createEnemyPlanet().then((m) => show(m.onAllocate((copy): Enemy => ({
             name: "Planet",
             time: 0,
@@ -172,18 +168,18 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
                 getState().defeatedFinalBoss()
             },
             radius: 1,
-        })), "enemyPlanet")),
-        webgl.createBirdPool(false).then((m) => show(m.onAllocate(() => ({ time: 0 })), "deadBirds")),
-        webgl.createUFOPool().then((m) => show(m.onAllocate(() => ({ time: 0 })), "deadUFO")),
-        webgl.createUFOPool().then((m) => show(m.onAllocate(() => ({ time: 0 })), "deadWeatherEffectUFO")),
-        webgl.createEnemyPlanet().then((m) => show(m.onAllocate(() => ({ time: 0 })), "deadEnemyPlanet")),
+        })))),
+        webgl.createBirdPool(false).then((m) => show(m.onAllocate(() => ({ time: 0 })))),
+        webgl.createUFOPool().then((m) => show(m.onAllocate(() => ({ time: 0 })))),
+        webgl.createUFOPool().then((m) => show(m.onAllocate(() => ({ time: 0 })))),
+        webgl.createEnemyPlanet().then((m) => show(m.onAllocate(() => ({ time: 0 })))),
     ])
 
     const enemiesAlive = [birds, ufos, weatherEffectUfos, enemyPlanets]
     const enemiesDead = [deadBirds, deadUfos, deadWeatherEffectUfos, deadEnemyPlanets]
 
     // hit effect
-    const laserHitEffects = show(new webgl.ObjectPool(webgl.enableSelectiveBloom(new THREE.Mesh(new THREE.IcosahedronGeometry(0.006), new THREE.MeshBasicMaterial({ color: 0xff66ff })))), "hitEffects")
+    const laserHitEffects = show(new webgl.ObjectPool(webgl.enableSelectiveBloom(new THREE.Mesh(new THREE.IcosahedronGeometry(0.006), new THREE.MeshBasicMaterial({ color: 0xff66ff })))))
 
     // Delete everything when switching to another stage
     subscribe((state, prev) => {

@@ -22,19 +22,22 @@ export default class ObjectPool<T extends THREE.Object3D> extends THREE.Object3D
     declare children: Instance<T>[]
 
     readonly mesh
+    private readonly noMesh
     private readonly originalPositions
 
     constructor(private readonly model: T) {
         super()
-        let mesh!: THREE.Mesh<THREE.BufferGeometry, THREE.Material>
+        let mesh!: THREE.Mesh<THREE.BufferGeometry, THREE.Material> | undefined
         model.traverse((obj) => { if (obj instanceof THREE.Mesh) { mesh = obj } })
-        this.mesh = mesh
-        this.originalPositions = mesh.geometry.attributes.position!.clone()
+        this.noMesh = mesh === undefined
+        this.mesh = mesh ?? new THREE.Mesh()
+        this.originalPositions = this.noMesh ? null as any : this.mesh.geometry.attributes.position!.clone()
     }
 
     private readonly pool = new Set<Instance<T>>()
 
     withVertexAnimation(f: (positions: THREE.BufferAttribute, originalPositions: THREE.BufferAttribute) => void) {
+        if (this.noMesh) { return this }
         onBeforeRender.add(() => {
             if (!this.parent) { return }
             f(this.mesh.geometry.attributes.position as THREE.BufferAttribute, this.originalPositions)
