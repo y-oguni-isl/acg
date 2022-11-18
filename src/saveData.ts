@@ -68,7 +68,7 @@ const newWeatherEffectETA = (rand = () => Math.random()): Record<typeof stageNam
     Final: rand() * updatePerSecond * 60 * 12,
 })
 
-type State = {
+type SaveData = {
     gameSessionId: string
     stage: typeof stageNames[number]
     stageTransitingTo: typeof stageNames[number] | null
@@ -103,7 +103,7 @@ type State = {
 }
 
 /** This store maintains the stage of game, and it is persisted in the localStorage by the persist() middleware. */
-export const store = create<State>()(persist(immer((set, get) => ({
+export const store = create<SaveData>()(persist(immer((set, get) => ({
     gameSessionId: crypto.randomUUID(),
     stage: "Earth" as typeof stageNames[number],
     stageTransitingTo: null as typeof stageNames[number] | null,
