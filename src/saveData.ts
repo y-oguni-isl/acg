@@ -111,6 +111,7 @@ export const store = create<SaveData>()(persist(immer((set, get) => ({
     upgrades: Object.fromEntries(upgradeNames.map((name) => [name, 0])) as Record<typeof upgradeNames[number], number>,
     completedTutorials: new Set(),
     availableNews: new Set(),
+    openedNews: new Set(),
     availableTutorials: new Set(),
     weatherEffectWillBeEnabledIn: newWeatherEffectETA(),
     weatherEffectWillBeEnabledInLessThan: newWeatherEffectETA(() => 1),

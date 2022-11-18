@@ -1,46 +1,57 @@
-import * as THREE from 'three'
+import * as THREE from "three"
 import loadGLTF from "./loadGLTF"
 import ObjectPool from './ObjectPool'
 import { onBeforeRender } from '../hooks'
-import { newsList } from '../saveData'
+import { newsList, subscribe } from '../saveData'
 import { domStore } from '../dom'
 import { call } from '../util'
 import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise"
 
 /** Create a function that plays an animation of falling newspapers. */
-export default async (scene: THREE.Scene) => {
-    const group = new ObjectPool(call(await loadGLTF("models/y2k_newspaper_article.glb", 0.1), { rotateY: Math.PI / 2, rotateX: Math.PI * 0.3, scale: { multiplyScalar: 2 }, position: { set: [0.8, 0.5, 0.5] } }))
-        .withVertexAnimation((positions, originalPositions) => {
-            for (let i = 0; i < positions.count; i++) {
-                positions.setY(i, originalPositions.getY(i) +
-                    Math.sin(positions.getX(i) * Math.PI * 2 + Date.now() * 0.006) * 0.03 +
-                    Math.sin(positions.getZ(i) * Math.PI * 2 + Date.now() * 0.006) * 0.01)
+export default () => {
+    const group = new THREE.Group()
+    let startTime = Date.now();
+
+    // Load the 3D model asynchronously
+    (async () => {
+        const newspapers = new ObjectPool(call(await loadGLTF("models/y2k_newspaper_article.glb", 0.1), { rotateY: Math.PI / 2, rotateX: Math.PI * 0.3, scale: { multiplyScalar: 2 }, position: { set: [0.8, 0.5, 0.5] } }))
+            .withVertexAnimation((positions, originalPositions) => {
+                for (let i = 0; i < positions.count; i++) {
+                    positions.setY(i, originalPositions.getY(i) +
+                        Math.sin(positions.getX(i) * Math.PI * 2 + Date.now() * 0.006) * 0.03 +
+                        Math.sin(positions.getZ(i) * Math.PI * 2 + Date.now() * 0.006) * 0.01)
+                }
+            })
+        group.add(newspapers)
+        newspapers.mesh.material.depthTest = false
+        newspapers.mesh.material.transparent = true
+        newspapers.mesh.renderOrder = 3
+        for (let i = 0; i < 30; i++) { newspapers.allocate() }
+
+        const noise = new SimplexNoise()
+        onBeforeRender.add(() => {
+            if (newspapers.parent === null) { return }
+            const r = 0.1
+            for (const [i, obj] of newspapers.children.entries()) {
+                const t = (Date.now() - startTime) * 0.006 * (1 + noise.noise(i, 3) * 0.3)
+                obj.rotation.y = noise.noise(i, 5)
+                obj.rotation.z = 1 * t
+                obj.position.set(noise.noise(i, 4) * 0.5 + 0.2, 0.3 + (Math.cos(t) - t * 0.5 - 1) * r + (noise.noise(i, 1) + 1) * 0.3, 0.5 + (Math.sin(t) - t * 0.8) * r + (noise.noise(i, 2) + 1) * 0.3)
             }
         })
-    group.mesh.material.depthTest = false
-    group.mesh.material.transparent = true
-    group.mesh.renderOrder = 3
-    for (let i = 0; i < 30; i++) { group.allocate() }
+    })().catch(console.error)
 
-    let startTime = Date.now()
-    const noise = new SimplexNoise()
-    onBeforeRender.add(() => {
-        if (group.parent === null) { return }
-        const r = 0.1
-        for (const [i, obj] of group.children.entries()) {
-            const t = (Date.now() - startTime) * 0.006 * (1 + noise.noise(i, 3) * 0.3)
-            obj.rotation.y = noise.noise(i, 5)
-            obj.rotation.z = 1 * t
-            obj.position.set(noise.noise(i, 4) * 0.5 + 0.2, 0.3 + (Math.cos(t) - t * 0.5 - 1) * r + (noise.noise(i, 1) + 1) * 0.3, 0.5 + (Math.sin(t) - t * 0.8) * r + (noise.noise(i, 2) + 1) * 0.3)
-        }
+    group.visible = false
+
+    subscribe((s, prev) => {
+        if (s.availableNews === prev.availableNews) { return }
+        const addedNews = [...s.availableNews].filter((n) => !prev.availableNews.has(n))[0]
+        if (!addedNews) { return }
+        startTime = Date.now()
+        group.visible = true
+        domStore.getState().showNews(newsList[addedNews])
+        setTimeout(() => { group.visible = false }, 10000)
     })
 
-    /** showNewspaper */
-    return (newsId: keyof typeof newsList) => {
-        startTime = Date.now()
-        scene.add(group)
-        const news = newsList[newsId]
-        setTimeout(() => { domStore.getState().showNews(news) }, 2000)
-        setTimeout(() => { scene.remove(group) }, 10000)
-    }
+    return group
 }

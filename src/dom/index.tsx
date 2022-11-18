@@ -122,13 +122,15 @@ const UI = () => {
 
     useEffect(() => {
         if (state.news === null) { return }
-        newsDialog.current!.style.opacity = "0"
-        newsDialog.current!.showModal()
-        newsDialog.current!.style.opacity = "1"
-        newsDialog.current!.addEventListener("close", () => {
-            domStore.getState().hideNews()
-            getState().addTutorial("nextStage")
-        }, { once: true })
+        setTimeout(() => {
+            newsDialog.current!.style.opacity = "0"
+            newsDialog.current!.showModal()
+            newsDialog.current!.style.opacity = "1"
+            newsDialog.current!.addEventListener("close", () => {
+                domStore.getState().hideNews()
+                getState().addTutorial("nextStage")
+            }, { once: true })
+        }, 2000)
     }, [state.news])
 
     if (transcending) {

@@ -79,17 +79,6 @@ scene.add(webgl.createContrail(airplane), webgl.laser(airplane))
 // Camera
 const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10), { position: { set: [-0.5, 0.6, 0] } })
 
-// Newspapers
-{
-    const startNewspaperAnimation = webgl.newsAnimation(scene)
-    subscribe((s, prev) => {
-        if (s.availableNews === prev.availableNews) { return }
-        const addedNews = [...s.availableNews].filter((n) => !prev.availableNews.has(n))[0]
-        if (!addedNews) { return }
-        startNewspaperAnimation?.then((play) => play(addedNews))
-    })
-}
-
 // Enemies
 {
     type Enemy = {
@@ -316,7 +305,10 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
 
 // Update the loading message
 ephemeralDOMStore.getState().setLoadingMessage("loadingModels", `Loading models...`)
-await new Promise((resolve) => setTimeout(resolve, 0)) // Render DOM
+await new Promise((resolve) => setTimeout(resolve, 0)) // Let the browser to render the changes in the DOM
+
+// Download the 3D model for newspaper after every other 3D models is downloaded because it should not be prioritized.
+show(webgl.newsAnimation())
 
 // Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true })
