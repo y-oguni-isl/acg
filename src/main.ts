@@ -51,7 +51,10 @@ const xMin = -0.5  // down
 const yMax = 0.3   // right
 const yMin = -0.3  // left
 
-show(webgl.createContrail(airplane))
+// Contrail and laser
+scene.add(webgl.createContrail(airplane), webgl.laser(airplane))
+
+// Stages
 {
     const stages = show(new THREE.Group())
     for (const [name, obj] of entries({
@@ -72,7 +75,6 @@ show(webgl.createContrail(airplane))
         stages.getObjectByName(getState().stage)!.visible = true
     })
 }
-show(webgl.laser(airplane))
 
 // Camera
 const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10), { position: { set: [-0.5, 0.6, 0] } })
