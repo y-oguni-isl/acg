@@ -23,7 +23,10 @@ import { call, entries } from './util'
 import * as webgl from "./webgl"
 import { getRenderingOption, init3DModelDebugger } from './debug'
 
+/** The scene object, that contains all visible Three.js objects. */
 const scene = new THREE.Scene()
+
+/** An utility function to add the `obj` to the `scene`. */
 const show = <T extends THREE.Object3D>(obj: T, renderingOptionLabel?: string): T => {
     if (renderingOptionLabel && !getRenderingOption(renderingOptionLabel)) { return obj }
     scene.add(obj)
@@ -36,6 +39,7 @@ let airplaneVelocity = new THREE.Vector2(0.0, 0.0)
 {
     const rotationNoise = new SimplexNoise()
     onBeforeRender.add((time) => {
+        // Set the rotation of the airplane to (rotationX, rotationY, rotationZ) = (velocityX + simplexNoise(t), simplexNoise(t), simplexNoise(t))
         airplane.rotation.set(
             airplaneVelocity.x * 0.3 + rotationNoise.noise(0, time * 0.0003) * (4 / 180 * Math.PI),
             Math.PI * 0.5 + rotationNoise.noise(1, time * 0.0003) * (4 / 180 * Math.PI),
@@ -43,10 +47,13 @@ let airplaneVelocity = new THREE.Vector2(0.0, 0.0)
         )
     })
 }
-const xMax = 0.5   // z
-const xMin = -0.5  // z
-const yMax = 0.3   // x
-const yMin = -0.3  // x
+
+// The area the airplane and enemies can move exist.
+//                    screen position:
+const xMax = 0.5   // up
+const xMin = -0.5  // down
+const yMax = 0.3   // right
+const yMin = -0.3  // left
 
 if (getRenderingOption("contrail")) { show(webgl.createContrail(airplane)) }
 if (getRenderingOption("skybox")) {
@@ -75,7 +82,7 @@ if (getRenderingOption("axis")) { show(new THREE.AxesHelper()) }
 // Camera
 const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10), { position: { set: [-0.5, 0.6, 0] } })
 
-// News
+// Newspapers
 {
     const startNewspaperAnimation = !getRenderingOption("newspaper") ? null : webgl.newsAnimation(scene)
     subscribe((s, prev) => {
