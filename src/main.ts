@@ -73,7 +73,6 @@ show(webgl.createContrail(airplane))
     })
 }
 show(webgl.laser(airplane))
-show(new THREE.AxesHelper())
 
 // Camera
 const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10), { position: { set: [-0.5, 0.6, 0] } })

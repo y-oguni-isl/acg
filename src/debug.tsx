@@ -47,7 +47,6 @@ const renderingOptionsStore = create<{
 /** Returns a boolean indicating whether the component should be rendered or not, which can be controlled in the rendering options window. */
 export const getRenderingOption = renderingOptionsStore.getState().getRenderingOption
 
-// DOM
 export const Debugger = () => {
     const { object, resume, stop, stopped, refreshDebugger } = useStore(modelDebuggerStore)
     const { renderingOptions, setRenderingOption } = useStore(renderingOptionsStore)
@@ -94,14 +93,13 @@ export const Debugger = () => {
     </div>
 }
 
-// Three.js
 export const init3DModelDebugger = (camera: THREE.Camera, renderer: THREE.Renderer, scene: THREE.Scene) => {
     // Allow the user to control the camera by dragging
     const orbit = new OrbitControls(camera, renderer.domElement)
     orbit.listenToKeyEvents(window)
 
     const transformControls = new TransformControls(camera, renderer.domElement)
-    scene.add(transformControls)
+    scene.add(new THREE.AxesHelper(), transformControls)
     transformControls.addEventListener("dragging-changed", (ev) => {
         orbit.enabled = !ev.value
     })
