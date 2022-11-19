@@ -44,7 +44,7 @@ export default defineConfig({
 </li>
 `
                     }
-                    if (fs.readFileSync("public/lib_credit.html").toString() !== html) {  // prevent vite from reloading the credit file when there are no changes
+                    if (!fs.existsSync("public/lib_credit.html") || fs.readFileSync("public/lib_credit.html").toString() !== html) {  // prevent vite from reloading the credit file when there are no changes
                         fs.writeFileSync("public/lib_credit.html", html)
                     }
                 })
