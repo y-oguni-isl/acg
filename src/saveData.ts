@@ -7,7 +7,17 @@ import { updatePerSecond } from './hooks'
 
 enableMapSet()
 
-export const upgradeNames = ["Laser", "Autopilot", "Hammer", "ATK×2", "placeholder2", "placeholder3", "placeholder4", "placeholder5", "placeholder6"] as const satisfies readonly string[]
+export const upgradeNames = [
+    "Laser",
+    "Autopilot",
+    "Hammer",
+    "ATK×2",
+    "placeholder2",
+    "placeholder3",
+    "placeholder4",
+    "placeholder5",
+    "placeholder6",
+] as const satisfies readonly string[]
 
 const basePrice = {
     Laser: 15,
@@ -68,7 +78,7 @@ export const tutorials = {
     nextStage: "You can now move on to the next stage! To do so, click the button in the top right corner of the screen.",
     backToPreviousStage: "If you're finding this stage too difficult, go back to the previous stage and try again after you get more upgrades.",
     weatherEffect: "We need to kill a UFO in order to stop the rain. The UFO has a device that can manipulate the weather, and the rain is interfering with the autopilot system.",
-    ending: "Congratulations, you have saved the world from the aliens. Thanks for playing!",
+    // ending1congratulations: "Congratulations, you have saved the world from the aliens. Thanks for playing!",
     // TODO: "As a bonus, you can fly around vertically with the space key from now on."
 }
 
@@ -76,6 +86,7 @@ export const tutorials = {
 export const newsList = {
     aliensComing: ["Aliens Are Coming To Invade Earth", "According to recent reports, aliens are planning to invade Earth. We should be prepared to fight against them and protect our planet. There are many reasons why aliens would want to invade Earth. Our planet is abundant in resources that they may need, and they may view us as a threat to their own species. Whatever their reasons, we cannot allow them to take over our planet. We need to be prepared to fight against the aliens when they come. We should have weapons and defences ready, and we should all be trained in how to use them. We also need to be prepared to evacuate if necessary. It is vital that we protect our planet from the aliens. We need to be prepared to fight them, and we need to be willing to do whatever it takes to win."],
     hammer: ["UFO Researchers Develop Device That Can Float Hammers In Air", "A team of UFO researchers say they have invented a device that can float hammers in mid-air. The team says the device uses \"anti - gravity\" technology to achieve the feat. The device, which the team has dubbed the \"Hammer levitator\", consists of a frame made of aluminum tubing, with a ring of magnets mounted on the top. The device is placed over a hammer, and when it is turned on, the magnets create a magnetic field that levitates the hammer. The device is the latest invention from a team of UFO researchers that has been making headlines in recent years for their unorthodox methods. The team says they are now working on a device that they believe could allow humans to fly."],
+    ending1: ["Scientists Have Found The Way To Move To A Higher World", "Scientists have finally reached the Singularity, and as a result, they have been able to move to a higher world. In this new world, there are beings that do not exist in this one. The breakthrough is the result of invading the residence of the aliens, which allowed the scientists to access their technology. The scientists were able to use this technology to move to the new world, and they are now working to take over the world. The beings in this new world are not happy about this, and they are fighting back. The scientists are using their technology to fight back, and they believe that they will eventually be able to take over the world. They are using their technology to create armies, and they are prepared to fight against the beings in this new world. The scientists are determined to take over the world, and they are prepared to do whatever it takes."],
 } as const satisfies { readonly [k: string]: readonly [title: string, text: string] }
 
 export const stageNames = ["Earth", "Universe", "Final"] as const
@@ -129,8 +140,8 @@ type SaveData = {
 /** This store maintains the stage of game, and it is persisted in the localStorage by the persist() middleware. */
 export const store = create<SaveData>()(persist(immer((set, get) => ({
     gameSessionId: crypto.randomUUID(),
-    stage: "Earth" as typeof stageNames[number],
-    stageTransitingTo: null as typeof stageNames[number] | null,
+    stage: "Earth",
+    stageTransitingTo: null,
     money: 0,
     upgrades: Object.fromEntries(upgradeNames.map((name) => [name, 0])) as Record<typeof upgradeNames[number], number>,
     completedTutorials: new Set(),
@@ -139,8 +150,8 @@ export const store = create<SaveData>()(persist(immer((set, get) => ({
     availableTutorials: new Set(),
     weatherEffectWillBeEnabledIn: newWeatherEffectETA(),
     weatherEffectWillBeEnabledInLessThan: newWeatherEffectETA(() => 1),
-    canTranscend: false as boolean,
-    transcending: false as boolean,
+    canTranscend: false,
+    transcending: false,
     transcendence: 0,
     cheated: false,
 
@@ -172,7 +183,6 @@ export const store = create<SaveData>()(persist(immer((set, get) => ({
     setStageTransitingTo: (stage) => {
         if (get().stage === stage) { return }
         set((d) => { d.stageTransitingTo = stage })
-        if (get().availableTutorials.has("ending")) { get().completeTutorial("ending") }
     },
     completeStageTransition: () => {
         set((d) => {
@@ -209,13 +219,10 @@ export const store = create<SaveData>()(persist(immer((set, get) => ({
         })
     },
     defeatedFinalBoss: () => {
+        get().addNews("ending1")
         set((d) => { d.canTranscend = true })
-        getState().addTutorial("ending")
     },
-    transcend: () => {
-        set((d) => { d.transcending = true })
-        if (get().availableTutorials.has("ending")) { get().completeTutorial("ending") }
-    },
+    transcend: () => { set((d) => { d.transcending = true }) },
     cancelTranscending: () => { set((d) => { d.transcending = false }) },
     confirmTranscending: () => {
         set((d) => {
@@ -228,7 +235,7 @@ export const store = create<SaveData>()(persist(immer((set, get) => ({
         })
     },
     cheat: () => { set((d) => { d.cheated = true }) },
-})), {
+} as SaveData)), {
     // Options for the "persist" middleware
     name: localStorageKey,
     version: 6,
