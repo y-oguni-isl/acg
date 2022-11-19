@@ -52,7 +52,7 @@ const yMax = 0.3   // right
 const yMin = -0.3  // left
 
 // Contrail and laser
-scene.add(webgl.createContrail(airplane), webgl.laser(airplane))
+scene.add(webgl.createContrail(airplane), webgl.createLaser(airplane))
 
 // Stages
 {
@@ -308,7 +308,7 @@ ephemeralDOMStore.getState().setLoadingMessage("loadingModels", `Loading models.
 await new Promise((resolve) => setTimeout(resolve, 0)) // Let the browser to render the changes in the DOM
 
 // Download the 3D model for newspaper after every other 3D models is downloaded because it should not be prioritized.
-show(webgl.newsAnimation())
+show(webgl.createNewspaperAnimationPlayer())
 
 // Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true })
