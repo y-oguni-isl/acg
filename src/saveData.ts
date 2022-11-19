@@ -33,7 +33,7 @@ export const bounties = {
 } satisfies Record<typeof enemyNames[number], number>
 
 /** If true, the name of the upgrade is shown as ??? */
-export const isUpgradeNameHidden = (name: (typeof upgradeNames)[number]) => getState().upgrades[name] === 0 && getState().money < price(name) / 2 * 3
+export const isUpgradeNameHidden = (name: (typeof upgradeNames)[number]) => getState().upgrades[name] === 0 && getState().money < price(name) * 2 / 3
 export const isWeatherSystemUnlocked = () => getState().completedTutorials.has("nextStage")
 export const isVerticalMoveUnlocked = () => false
 
