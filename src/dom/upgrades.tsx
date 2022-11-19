@@ -34,7 +34,7 @@ const Upgrades = () => {
 
     return <div class="absolute left-1 top-1 w-56">
         <div class="px-3 pt-1 pb-3 window">
-            <h2 class="mb-2">Upgrades</h2>
+            <h2 class="mb-2"><i class="ti ti-chevrons-up" /> Upgrades</h2>
             {entries(upgrades)
                 .filter((_, i, arr) => i < 2 || arr[i - 1]![1] > 0 || arr[i - 2]![1] > 0)
                 .map(([name, count], i) => <Row key={name} name={name} count={count} rowNumber={i} />)}

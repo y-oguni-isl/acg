@@ -24,7 +24,7 @@ const Tutorial = () => {
             .filter((t) => !s.completedTutorials.has(t))
             .sort((a, b) => tutorialIndices.get(a)! - tutorialIndices.get(b)!)[0])
     return <div style={{ opacity: tutorial === undefined ? "0" : "1" }} class="absolute w-full text-center top-[70%] text-white bg-slate-800 bg-opacity-70 select-none [transition:opacity_ease_1s] whitespace-pre-wrap pointer-events-none z-10">
-        {tutorial && tutorials[tutorial]}
+        <i class="ti ti-message-report" /> {tutorial && tutorials[tutorial]}
     </div>
 }
 
@@ -164,7 +164,7 @@ const UI = () => {
         <div class="absolute right-1 top-1 min-w-[13rem]">
             {/* Stages */}
             {Object.values(areStageNamesVisible_).some((v) => v) && <div class="px-3 pt-1 pb-3 window">
-                <h2 class="mb-2">Stages</h2>
+                <h2 class="mb-2"><i class="ti ti-map-2" /> Stages</h2>
                 <div>{stageNames.map((name) =>
                     <button
                         tabIndex={-1}
@@ -178,7 +178,7 @@ const UI = () => {
 
             {/* Weather */}
             {weather !== null && <div class="px-3 pt-1 pb-3 window mt-1 mb-1">
-                <h2 class="mb-2">Weather</h2>
+                <h2 class="mb-2"><i class="ti ti-sun" /> Weather</h2>
                 <div>
                     <table>
                         <tr><td class="pr-1">{!weather.enabled && ">"}</td><td class={!weather.enabled ? "font-bold" : ""}>Normal</td></tr>
@@ -195,13 +195,13 @@ const UI = () => {
 
         {/* The buttons at the left bottom corner */}
         <div class="absolute left-1 bottom-1 px-5 pb-1 window">
-            <span class="cursor-pointer" onClick={() => { creditDialog.current!.showModal() }}>Credit</span>
+            <span class="cursor-pointer" onClick={() => { creditDialog.current!.showModal() }}><i class="ti ti-license" /> Credit</span>
             <span class="cursor-pointer text-red-400 ml-5" onClick={() => {
                 if (confirm("Are you sure you want to reset your save data?")) {
                     deleteSaveData()
                     location.reload()
                 }
-            }}>Reset Progress</span>
+            }}><i class="ti ti-eraser" /> Reset Progress</span>
         </div>
 
         {/* Credits */}

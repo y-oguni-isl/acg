@@ -21,7 +21,8 @@
     "superjson": "^1.11.0",
     "three": "^0.146.0",
     "webgl-noise": "github:stegu/webgl-noise",
-    "zustand": "^4.1.4"
+    "zustand": "^4.1.4",
+    "@tabler/icons": "^1.112.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.2",
