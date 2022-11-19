@@ -74,11 +74,11 @@ const EnemyStats = () => {
     const enemyStatus = useStore(ephemeralDOMStore, (s) => s.enemyStatus)
     if (!enemyStatus) { return <></> }
     return <div class="px-3 pt-1 pb-3 window mt-1 mb-1">
-        <h2 class="mb-2">Stats</h2>
+        <h2 class="mb-2"><i class="ti ti-chart-line" /> Enemy Stats</h2>
         <div>
             <table>
-                <tr><td class="pr-1">HP</td><td>{Math.max(0, Math.round(enemyStatus.hp))}</td></tr>
-                <tr><td class="pr-1">Money</td><td>{bounties(enemyStatus.name)}</td></tr>
+                <tr><td class="pr-1"><i class="ti ti-heart" /></td><td>{Math.max(0, Math.round(enemyStatus.hp))}</td></tr>
+                <tr><td class="pr-1"><i class="ti ti-moneybag" /></td><td>{bounties(enemyStatus.name)}</td></tr>
             </table>
         </div>
     </div>
