@@ -4,6 +4,7 @@ import * as licenseChecker from "license-checker"
 import * as fs from "fs"
 import assert from "assert/strict"
 import { generate } from "./codegen"
+import path from 'path'
 
 const escape = (t) => t.replaceAll('&', '&amp').replaceAll('<', '&lt').replaceAll('>', '&gt;').replaceAll("'", '&#39;').replaceAll('"', '&quot;')
 
@@ -60,5 +61,11 @@ export default defineConfig({
     base: '',
     build: {
         target: "esnext",
+        rollupOptions: {
+            input: {
+                index: path.resolve(__dirname, "index.html"),
+                tab_already_open: path.resolve(__dirname, "tab_already_open.html"),
+            },
+        },
     },
 })
