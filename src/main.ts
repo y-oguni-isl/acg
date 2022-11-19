@@ -21,7 +21,6 @@ import { ephemeralDOMStore } from './dom'
 import { call, entries } from './util'
 import * as webgl from "./webgl"
 import { getRenderingOption, init3DModelDebugger } from './debug'
-import createAirplane from './webgl/createAirplane'
 
 /** The scene object, that contains all visible Three.js objects. */
 const scene = new THREE.Scene()
@@ -30,14 +29,11 @@ const scene = new THREE.Scene()
 const show = <T extends Omit<THREE.Object3D, "userData">>(obj: T): T => { scene.add(obj as any as THREE.Object3D); return obj }
 
 // Airplane
-const airplane = show(await createAirplane())
+const airplane = show(await webgl.createAirplane())
 
 // The area the airplane and enemies can move exist.
 //                    screen position:
-const xMax = 0.5   // up
-const xMin = -0.5  // down
-const yMax = 0.3   // right
-const yMin = -0.3  // left
+const [xMax, xMin, yMax, yMin] = [0.5, -0.5, 0.3, -0.3]   // up, down, right, left
 
 // Contrail and laser
 scene.add(webgl.createContrail(airplane), webgl.createLaser(airplane))
@@ -339,24 +335,21 @@ if (stats) {
     document.body.append(stats.dom)
 }
 {
-    const isStopped = init3DModelDebugger(camera, renderer, scene)
+    const isPaused = init3DModelDebugger(camera, renderer, scene)
 
     const prevTime = { render: 0, update: 0 }
     let updateCount = 0
     renderer.setAnimationLoop((time: number): void => {
-        if (getState().stage === "Final") {
-            camera.lookAt(new THREE.Vector3(0.5, 0, 0))
-        } else {
-            camera.lookAt(new THREE.Vector3(0, 0, 0))
-        }
+        // Rotate the camera
+        camera.lookAt(getState().stage === "Final" ? new THREE.Vector3(0.5, 0, 0) : new THREE.Vector3(0, 0, 0))
 
         // FPS monitor
         stats?.update()
 
-        if (isStopped() || getState().transcending) {
-            prevTime.update = prevTime.render = Date.now()
+        if (isPaused() || getState().transcending) {  // if the game is paused
+            prevTime.update = prevTime.render = Date.now()  // do nothing and update the prevTimes
         } else {
-            // onUpdate
+            // Fire the onUpdate hook
             const numUpdates = Math.floor((time - prevTime.update) / (1000 / updatePerSecond))
             prevTime.update += numUpdates * (1000 / updatePerSecond)
             for (let i = 0; i < numUpdates; i++) {
@@ -364,13 +357,16 @@ if (stats) {
                 updateCount++
             }
 
-            // onBeforeRender
+            // Fire the onBeforeRender hook
             const deltaTime = time - prevTime.render
             prevTime.render = time
             onBeforeRender.forEach((f) => f(time, deltaTime))
         }
 
+        // Fire the onPreprocess hook
         onPreprocess.forEach((f) => f())
+
+        // Render the scene to the canvas
         effectComposer.render()
     })
 }

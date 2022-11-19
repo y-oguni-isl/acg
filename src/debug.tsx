@@ -8,7 +8,7 @@ import { immer } from "zustand/middleware/immer"
 import SuperJSON from "superjson"
 
 const modelDebuggerStore = create<{
-    stopped: boolean
+    paused: boolean
     object: THREE.Object3D | null
     version: number,
     setObject: (obj: THREE.Object3D) => void
@@ -16,12 +16,12 @@ const modelDebuggerStore = create<{
     resume: () => void
     refreshDebugger: () => void
 }>()(immer((set) => ({
-    stopped: false as boolean,
+    paused: false as boolean,
     object: null as THREE.Object3D | null,
     version: 0,
     setObject: (obj) => { set((d) => { d.object = obj }) },
-    stop: () => { set((d) => { d.stopped = true }) },
-    resume: () => { set((d) => { d.stopped = false }) },
+    stop: () => { set((d) => { d.paused = true }) },
+    resume: () => { set((d) => { d.paused = false }) },
     refreshDebugger: () => { set((d) => { d.version++ }) },
 })))
 
@@ -48,7 +48,7 @@ const renderingOptionsStore = create<{
 export const getRenderingOption = renderingOptionsStore.getState().getRenderingOption
 
 export const Debugger = () => {
-    const { object, resume, stop, stopped, refreshDebugger } = useStore(modelDebuggerStore)
+    const { object, resume, stop, paused, refreshDebugger } = useStore(modelDebuggerStore)
     const { renderingOptions, setRenderingOption } = useStore(renderingOptionsStore)
     return <div class="absolute right-56 bottom-1 [font-size:50%]">
         {/* DEBUG: Rendering options */}
@@ -69,10 +69,10 @@ export const Debugger = () => {
         <div class="px-3 pt-1 pb-3 window">
             <h2>[Debug] 3D Models</h2>
             <div>
-                {!stopped && <button class="px-2" onClick={() => { stop() }}>🛑 Stop</button>}
-                {stopped && <button class="px-2 ml-1" onClick={() => { resume() }}>▶️ Resume</button>}
+                {!paused && <button class="px-2" onClick={() => { stop() }}>🛑 Stop</button>}
+                {paused && <button class="px-2 ml-1" onClick={() => { resume() }}>▶️ Resume</button>}
             </div>
-            {stopped && (object === null ? <>Double click on objects.</> : <>
+            {paused && (object === null ? <>Double click on objects.</> : <>
                 <h3>{object.name}</h3>
                 <table>
                     <tr>
@@ -116,5 +116,5 @@ export const init3DModelDebugger = (camera: THREE.Camera, renderer: THREE.Render
         modelDebuggerStore.getState().setObject(intersections[0].object)
     })
 
-    return () => modelDebuggerStore.getState().stopped
+    return () => modelDebuggerStore.getState().paused
 }
