@@ -35,6 +35,7 @@ You can search models through websites such as [sketchfab](https://sketchfab.com
 
 ## How can I add enemies to a stage?
 1. Download the 3D model for the enemy to public/models/.
+1. Add the copyright notice of the 3D model to `public/models/credit.html`.
 2. Load the file as object pools at `// Parallel download` in `main.ts`. We need two models, one alive and one dead.
 3. Add the object pools to the arrays `enemiesAlive` and `enemiesDead` in `main.ts`.
 4. Define the spawning condition of the enemy at `// Spawn enemies` in `main.ts`.
