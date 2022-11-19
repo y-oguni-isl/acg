@@ -256,17 +256,21 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
             }
         } else {
             // Move the airplane by WASD keys
-            if (pressedKeys.has("KeyD")) { airplane.userData.velocity.x = Math.min(1, Math.max(0, airplane.userData.velocity.x) + 0.3) }
-            if (pressedKeys.has("KeyA")) { airplane.userData.velocity.x = Math.max(-1, Math.min(0, airplane.userData.velocity.x) - 0.3) }
-            if (pressedKeys.has("KeyW")) { airplane.userData.velocity.y = Math.min(1, Math.max(0, airplane.userData.velocity.y) + 0.3) }
-            if (pressedKeys.has("KeyS")) { airplane.userData.velocity.y = Math.max(-1, Math.min(0, airplane.userData.velocity.y) - 0.3) }
+            if (pressedKeys.has("KeyD") && !pressedKeys.has("KeyA")) { airplane.userData.velocity.x = Math.min(1, Math.max(0, airplane.userData.velocity.x) + 0.3) }
+            if (pressedKeys.has("KeyA") && !pressedKeys.has("KeyD")) { airplane.userData.velocity.x = Math.max(-1, Math.min(0, airplane.userData.velocity.x) - 0.3) }
+            if (pressedKeys.has("KeyW") && !pressedKeys.has("KeyS")) { airplane.userData.velocity.y = Math.min(1, Math.max(0, airplane.userData.velocity.y) + 0.3) }
+            if (pressedKeys.has("KeyS") && !pressedKeys.has("KeyW")) { airplane.userData.velocity.y = Math.max(-1, Math.min(0, airplane.userData.velocity.y) - 0.3) }
             if (pressedKeys.has("Space") && isVerticalMoveUnlocked()) {
                 airplane.position.y = Math.min(0.5, airplane.position.y + 0.005)
             } else {
                 airplane.position.y = Math.max(0, airplane.position.y - 0.005)
             }
 
-            if (pressedKeys.size === 0) { airplane.userData.velocity.multiplyScalar(0.5) }
+            if (pressedKeys.size === 0 ||
+                pressedKeys.has("KeyA") && pressedKeys.has("KeyD") ||
+                pressedKeys.has("KeyW") && pressedKeys.has("KeyS")) {
+                airplane.userData.velocity.multiplyScalar(0.8)
+            }
             if (airplane.userData.velocity.length() > 1) { airplane.userData.velocity.normalize() }
             airplane.position.setZ(Math.min(xMax, Math.max(xMin, airplane.position.z + airplane.userData.velocity.x * 0.015)))
             airplane.position.setX(Math.min(yMax, Math.max(yMin, airplane.position.x + airplane.userData.velocity.y * 0.01)))
