@@ -15,34 +15,22 @@ import * as THREE from 'three'
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js"
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js"
-import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise"
 import { onBeforeRender, onPreprocess, onUpdate, updatePerSecond } from './hooks'
 import { bounties, enemyNames, getState, isVerticalMoveUnlocked, stageNames, subscribe } from './saveData'
 import { ephemeralDOMStore } from './dom'
 import { call, entries } from './util'
 import * as webgl from "./webgl"
 import { getRenderingOption, init3DModelDebugger } from './debug'
+import createAirplane from './webgl/createAirplane'
 
 /** The scene object, that contains all visible Three.js objects. */
 const scene = new THREE.Scene()
 
 /** An utility function to add the `obj` to the `scene`. */
-const show = <T extends THREE.Object3D>(obj: T): T => { scene.add(obj); return obj }
+const show = <T extends Omit<THREE.Object3D, "userData">>(obj: T): T => { scene.add(obj as any as THREE.Object3D); return obj }
 
 // Airplane
-const airplane = show(await webgl.loadGLTF("models/low-poly_airplane.glb", 0.05))
-let airplaneVelocity = new THREE.Vector2(0.0, 0.0)
-{
-    const rotationNoise = new SimplexNoise()
-    onBeforeRender.add((time) => {
-        // Set the rotation of the airplane to (rotationX, rotationY, rotationZ) = (velocityX + simplexNoise(t), simplexNoise(t), simplexNoise(t))
-        airplane.rotation.set(
-            airplaneVelocity.x * 0.3 + rotationNoise.noise(0, time * 0.0003) * (4 / 180 * Math.PI),
-            Math.PI * 0.5 + rotationNoise.noise(1, time * 0.0003) * (4 / 180 * Math.PI),
-            rotationNoise.noise(2, time * 0.0003) * (4 / 180 * Math.PI),
-        )
-    })
-}
+const airplane = show(await createAirplane())
 
 // The area the airplane and enemies can move exist.
 //                    screen position:
@@ -268,20 +256,20 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
             }
         } else {
             // Move the airplane by WASD keys
-            if (pressedKeys.has("KeyD")) { airplaneVelocity.x = Math.min(1, Math.max(0, airplaneVelocity.x) + 0.3) }
-            if (pressedKeys.has("KeyA")) { airplaneVelocity.x = Math.max(-1, Math.min(0, airplaneVelocity.x) - 0.3) }
-            if (pressedKeys.has("KeyW")) { airplaneVelocity.y = Math.min(1, Math.max(0, airplaneVelocity.y) + 0.3) }
-            if (pressedKeys.has("KeyS")) { airplaneVelocity.y = Math.max(-1, Math.min(0, airplaneVelocity.y) - 0.3) }
+            if (pressedKeys.has("KeyD")) { airplane.userData.velocity.x = Math.min(1, Math.max(0, airplane.userData.velocity.x) + 0.3) }
+            if (pressedKeys.has("KeyA")) { airplane.userData.velocity.x = Math.max(-1, Math.min(0, airplane.userData.velocity.x) - 0.3) }
+            if (pressedKeys.has("KeyW")) { airplane.userData.velocity.y = Math.min(1, Math.max(0, airplane.userData.velocity.y) + 0.3) }
+            if (pressedKeys.has("KeyS")) { airplane.userData.velocity.y = Math.max(-1, Math.min(0, airplane.userData.velocity.y) - 0.3) }
             if (pressedKeys.has("Space") && isVerticalMoveUnlocked()) {
                 airplane.position.y = Math.min(0.5, airplane.position.y + 0.005)
             } else {
                 airplane.position.y = Math.max(0, airplane.position.y - 0.005)
             }
 
-            if (pressedKeys.size === 0) { airplaneVelocity.multiplyScalar(0.5) }
-            if (airplaneVelocity.length() > 1) { airplaneVelocity.normalize() }
-            airplane.position.setZ(Math.min(xMax, Math.max(xMin, airplane.position.z + airplaneVelocity.x * 0.015)))
-            airplane.position.setX(Math.min(yMax, Math.max(yMin, airplane.position.x + airplaneVelocity.y * 0.01)))
+            if (pressedKeys.size === 0) { airplane.userData.velocity.multiplyScalar(0.5) }
+            if (airplane.userData.velocity.length() > 1) { airplane.userData.velocity.normalize() }
+            airplane.position.setZ(Math.min(xMax, Math.max(xMin, airplane.position.z + airplane.userData.velocity.x * 0.015)))
+            airplane.position.setX(Math.min(yMax, Math.max(yMin, airplane.position.x + airplane.userData.velocity.y * 0.01)))
 
             // Autopilot
             if ((getState().getWeather()?.enabled ? getState().upgrades.Autopilot - 5 : getState().upgrades.Autopilot) > 0 && pressedKeys.size === 0) { // TODO: add a switch to disable autopilot
@@ -292,7 +280,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
                 if (autopilotTarget) {
                     const autopilotSpeed = 0.1 * getState().upgrades.Autopilot
                     if (Math.abs(autopilotTarget.position.z - airplane.position.z) > 0.02) {
-                        airplaneVelocity.x = Math.min(1.0, Math.max(-1.0, airplaneVelocity.x + Math.sign(autopilotTarget.position.z - airplane.position.z) * autopilotSpeed))
+                        airplane.userData.velocity.x = Math.min(1.0, Math.max(-1.0, airplane.userData.velocity.x + Math.sign(autopilotTarget.position.z - airplane.position.z) * autopilotSpeed))
                     }
                 }
             }
