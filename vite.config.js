@@ -7,6 +7,9 @@ import { generate } from "./codegen"
 
 const escape = (t) => t.replaceAll('&', '&amp').replaceAll('<', '&lt').replaceAll('>', '&gt;').replaceAll("'", '&#39;').replaceAll('"', '&quot;')
 
+/** @type {fs.FSWatcher | undefined} */
+let watcher
+
 export default defineConfig({
     plugins: [
         preact(),
@@ -14,12 +17,15 @@ export default defineConfig({
             name: "code_gen",
             buildStart: () => {
                 generate()
-                fs.watch("src/webgl", (type, filename) => {
+                watcher = fs.watch("src/webgl", (type, filename) => {
                     if (!filename.endsWith("index.ts")) {
                         console.log("codegen")
                         generate()
                     }
                 })
+            },
+            buildEnd: () => {
+                watcher.close()
             },
         },
         {
