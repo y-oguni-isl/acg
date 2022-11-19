@@ -74,7 +74,7 @@ const Row = (props: { name: typeof upgradeNames[number], count: number, rowNumbe
         onMouseLeave={() => { setMouseHover(false) }}>
         <div class="px-2 hover:bg-[linear-gradient(0deg,rgba(255,255,255,1)_0%,rgba(255,255,255,0)_10%)]">
             <span class="inline-block w-28">{isUpgradeNameHidden(props.name) ? "???" : props.name}</span>
-            <span class="float-right">{props.count}{props.name === "Autopilot" && weather?.enabled && " (-5)"}</span>
+            <span class="float-right">{props.count}{props.name === "Autopilot" && weather?.enabled && <b class="text-red-400"> (-5)</b>}</span>
         </div>
         {mouseHover && <div class="absolute left-full top-0 ml-1 px-3 tooltip whitespace-nowrap pointer-events-none">
             <div class="font-bold">Price: {money} / {price(props.name)}</div>
