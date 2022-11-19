@@ -72,12 +72,12 @@ export const isWeatherSystemUnlocked = () => getState().completedTutorials.has("
 export const isVerticalMoveUnlocked = () => false
 
 /** The list of tutorials and their texts. */
-export const tutorials = {
-    wasd: "You have become a fighter pilot that shoots laser beams. This world is peaceful, so your first mission is to protect farmers from harmful birds.\nThe controls are simple, WASD to move and aim your targets.",
-    upgrade: "You can now buy upgrades for your aircraft! To do so, click on the button in the upper left corner of the screen.",
-    nextStage: "You can now move on to the next stage! To do so, click the button in the top right corner of the screen.",
-    backToPreviousStage: "If you're finding this stage too difficult, go back to the previous stage and try again after you get more upgrades.",
-    weatherEffect: "We need to kill a UFO in order to stop the rain. The UFO has a device that can manipulate the weather, and the rain is interfering with the autopilot system.",
+export const tutorialHTML = {
+    wasd: "You have become a <b>fighter</b> pilot that shoots <b>laser</b> beams. This world is peaceful, so your first mission is to protect farmers from harmful <b>birds</b>.<br>The controls are simple, <b>WASD to move</b> and aim your targets.",
+    upgrade: "You can now <b>buy upgrades</b> for your aircraft! To do so, <b>click</b> on the button in the <b>upper left</b> corner of the screen.",
+    nextStage: "You can now move on to the <b>next stage</b>! To do so, <b>click</b> the button in the <b>top right</b> corner of the screen.",
+    backToPreviousStage: "If you're finding this stage too <b>difficult</b>, go back to the previous stage and <b>try again</b> after you get more upgrades.",
+    weatherEffect: "We need to kill a <b>UFO</b> in order to stop the <b>rain</b>. The UFO has a device that can manipulate the weather, and the rain is interfering with the <b>autopilot</b> system.",
     // ending1congratulations: "Congratulations, you have saved the world from the aliens. Thanks for playing!",
     // TODO: "As a bonus, you can fly around vertically with the space key from now on."
 }
@@ -110,9 +110,9 @@ type SaveData = {
     money: number
     /** The number of upgrades purchased by the player. */
     upgrades: Record<typeof upgradeNames[number], number>
-    completedTutorials: Set<keyof typeof tutorials>
+    completedTutorials: Set<keyof typeof tutorialHTML>
     availableNews: Set<keyof typeof newsList>
-    availableTutorials: Set<keyof typeof tutorials>
+    availableTutorials: Set<keyof typeof tutorialHTML>
     weatherEffectWillBeEnabledIn: Record<typeof stageNames[number], number>  // the weather effect is enabled if countdown <= 0
     weatherEffectWillBeEnabledInLessThan: Record<typeof stageNames[number], number>
     canTranscend: boolean
@@ -122,9 +122,9 @@ type SaveData = {
 
     addMoney: (delta: number) => void
     buyUpgrade: (name: typeof upgradeNames[number]) => void
-    completeTutorial: (name: keyof typeof tutorials) => void
+    completeTutorial: (name: keyof typeof tutorialHTML) => void
     addNews: (name: keyof typeof newsList) => void
-    addTutorial: (name: keyof typeof tutorials) => void
+    addTutorial: (name: keyof typeof tutorialHTML) => void
     setStageTransitingTo: (stage: typeof stageNames[number]) => void
     completeStageTransition: () => void
     countdown: () => void

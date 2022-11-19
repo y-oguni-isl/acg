@@ -3,7 +3,7 @@ import Upgrades from "./upgrades"
 import create, { useStore } from "zustand"
 import { immer } from "zustand/middleware/immer"
 import { persist } from "zustand/middleware"
-import { bounties, deleteSaveData, enemyNames, getState, store, tutorials, stageNames } from "../saveData"
+import { bounties, deleteSaveData, enemyNames, getState, store, tutorialHTML, stageNames } from "../saveData"
 import { Ref, useEffect, useRef, useState } from "preact/hooks"
 import type { JSXInternal } from "preact/src/jsx"
 import { enableMapSet } from "immer"
@@ -15,7 +15,7 @@ import Autolinker from "autolinker"
 enableMapSet()
 
 /** A mapping from tutorial names to their indices.  */
-const tutorialIndices = new Map((Object.keys(tutorials) as (keyof typeof tutorials)[]).map((name, i) => [name, i]))
+const tutorialIndices = new Map((Object.keys(tutorialHTML) as (keyof typeof tutorialHTML)[]).map((name, i) => [name, i]))
 
 /** A black banner showing a tutorial message. */
 const Tutorial = () => {
@@ -24,7 +24,7 @@ const Tutorial = () => {
             .filter((t) => !s.completedTutorials.has(t))
             .sort((a, b) => tutorialIndices.get(a)! - tutorialIndices.get(b)!)[0])
     return <div style={{ opacity: tutorial === undefined ? "0" : "1" }} class="absolute w-full text-center top-[70%] text-white bg-slate-800 bg-opacity-70 select-none [transition:opacity_ease_1s] whitespace-pre-wrap pointer-events-none z-10">
-        <i class="ti ti-message-report" /> {tutorial && tutorials[tutorial]}
+        {tutorial && <><i class="ti ti-message-report" /> <span class="[&>b]:text-orange-300" dangerouslySetInnerHTML={{ __html: tutorialHTML[tutorial] }}></span></>}
     </div>
 }
 
