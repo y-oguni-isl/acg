@@ -1,6 +1,6 @@
 import * as THREE from "three"
 import { onBeforeRender, onUpdate } from "../hooks"
-import { getState, subscribe } from "../saveData"
+import { getState, getInterval, subscribe } from "../saveData"
 import createHammerPoolFrag from "./createHammerPool.frag"
 import createHammerPoolVert from "./createHammerPool.vert"
 import { enableSelectiveBloom } from "./createSelectiveBloomPass"
@@ -34,9 +34,8 @@ export default async (source: THREE.Object3D) => {
         })
 
     onUpdate.add((t) => {
-        const level = getState().upgrades.Hammer
-        if (level === 0) { return }
-        if (t % Math.ceil(50 / level) === 0) {
+        const interval = getInterval().Hammer
+        if (interval && t % interval === 0) {
             const model = models.allocate()
             model.position.copy(source.position)
         }

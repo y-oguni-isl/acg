@@ -78,7 +78,7 @@ const EnemyStats = () => {
         <div>
             <table>
                 <tr><td class="pr-1">HP</td><td>{Math.max(0, Math.round(enemyStatus.hp))}</td></tr>
-                <tr><td class="pr-1">Money</td><td>{bounties[enemyStatus.name]}</td></tr>
+                <tr><td class="pr-1">Money</td><td>{bounties(enemyStatus.name)}</td></tr>
             </table>
         </div>
     </div>
@@ -161,7 +161,7 @@ const UI = () => {
         {/* Tutorial message */}
         <Tutorial />
 
-        <div class="absolute right-1 top-1 w-52">
+        <div class="absolute right-1 top-1 min-w-52">
             {/* Stages */}
             {Object.values(areStageNamesVisible_).some((v) => v) && <div class="px-3 pt-1 pb-3 window">
                 <h2 class="mb-2">Stages</h2>

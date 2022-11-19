@@ -21,16 +21,40 @@ const basePrice = {
     placeholder6: 100 * 15 ** 7,
 } satisfies Record<typeof upgradeNames[number], number>
 
+export const getAtk = () => ({
+    Laser: getState().upgrades.Laser + 1 * (getState().upgrades['ATK×2'] + 1),
+    Autopilot: undefined,
+    Hammer: getState().upgrades.Hammer === 0 ? undefined : 2000 * (getState().upgrades['ATK×2'] + 1),
+    "ATK×2": undefined,
+    placeholder2: undefined,
+    placeholder3: undefined,
+    placeholder4: undefined,
+    placeholder5: undefined,
+    placeholder6: undefined,
+} satisfies Record<keyof typeof basePrice, number | undefined>)
+
+export const getInterval = () => ({
+    Laser: 1,
+    Autopilot: undefined,
+    Hammer: getState().upgrades.Hammer === 0 ? undefined : Math.ceil(50 / getState().upgrades.Hammer),
+    "ATK×2": undefined,
+    placeholder2: undefined,
+    placeholder3: undefined,
+    placeholder4: undefined,
+    placeholder5: undefined,
+    placeholder6: undefined,
+} satisfies Record<keyof typeof basePrice, number | undefined>)
+
 export const price = (name: (typeof upgradeNames)[number]) => basePrice[name] * 2 ** getState().upgrades[name]
 
 export const enemyNames = ["Bird", "UFO", "Weather Effect UFO", "Planet"] as const
 
-export const bounties = {
+export const bounties = (name: typeof enemyNames[number]) => ({
     Bird: 1,
     UFO: 100,
     "Weather Effect UFO": 1000,
     Planet: 10000,
-} satisfies Record<typeof enemyNames[number], number>
+} satisfies Record<typeof enemyNames[number], number>)[name] * (500 ** getState().transcendence)
 
 /** If true, the name of the upgrade is shown as ??? */
 export const isUpgradeNameHidden = (name: (typeof upgradeNames)[number]) => getState().upgrades[name] === 0 && getState().money < price(name) * 2 / 3
@@ -196,8 +220,11 @@ export const store = create<SaveData>()(persist(immer((set, get) => ({
     confirmTranscending: () => {
         set((d) => {
             if (!d.transcending) { return }
+            d.stageTransitingTo = null
+            d.stage = "Earth"
             d.transcending = false
             d.transcendence++
+            d.canTranscend = false
         })
     },
     cheat: () => { set((d) => { d.cheated = true }) },

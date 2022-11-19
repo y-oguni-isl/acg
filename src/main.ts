@@ -16,7 +16,7 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js"
 import { onBeforeRender, onPreprocess, onUpdate, updatePerSecond } from './hooks'
-import { bounties, enemyNames, getState, isVerticalMoveUnlocked, stageNames, subscribe } from './saveData'
+import { getAtk, bounties, enemyNames, getState, isVerticalMoveUnlocked, stageNames, subscribe } from './saveData'
 import { ephemeralDOMStore } from './dom'
 import { call, entries } from './util'
 import * as webgl from "./webgl"
@@ -195,7 +195,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
             // Collisions between the enemy and the player's attacks
             for (const hammer of hammers?.children ?? []) {
                 if (hammer.position.distanceTo(enemy.position) < enemy.userData.radius + 0.02) {
-                    enemy.userData.hp -= 2000 * (getState().upgrades['ATK×2'] + 1)
+                    enemy.userData.hp -= getAtk().Hammer ?? 0
                     hammer.free()
                 }
             }
@@ -207,7 +207,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
                 enemy.userData.laserHitEffect.position.copy(enemy.position).setZ(airplane.position.z)
 
                 // Damage
-                enemy.userData.hp -= (getState().upgrades.Laser + 1) * (getState().upgrades['ATK×2'] + 1)
+                enemy.userData.hp -= getAtk().Laser
                 ephemeralDOMStore.getState().setEnemyStatus({ hp: enemy.userData.hp, name: enemy.userData.name })
             } else { // No collisions
                 if (enemy.userData.laserHitEffect) {
@@ -221,7 +221,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
             if (enemy.position.x < -1 || enemy.userData.hp <= 0) {
                 if (enemy.userData.hp <= 0) {
                     enemy.userData.onKilled()
-                    getState().addMoney(bounties[enemy.userData.name] * (500 ** getState().transcendence))
+                    getState().addMoney(bounties(enemy.userData.name))
                 }
                 enemy.free()
                 enemy.userData.laserHitEffect?.free()

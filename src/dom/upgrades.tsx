@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { getState, isUpgradeNameHidden, price, store, upgradeNames } from "../saveData"
+import { getAtk, getState, getInterval, isUpgradeNameHidden, price, store, upgradeNames } from "../saveData"
 import { useStore } from "zustand"
 import { entries } from "../util"
 import { useEffect, useState } from "preact/hooks"
@@ -41,10 +41,10 @@ const Upgrades = () => {
         </div>
         {getState().canTranscend && <div class="px-3 pt-1 pb-3 window gold mt-1">
             <p class="text-xs mb-2">
-                You have reached the point of singularity and can transcended to a higher plane of existence. All your progress will be reset, but you will receive a bonus based on your previous progress.
+                You have reached the point of singularity and can transcended to a higher plane of existence.
             </p>
             {/* Higher plane of existence = enemies have more HP and money */}
-            <button class="w-full" tabIndex={-1} onClick={() => { getState().transcend() }}>Transcend</button>
+            <button class="w-full" tabIndex={-1} onClick={() => { getState().transcend() }}>Show Bonus</button>
         </div>}
     </div>
 }
@@ -76,8 +76,13 @@ const Row = (props: { name: typeof upgradeNames[number], count: number, rowNumbe
             <span class="inline-block w-28">{isUpgradeNameHidden(props.name) ? "???" : props.name}</span>
             <span class="float-right">{props.count}{props.name === "Autopilot" && weather?.enabled && " (-5)"}</span>
         </div>
-        {mouseHover && <div class="absolute left-full top-0 ml-1 px-3 tooltip whitespace-nowrap">
-            {money} / {price(props.name)}
+        {mouseHover && <div class="absolute left-full top-0 ml-1 px-3 tooltip whitespace-nowrap pointer-events-none">
+            <div class="font-bold">Price: {money} / {price(props.name)}</div>
+            {!isUpgradeNameHidden(props.name) && <>
+                {getAtk()[props.name] && <div>Damage: {getAtk()[props.name]}</div>}
+                {getInterval()[props.name] && <div>Interval: {getInterval()[props.name]}</div>}
+            </>}
+
         </div>}
     </div>
 }
