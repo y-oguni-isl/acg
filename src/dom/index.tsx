@@ -99,22 +99,18 @@ const UI = () => {
     const transcending = useStore(store, (s) => s.transcending)
 
     useEffect(() => {
-        fetch("./audio/credit.html")
-            .then((res) => res.text())
-            .then((html) => { setCreditHTML((c) => c + Autolinker.link(html)) })
-            .catch(console.error)
-        fetch("./models/credit.html")
-            .then((res) => res.text())
-            .then((html) => { setCreditHTML((c) => c + Autolinker.link(html)) })
-            .catch(console.error)
-        fetch("./font/credit.html")
-            .then((res) => res.text())
-            .then((html) => { setCreditHTML((c) => c + Autolinker.link(html)) })
-            .catch(console.error)
-        fetch("./lib_credit.html")
-            .then((res) => res.text())
-            .then((html) => { setCreditHTML((c) => c + Autolinker.link(html)) })
-            .catch(console.error)
+        for (const f of [
+            "./audio/credit.html",
+            "./models/credit.html",
+            "./font/credit.html",
+            "./lib_credit.html",
+            "./lib_credit2.html",
+        ]) {
+            fetch(f)
+                .then((res) => res.text())
+                .then((html) => { setCreditHTML((c) => c + Autolinker.link(html)) })
+                .catch(console.error)
+        }
     }, [])
 
     useEffect(() => {
