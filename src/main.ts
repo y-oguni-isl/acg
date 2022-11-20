@@ -48,24 +48,22 @@ for (const [name, stage] of ObjectEntries(stages)) {
 // Camera
 const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10), { position: { set: [-0.5, 0.6, 0] } })
 
-// Enemies
-{
-    // Parallel download
-    const pools = await PromiseAll({
-        hammers: webgl.createHammerPool(airplane).then(show),
-        enemies: PromiseAll(fromEntries(entries(stages)
-            .map(([k, v]) => [
-                k,
-                v.createEnemyPools().then((m) => {
-                    for (const [_, v] of entries(m)) {
-                        if (v instanceof THREE.Object3D) {
-                            show(v)
-                        }
+// Parallel download
+const pools = await PromiseAll({
+    hammers: webgl.createHammerPool(airplane).then(show),
+    enemies: PromiseAll(fromEntries(ObjectEntries(stages)
+        .map(([k, v]) => [
+            k,
+            v.createEnemyPools().then((m) => {
+                for (const v of ObjectValues(m)) {
+                    if (v instanceof THREE.Object3D) {
+                        show(v)
                     }
-                    return m
-                }),
-            ]))),
-    })
+                }
+                return m
+            }),
+        ]))),
+})
 
 // Enemies
 {
