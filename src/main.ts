@@ -247,14 +247,14 @@ if (stats) {
     })
 }
 
-// Audio
-const playAudio = () => {
-    const audio = document.querySelector("audio#rainAudio")!
-    audio.loop = true
-    audio.play()
-}
-window.addEventListener("click", playAudio)
-playAudio()
+// TODO: Audio
+// const playAudio = () => {
+//     const audio = document.querySelector("audio#rainAudio")!
+//     audio.loop = true
+//     audio.play()
+// }
+// window.addEventListener("click", playAudio)
+// playAudio()
 
 // Clear the loading message
 ephemeralDOMStore.getState().removeLoadingMessage("loadingModels")
