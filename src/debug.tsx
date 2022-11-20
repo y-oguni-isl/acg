@@ -48,6 +48,7 @@ const renderingOptionsStore = create<{
 export const getRenderingOption = renderingOptionsStore.getState().getRenderingOption
 
 export const Debugger = () => {
+    if (import.meta.env.PROD) { return <></> }
     const { object, resume, stop, paused, refreshDebugger } = useStore(modelDebuggerStore)
     const { renderingOptions, setRenderingOption } = useStore(renderingOptionsStore)
     return <div class="absolute right-56 bottom-1 [font-size:50%]">
@@ -94,6 +95,8 @@ export const Debugger = () => {
 }
 
 export const init3DModelDebugger = (camera: THREE.Camera, renderer: THREE.Renderer, scene: THREE.Scene) => {
+    if (import.meta.env.PROD) { return () => false }
+
     // Allow the user to control the camera by dragging
     const orbit = new OrbitControls(camera, renderer.domElement)
     orbit.listenToKeyEvents(window)
