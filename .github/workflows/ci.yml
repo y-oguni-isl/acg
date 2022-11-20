@@ -20,9 +20,9 @@ jobs:
           node-version: 16
       - run: |
           corepack enable
-          corepack prepare pnpm@7.14.2 --activate
-          pnpm i
-          VITE_ANALYTICS_ADDR=${{ secrets.VITE_ANALYTICS_ADDR }} pnpm build
+          corepack prepare yarn@4.0.0-rc.30 --activate
+          yarn
+          VITE_ANALYTICS_ADDR=${{ secrets.VITE_ANALYTICS_ADDR }} yarn build
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         if: ${{ github.ref == 'refs/heads/main' }}

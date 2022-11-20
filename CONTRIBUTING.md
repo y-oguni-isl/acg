@@ -3,12 +3,12 @@
 1. [Install Node.js](https://nodejs.org/en/download/)
 2. ```shell
    corepack enable
-   corepack prepare pnpm@7.15.0 --activate
-   pnpm i
+   corepack prepare yarn@4.0.0-rc.30 --activate
+   yarn
 
-   pnpm start
+   yarn start
    # or
-   pnpm build
+   yarn build
    python3 -m http.server --directory dist
    ```
 

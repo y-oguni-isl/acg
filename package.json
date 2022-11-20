@@ -13,6 +13,7 @@
   "author": "",
   "license": "",
   "dependencies": {
+    "@tabler/icons": "^1.112.0",
     "autolinker": "^4.0.0",
     "glob": "^8.0.3",
     "immer": "^9.0.16",
@@ -20,9 +21,7 @@
     "stats.js": "^0.17.0",
     "superjson": "^1.11.0",
     "three": "^0.146.0",
-    "webgl-noise": "github:stegu/webgl-noise",
-    "zustand": "^4.1.4",
-    "@tabler/icons": "^1.112.0"
+    "zustand": "^4.1.4"
   },
   "devDependencies": {
     "@babel/core": "^7.20.2",

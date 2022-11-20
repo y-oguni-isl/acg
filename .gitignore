@@ -2,6 +2,6 @@
 !.vscode/extensions.json
 !.vscode/settings.json
 node_modules/
-.pnpm-store/
 dist/
 public/lib_credit.html
+.yarn/
