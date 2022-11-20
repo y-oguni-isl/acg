@@ -35,10 +35,10 @@ export default async () => {
         if (getState().stageTransitingTo !== null) { return }
 
         // Move the airplane by WASD keys (velocity += force)
-        if (pressedKeys.has("KeyD") && !pressedKeys.has("KeyA")) { airplane.userData.velocity.x = Math.min(1, Math.max(0, airplane.userData.velocity.x) + 0.3) }
-        if (pressedKeys.has("KeyA") && !pressedKeys.has("KeyD")) { airplane.userData.velocity.x = Math.max(-1, Math.min(0, airplane.userData.velocity.x) - 0.3) }
-        if (pressedKeys.has("KeyW") && !pressedKeys.has("KeyS")) { airplane.userData.velocity.y = Math.min(1, Math.max(0, airplane.userData.velocity.y) + 0.3) }
-        if (pressedKeys.has("KeyS") && !pressedKeys.has("KeyW")) { airplane.userData.velocity.y = Math.max(-1, Math.min(0, airplane.userData.velocity.y) - 0.3) }
+        if (pressedKeys.has("KeyD") && !pressedKeys.has("KeyA")) { airplane.userData.velocity.x = Math.min(1, Math.max(-0.2, airplane.userData.velocity.x) + 0.05) }
+        if (pressedKeys.has("KeyA") && !pressedKeys.has("KeyD")) { airplane.userData.velocity.x = Math.max(-1, Math.min(0.2, airplane.userData.velocity.x) - 0.05) }
+        if (pressedKeys.has("KeyW") && !pressedKeys.has("KeyS")) { airplane.userData.velocity.y = Math.min(1, Math.max(-0.2, airplane.userData.velocity.y) + 0.05) }
+        if (pressedKeys.has("KeyS") && !pressedKeys.has("KeyW")) { airplane.userData.velocity.y = Math.max(-1, Math.min(0.2, airplane.userData.velocity.y) - 0.05) }
 
         // Friction (velocity *= 0.8)
         if (pressedKeys.size === 0 ||

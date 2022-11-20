@@ -217,9 +217,6 @@ if (stats) {
     const prevTime = { render: 0, update: 0 }
     let updateCount = 0
     renderer.setAnimationLoop((time: number): void => {
-        // Rotate the camera
-        camera.lookAt(getState().stage === "Final" ? new THREE.Vector3(0.5, 0, 0) : new THREE.Vector3(0, 0, 0))
-
         // FPS monitor
         stats?.update()
 
@@ -238,6 +235,12 @@ if (stats) {
             const deltaTime = time - prevTime.render
             prevTime.render = time
             onBeforeRender.forEach((f) => f(time, deltaTime))
+
+            // Move and rotate the camera
+            camera.position.z = airplane.position.z
+            camera.lookAt(getState().stage === "Final" ? new THREE.Vector3(0.5, 0, airplane.position.z) : new THREE.Vector3(0, 0, airplane.position.z))
+            camera.rotation.x += airplane.userData.velocity.x * 0.05
+            camera.rotation.y -= Math.abs(airplane.userData.velocity.y * 0.02)
         }
 
         // Fire the onPreprocess hook

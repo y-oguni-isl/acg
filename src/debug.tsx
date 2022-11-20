@@ -96,6 +96,7 @@ export const Debugger = () => {
 
 export const init3DModelDebugger = (camera: THREE.Camera, renderer: THREE.Renderer, scene: THREE.Scene) => {
     if (import.meta.env.PROD) { return () => false }
+    if (!getRenderingOption("debugger")) { return () => false }
 
     // Allow the user to control the camera by dragging
     const orbit = new OrbitControls(camera, renderer.domElement)
