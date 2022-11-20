@@ -71,5 +71,5 @@ store.subscribe((state, prev) => {
 The store in `saveData.ts` is set to a property of `window` so that you can modify its value from the [dev tools](https://developer.chrome.com/docs/devtools/open/) console.
 
 ```typescript
-store.addMoney(10000)
+store.getState().addMoney(10000)
 ```
