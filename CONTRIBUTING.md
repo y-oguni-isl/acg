@@ -36,7 +36,7 @@ Just add a file `<id>_<name>.ts` in src/stages/.
 ## How can I add enemies to a stage?
 1. Download the 3D model for the enemy to public/models/.
 2. Add the copyright notice of the 3D model to `public/models/credit.html`.
-3. Load the file in src/stages/*.ts. We need two models, one alive and one dead.
+3. Load the file in `createEnemyPools` in `src/stages/....ts`. We need two models, one alive and one dead.
 
 # Using Shaders through Three.js
 src/webgl/createFog.ts has the most simple shader material. You can learn about the shading in Three.js by reading it and [the documentation of ShaderMaterial](https://threejs.org/docs/#api/en/materials/ShaderMaterial).
