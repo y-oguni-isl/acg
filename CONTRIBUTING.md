@@ -9,7 +9,7 @@
    yarn start
    # or
    yarn build
-   python3 -m http.server --directory dist
+   python3 -m http.server --bind localhost --directory dist
    ```
 
 I highly recommend using VSCode with the extensions listed in `.vscode/extensions.json` for development.
