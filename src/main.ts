@@ -37,22 +37,10 @@ const airplane = show(await webgl.createAirplane())
 scene.add(webgl.createContrail(airplane), webgl.createLaser(airplane))
 
 // Stages
-{
-    const stageGroup = show(new THREE.Group())
-    for (const [name, stage] of entries(stages)) {
-        const obj = stage.createModel()
-        obj.name = name
-        stageGroup.add(obj)
-    }
-
-    // Switch the stages' visibility
-    for (const stage of stageGroup.children) { stage.visible = false }
-    stageGroup.getObjectByName(getState().stage)!.visible = true
-    subscribe((state, prev) => {
-        if (state.stage === prev.stage) { return }
-        for (const stage of stageGroup.children) { stage.visible = false }
-        stageGroup.getObjectByName(getState().stage)!.visible = true
-    })
+for (const [name, stage] of entries(stages)) {
+    const obj = show(stage.createModel())
+    obj.visible = getState().stage === name
+    subscribe((state, prev) => { if (state.stage !== prev.stage) { obj.visible = state.stage === name } })
 }
 
 // Camera
