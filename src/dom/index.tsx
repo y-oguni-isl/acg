@@ -11,7 +11,7 @@ import SuperJSON from "superjson"
 import { Debugger } from "../debug"
 import Autolinker from "autolinker"
 import stages from "../stages"
-import { entries, fromEntries } from "../util"
+import { ObjectEntries, fromEntries, ObjectKeys } from "../util"
 import { updatePerSecond } from "../constants"
 
 enableMapSet()
@@ -91,7 +91,7 @@ const UI = () => {
     const newsDialog = useRef() as Ref<HTMLDialogElement>
     const creditDialog = useRef() as Ref<HTMLDialogElement>
     const [creditHTML, setCreditHTML] = useState<string>("")
-    const areStageNamesVisible = useStore(store, () => fromEntries(entries(stages).map(([k, v]) => [k, v.visible()])))
+    const areStageNamesVisible = useStore(store, () => fromEntries(ObjectEntries(stages).map(([k, v]) => [k, v.visible()])))
     const loadingMessage = useStore(ephemeralDOMStore, (s) => s.loadingMessage)
     const weather = useStore(store, (s) => s.getWeather())
     const weatherEffectWillBeEnabledInLessThan = useStore(store, (s) => Math.ceil((s.weatherEffectWillBeEnabledInLessThan[s.stage] ?? Number.MAX_SAFE_INTEGER) / updatePerSecond / 60))
@@ -157,7 +157,7 @@ const UI = () => {
             {/* Stages */}
             {Object.values(areStageNamesVisible).some((v) => v) && <div class="px-3 pt-1 pb-3 window">
                 <h2 class="mb-2"><i class="ti ti-map-2" /> Stages</h2>
-                <div>{entries(stages).map(([name]) =>
+                <div>{ObjectKeys(stages).map((name) =>
                     <button
                         tabIndex={-1}
                         class="w-full mb-1"

@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { TransformControls } from "three/examples/jsm/controls/TransformControls"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import create, { useStore } from "zustand"
-import { entries } from "./util"
+import { ObjectEntries } from "./util"
 import { persist } from "zustand/middleware"
 import { immer } from "zustand/middleware/immer"
 import SuperJSON from "superjson"
@@ -55,7 +55,7 @@ export const Debugger = () => {
         <div class="px-3 pt-1 pb-3 window mb-1">
             <h2>[Debug] Rendering</h2>
             <div>
-                {entries(renderingOptions).map(([name, checked]) => <label class="block">
+                {ObjectEntries(renderingOptions).map(([name, checked]) => <label class="block">
                     <input type="checkbox" class="mr-1" checked={checked} onClick={() => { setRenderingOption(name, !checked) }} />
                     <span>{name}</span>
                 </label>)}

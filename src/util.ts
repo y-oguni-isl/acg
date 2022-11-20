@@ -1,6 +1,9 @@
 /** `Object.entries` with a strict type. */
-export const entries = <K extends keyof any, V extends unknown>(obj: { readonly [k in K]?: V }): [K, V][] => Object.entries(obj) as any
-
+export const ObjectEntries = <K extends keyof any, V extends unknown>(obj: { readonly [k in K]?: V }): [K, V][] => Object.entries(obj) as any
+/** `Object.values` with a strict type. */
+export const ObjectValues = <V extends unknown>(obj: { readonly [k in keyof any]?: V }): V[] => Object.values(obj) as any
+/** `Object.keys` with a strict type. */
+export const ObjectKeys = <K extends keyof any>(obj: { readonly [k in K]?: any }): K[] => Object.keys(obj) as any
 /** `Object.fromEntries` with a strict type. This function assumes that all values in K are used once. */
 export const fromEntries = <K extends keyof any, V>(obj: [K, V][]): { [k in K]: V } => Object.fromEntries(obj) as any
 

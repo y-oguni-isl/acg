@@ -20,7 +20,7 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { onBeforeRender, onPreprocess, onUpdate } from './hooks'
 import { getAtk, getState, subscribe } from './saveData'
 import { ephemeralDOMStore } from './dom'
-import { call, entries, fromEntries, PromiseAll } from './util'
+import { call, ObjectEntries, fromEntries, PromiseAll, ObjectValues } from './util'
 import * as webgl from "./webgl"
 import { getRenderingOption, init3DModelDebugger } from './debug'
 import stages from "./stages"
@@ -39,7 +39,7 @@ const airplane = show(await webgl.createAirplane())
 scene.add(webgl.createContrail(airplane), webgl.createLaser(airplane))
 
 // Stages
-for (const [name, stage] of entries(stages)) {
+for (const [name, stage] of ObjectEntries(stages)) {
     const obj = show(stage.createModel())
     obj.visible = getState().stage === name
     subscribe((state, prev) => { if (state.stage !== prev.stage) { obj.visible = state.stage === name } })
@@ -67,8 +67,10 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
             ]))),
     })
 
-    const enemiesAlive = entries(pools.enemies).flatMap(([k, v]) => v.weatherAlive ? [v.alive, v.weatherAlive] : [v.alive])
-    const enemiesDead = entries(pools.enemies).flatMap(([k, v]) => v.weatherDead ? [v.dead, v.weatherDead] : [v.dead])
+// Enemies
+{
+    const enemiesAlive = ObjectValues(pools.enemies).flatMap((v) => v.weatherAlive ? [v.alive, v.weatherAlive] : [v.alive])
+    const enemiesDead = ObjectValues(pools.enemies).flatMap((v) => v.weatherDead ? [v.dead, v.weatherDead] : [v.dead])
 
     // hit effect
     const laserHitEffects = show(new webgl.ObjectPool(webgl.enableSelectiveBloom(new THREE.Mesh(new THREE.IcosahedronGeometry(0.006), new THREE.MeshBasicMaterial({ color: 0xff66ff })))))

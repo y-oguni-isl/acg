@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { getAtk, getState, getInterval, isUpgradeNameHidden, price, store, upgradeNames } from "../saveData"
 import { useStore } from "zustand"
-import { entries } from "../util"
+import { ObjectEntries } from "../util"
 import { useEffect, useState } from "preact/hooks"
 
 const maxUpgrades = 25
@@ -35,7 +35,7 @@ const Upgrades = () => {
     return <div class="absolute left-1 top-1 w-56">
         <div class="px-3 pt-1 pb-3 window">
             <h2 class="mb-2"><i class="ti ti-chevrons-up" /> Upgrades</h2>
-            {entries(upgrades)
+            {ObjectEntries(upgrades)
                 .filter((_, i, arr) => i < 2 || arr[i - 1]![1] > 0 || arr[i - 2]![1] > 0)
                 .map(([name, count], i) => <Row key={name} name={name} count={count} rowNumber={i} />)}
         </div>
