@@ -3,21 +3,22 @@ import Upgrades from "./upgrades"
 import create, { useStore } from "zustand"
 import { immer } from "zustand/middleware/immer"
 import { persist } from "zustand/middleware"
-import { deleteSaveData, getState, store, tutorialHTML } from "../saveData"
-import { Ref, useEffect, useRef, useState } from "preact/hooks"
+import { deleteSaveData, getState, store } from "../saveData"
+import { useEffect, useRef, useState } from "preact/hooks"
 import type { JSXInternal } from "preact/src/jsx"
 import { enableMapSet } from "immer"
 import SuperJSON from "superjson"
 import { Debugger } from "../debug"
 import Autolinker from "autolinker"
 import stages from "../stages"
-import { ObjectEntries, fromEntries, ObjectKeys } from "../util"
-import { updatePerSecond } from "../constants"
+import { ObjectEntries, fromEntries, ObjectKeys, ObjectValues } from "../util"
+import * as constants from "../constants"
+import shallow from 'zustand/shallow'
 
 enableMapSet()
 
 /** A mapping from tutorial names to their indices.  */
-const tutorialIndices = new Map((Object.keys(tutorialHTML) as (keyof typeof tutorialHTML)[]).map((name, i) => [name, i]))
+const tutorialIndices = new Map(ObjectKeys(constants.tutorialHTML).map((name, i) => [name, i]))
 
 /** A black banner showing a tutorial message. */
 const Tutorial = () => {
@@ -25,7 +26,7 @@ const Tutorial = () => {
         [...s.availableTutorials.difference(s.completedTutorials)]
             .sort((a, b) => tutorialIndices.get(a)! - tutorialIndices.get(b)!)[0])
     return <div style={{ opacity: tutorial === undefined ? "0" : "1" }} class="absolute w-full text-center top-[70%] text-white bg-slate-800 bg-opacity-70 select-none [transition:opacity_ease_1s] whitespace-pre-wrap pointer-events-none z-10">
-        {tutorial && <><i class="ti ti-message-report" /> <span class="[&>b]:text-orange-300" dangerouslySetInnerHTML={{ __html: tutorialHTML[tutorial] }}></span></>}
+        {tutorial && <><i class="ti ti-message-report" /> <span class="[&>b]:text-orange-300" dangerouslySetInnerHTML={{ __html: constants.tutorialHTML[tutorial] }}></span></>}
     </div>
 }
 
@@ -60,7 +61,12 @@ export const ephemeralDOMStore = create<{
     enemyStatus: null as (EnemyStatus | null),
     setLoadingMessage: (key, message) => { set((d) => { d.loadingMessage.set(key, message) }) },
     removeLoadingMessage: (key: string) => { set((d) => { d.loadingMessage.delete(key) }) },
-    setEnemyStatus: (status) => { set((d) => { d.enemyStatus = status }) }
+    setEnemyStatus: (status) => {
+        set((d) => {
+            d.enemyStatus = status
+            d.enemyStatus.hp = Math.max(0, Math.round(d.enemyStatus.hp))
+        })
+    }
 })))
 
 /** Close the dialog when the user clicks outside the dialog */
@@ -72,14 +78,14 @@ const closeDialogOnClick = (ev: JSXInternal.TargetedMouseEvent<HTMLDialogElement
 const randomText = Array(10000).fill(0).map(() => Array(Math.floor(Math.random() * 6) + 2).fill(0).map(() => "abcdefghijklmnopqrstuvwxyz"[Math.floor(Math.random() * 26)]).join("")).join(" ")
 
 const EnemyStats = () => {
-    const enemyStatus = useStore(ephemeralDOMStore, (s) => s.enemyStatus)
+    const enemyStatus = useStore(ephemeralDOMStore, (s) => s.enemyStatus, shallow)
     if (!enemyStatus) { return <></> }
     return <div class="px-3 pt-1 pb-3 window mt-1 mb-1">
         <h2 class="mb-2"><i class="ti ti-chart-line" /> Enemy Stats</h2>
         <div>
             <table>
                 <tr><td class="pr-1"><i class="ti ti-float-none" /></td><td>{enemyStatus.name}</td></tr>
-                <tr><td class="pr-1"><i class="ti ti-heart" /></td><td>{Math.max(0, Math.round(enemyStatus.hp))}</td></tr>
+                <tr><td class="pr-1"><i class="ti ti-heart" /></td><td>{enemyStatus.hp}</td></tr>
                 <tr><td class="pr-1"><i class="ti ti-moneybag" /></td><td>{enemyStatus.money}</td></tr>
             </table>
         </div>
@@ -88,13 +94,13 @@ const EnemyStats = () => {
 
 const UI = () => {
     const state = useStore(domStore)
-    const newsDialog = useRef() as Ref<HTMLDialogElement>
-    const creditDialog = useRef() as Ref<HTMLDialogElement>
+    const newsDialog = useRef<HTMLDialogElement>(null)
+    const creditDialog = useRef<HTMLDialogElement>(null)
     const [creditHTML, setCreditHTML] = useState<string>("")
-    const areStageNamesVisible = useStore(store, () => fromEntries(ObjectEntries(stages).map(([k, v]) => [k, v.visible()])))
+    const areStageNamesVisible = useStore(store, () => fromEntries(ObjectEntries(stages).map(([k, v]) => [k, v.visible()])), shallow)
     const loadingMessage = useStore(ephemeralDOMStore, (s) => s.loadingMessage)
-    const weather = useStore(store, (s) => s.getWeather())
-    const weatherEffectWillBeEnabledInLessThan = useStore(store, (s) => Math.ceil((s.weatherEffectWillBeEnabledInLessThan[s.stage] ?? Number.MAX_SAFE_INTEGER) / updatePerSecond / 60))
+    const weather = useStore(store, (s) => s.getWeather(), shallow)
+    const weatherEffectWillBeEnabledInLessThan = useStore(store, (s) => Math.ceil((s.weatherEffectWillBeEnabledInLessThan[s.stage] ?? Number.MAX_SAFE_INTEGER) / constants.updatePerSecond / 60))
     const transcending = useStore(store, (s) => s.transcending)
 
     useEffect(() => {
@@ -146,6 +152,7 @@ const UI = () => {
             </div>
         </div>
     }
+
     return <>
         {/* Upgrades */}
         <Upgrades />
@@ -155,7 +162,7 @@ const UI = () => {
 
         <div class="absolute right-1 top-1 min-w-[13rem]">
             {/* Stages */}
-            {Object.values(areStageNamesVisible).some((v) => v) && <div class="px-3 pt-1 pb-3 window">
+            {ObjectValues(areStageNamesVisible).some((v) => v) && <div class="px-3 pt-1 pb-3 window">
                 <h2 class="mb-2"><i class="ti ti-map-2" /> Stages</h2>
                 <div>{ObjectKeys(stages).map((name) =>
                     <button

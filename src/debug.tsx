@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { TransformControls } from "three/examples/jsm/controls/TransformControls"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import create, { useStore } from "zustand"
-import { ObjectEntries } from "./util"
+import { ObjectEntries, ObjectKeys } from "./util"
 import { persist } from "zustand/middleware"
 import { immer } from "zustand/middleware/immer"
 import SuperJSON from "superjson"
@@ -61,8 +61,8 @@ export const Debugger = () => {
                 </label>)}
             </div>
             <button class="px-4 hover:bg-opacity-60" onClick={() => { location.reload() }}>Apply</button>
-            <button class="px-4 hover:bg-opacity-60" onClick={() => { Object.keys(renderingOptions).forEach((k) => setRenderingOption(k, true)) }}>Enable All</button>
-            <button class="px-4 hover:bg-opacity-60" onClick={() => { Object.keys(renderingOptions).forEach((k) => setRenderingOption(k, false)) }}>Disable All</button>
+            <button class="px-4 hover:bg-opacity-60" onClick={() => { ObjectKeys(renderingOptions).forEach((k) => setRenderingOption(k, true)) }}>Enable All</button>
+            <button class="px-4 hover:bg-opacity-60" onClick={() => { ObjectKeys(renderingOptions).forEach((k) => setRenderingOption(k, false)) }}>Disable All</button>
         </div>
 
         {/* DEBUG: 3D model debugger */}

@@ -2,10 +2,11 @@ import * as THREE from "three"
 import loadGLTF from "./loadGLTF"
 import ObjectPool from './ObjectPool'
 import { onBeforeRender } from '../hooks'
-import { newsList, subscribe } from '../saveData'
+import { subscribe } from '../saveData'
 import { domStore } from '../dom'
 import { call } from '../util'
 import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise"
+import * as constants from "../constants"
 
 /** Create a function that plays an animation of falling newspapers. */
 export default () => {
@@ -49,7 +50,7 @@ export default () => {
         if (!addedNews) { return }
         startTime = Date.now()
         group.visible = true
-        domStore.getState().showNews(newsList[addedNews])
+        domStore.getState().showNews(constants.newsList[addedNews])
         setTimeout(() => { group.visible = false }, 10000)
     })
 

@@ -1,14 +1,19 @@
 import * as THREE from "three"
-import { getAtk, getState, getInterval, isUpgradeNameHidden, price, store, upgradeNames } from "../saveData"
+import { getState, store } from "../saveData"
+import * as constants from "../constants"
 import { useStore } from "zustand"
 import { ObjectEntries } from "../util"
-import { useEffect, useState } from "preact/hooks"
+import { useRef, useState, useLayoutEffect } from "preact/hooks"
+import shallow from "zustand/shallow"
 
 const maxUpgrades = 25
 
-const buildProgressBarStyle = (name: typeof upgradeNames[number], rowNumber: number) => {
-    const baseColor = getState().upgrades[name] >= maxUpgrades ? new THREE.Vector4(255, 0, 0, 1) : getState().money >= price(name) ? new THREE.Vector4(0, 220, 220, 1) : new THREE.Vector4(128, 128, 128, 1)
-    const progress = getState().upgrades[name] >= maxUpgrades ? 1 : getState().money / price(name)
+const buildProgressBarStyle = (name: constants.UpgradeName, rowNumber: number) => {
+    const price = constants.price(name, getState())
+    const count = getState().upgrades[name]
+    const money = getState().money
+    const baseColor = count >= maxUpgrades ? new THREE.Vector4(255, 0, 0, 1) : money >= price ? new THREE.Vector4(0, 220, 220, 1) : new THREE.Vector4(128, 128, 128, 1)
+    const progress = count >= maxUpgrades ? 1 : money / price
 
     let style = "linear-gradient(90deg,"
     for (let i = 0; i <= 1; i += 0.05) {
@@ -30,14 +35,13 @@ const buildProgressBarStyle = (name: typeof upgradeNames[number], rowNumber: num
 
 /** The list of upgrades shown at the left top corner. */
 const Upgrades = () => {
-    const upgrades = useStore(store, (s) => s.upgrades)
-
+    const upgrades = useStore(store, (s) => ObjectEntries(s.upgrades)
+        .filter((_, i, arr) => i < 2 || arr[i - 1]![1] > 0 || arr[i - 2]![1] > 0)
+        .map(([k]) => k), shallow)
     return <div class="absolute left-1 top-1 w-56">
         <div class="px-3 pt-1 pb-3 window">
             <h2 class="mb-2"><i class="ti ti-chevrons-up" /> Upgrades</h2>
-            {ObjectEntries(upgrades)
-                .filter((_, i, arr) => i < 2 || arr[i - 1]![1] > 0 || arr[i - 2]![1] > 0)
-                .map(([name, count], i) => <Row key={name} name={name} count={count} rowNumber={i} />)}
+            {upgrades.map((name, i) => <Row key={name} name={name} rowNumber={i} />)}
         </div>
         {getState().canTranscend && <div class="px-3 pt-1 pb-3 window gold mt-1">
             <p class="text-xs mb-2">
@@ -49,41 +53,55 @@ const Upgrades = () => {
     </div>
 }
 
-const Row = (props: { name: typeof upgradeNames[number], count: number, rowNumber: number }) => {
+const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
     const buyUpgrade = useStore(store, (s) => s.buyUpgrade)
-    const money = useStore(store, (s) => s.money)
     const [mouseHover, setMouseHover] = useState(false)
-    const [, update] = useState({})
     const weather = useStore(store, (s) => s.getWeather())
+    const price = useStore(store, (s) => constants.price(props.name, s))
+    const isUpgradeNameHidden = useStore(store, (s) => constants.isUpgradeNameHidden(props.name, s))
+    const count = useStore(store, (s) => s.upgrades[props.name])
+    const disabled = useStore(store, (s) => price > s.money || count >= maxUpgrades)
+    const ref = useRef<HTMLDivElement>(null)
 
-    useEffect(() => {
-        const timer = setInterval(() => { update({}) }, 1000 / 60) // Update animation
+    useLayoutEffect(() => {
+        const timer = setInterval(() => {
+            if (!ref.current) { return }
+            ref.current.style.background = buildProgressBarStyle(props.name, props.rowNumber)
+        }, 1000 / 60) // Update animation
         return () => { clearTimeout(timer) }
-    }, [])
+    }, [ref])
 
     return <div
-        key={props.name}
+        ref={ref}
         class="relative block hover:cursor-pointer mb-1 backdrop-blur-3xl drop-shadow-md select-none border-opacity-40 border-[1px] border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600"
-        style={{ background: buildProgressBarStyle(props.name, props.rowNumber) }}
-        disabled={price(props.name) > money || props.count >= maxUpgrades}
+        disabled={disabled}
         onMouseDown={() => {
-            if (price(props.name) > money || props.count >= maxUpgrades) { return }
+            if (disabled) { return }
             buyUpgrade(props.name)
         }}
         onMouseEnter={() => { setMouseHover(true) }}
         onMouseLeave={() => { setMouseHover(false) }}>
         <div class="px-2 hover:bg-[linear-gradient(0deg,rgba(255,255,255,1)_0%,rgba(255,255,255,0)_10%)]">
-            <span class="inline-block w-28">{isUpgradeNameHidden(props.name) ? "???" : props.name}</span>
-            <span class="float-right">{props.count}{props.name === "Autopilot" && weather?.enabled && <b class="text-red-400"> (-5)</b>}</span>
+            <span class="inline-block w-28">{isUpgradeNameHidden ? "???" : props.name}</span>
+            <span class="float-right">{count}{props.name === "Autopilot" && weather?.enabled && <b class="text-red-400"> (-5)</b>}</span>
         </div>
-        {mouseHover && <div class="absolute left-full top-0 ml-1 px-3 tooltip whitespace-nowrap pointer-events-none">
-            <div class="font-bold">Price: {money} / {price(props.name)}</div>
-            {!isUpgradeNameHidden(props.name) && <>
-                {getAtk()[props.name] && <div>Damage: {getAtk()[props.name]}</div>}
-                {getInterval()[props.name] && <div>Interval: {getInterval()[props.name]}</div>}
-            </>}
+        {mouseHover && <Tooltip name={props.name} />}
+    </div>
+}
 
-        </div>}
+const Tooltip = (props: { name: constants.UpgradeName }) => {
+    const price = useStore(store, (s) => constants.price(props.name, s))
+    const atk = useStore(store, (s) => constants.getAtk(s)[props.name])
+    const interval = useStore(store, (s) => constants.getInterval(s)[props.name])
+    const money = useStore(store, (s) => s.money)
+    const isUpgradeNameHidden = useStore(store, (s) => constants.isUpgradeNameHidden(props.name, s))
+
+    return <div class="absolute left-full top-0 ml-1 px-3 tooltip whitespace-nowrap pointer-events-none">
+        <div class="font-bold">Price: {money} / {price}</div>
+        {!isUpgradeNameHidden && <>
+            {atk && <div>Damage: {atk}</div>}
+            {interval && <div>Interval: {interval}</div>}
+        </>}
     </div>
 }
 

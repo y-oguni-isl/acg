@@ -1,12 +1,13 @@
 import * as THREE from "three"
 import { onBeforeRender, onUpdate } from "../hooks"
-import { getState, getInterval, subscribe } from "../saveData"
+import { getState, subscribe } from "../saveData"
 import createHammerPoolFrag from "./createHammerPool.frag"
 import createHammerPoolVert from "./createHammerPool.vert"
 import { enableSelectiveBloom } from "./createSelectiveBloomPass"
 import { overrideMaterial } from "./extendMaterial"
 import loadGLTF from "./loadGLTF"
 import ObjectPool from "./ObjectPool"
+import * as constants from "../constants"
 
 export default async (source: THREE.Object3D) => {
     const model = await loadGLTF("models/hammer.glb", 0.03)
@@ -34,7 +35,7 @@ export default async (source: THREE.Object3D) => {
         })
 
     onUpdate.add((t) => {
-        const interval = getInterval().Hammer
+        const interval = constants.getInterval(getState()).Hammer
         if (interval && t % interval === 0) {
             const model = models.allocate()
             model.position.copy(source.position)

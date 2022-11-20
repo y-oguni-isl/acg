@@ -18,13 +18,14 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js"
 import { onBeforeRender, onPreprocess, onUpdate } from './hooks'
-import { getAtk, getState, subscribe } from './saveData'
+import { getState, subscribe } from './saveData'
 import { ephemeralDOMStore } from './dom'
 import { call, ObjectEntries, fromEntries, PromiseAll, ObjectValues } from './util'
 import * as webgl from "./webgl"
 import { getRenderingOption, init3DModelDebugger } from './debug'
 import stages from "./stages"
 import { updatePerSecond } from './constants'
+import * as constants from "./constants"
 
 /** The scene object, that contains all visible Three.js objects. */
 const scene = new THREE.Scene()
@@ -97,7 +98,7 @@ const pools = await PromiseAll({
             // Collisions between the enemy and the player's attacks
             for (const hammer of pools.hammers?.children ?? []) {
                 if (hammer.position.distanceTo(enemy.position) < enemy.userData.radius + 0.02) {
-                    enemy.userData.hp -= getAtk().Hammer ?? 0
+                    enemy.userData.hp -= constants.getAtk(getState()).Hammer ?? 0
                     hammer.free()
                 }
             }
@@ -107,7 +108,7 @@ const pools = await PromiseAll({
                     .position.copy(enemy.position).setZ(airplane.position.z)
 
                 // Damage
-                enemy.userData.hp -= getAtk().Laser
+                enemy.userData.hp -= constants.getAtk(getState()).Laser
                 ephemeralDOMStore.getState().setEnemyStatus({ hp: enemy.userData.hp, name: enemy.userData.name, money: enemy.userData.money })
             } else { // No collisions
                 // Delete the hit effect

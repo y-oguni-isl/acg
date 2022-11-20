@@ -2,7 +2,8 @@ import * as THREE from "three"
 import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise"
 import { xMax, xMin, yMax, yMin } from "../constants"
 import { onBeforeRender, onUpdate } from "../hooks"
-import { getState, isVerticalMoveUnlocked } from "../saveData"
+import { getState } from "../saveData"
+import * as constants from "../constants"
 import loadGLTF from "./loadGLTF"
 
 export default async () => {
@@ -52,7 +53,7 @@ export default async () => {
         // Update the position of the airplane (position += velocity)
         airplane.position.setZ(Math.min(xMax, Math.max(xMin, airplane.position.z + airplane.userData.velocity.x * 0.015)))
         airplane.position.setX(Math.min(yMax, Math.max(yMin, airplane.position.x + airplane.userData.velocity.y * 0.01)))
-        if (pressedKeys.has("Space") && isVerticalMoveUnlocked()) {
+        if (pressedKeys.has("Space") && constants.isVerticalMoveUnlocked()) {
             airplane.position.y = Math.min(0.5, airplane.position.y + 0.005)
         } else {
             airplane.position.y = Math.max(0, airplane.position.y - 0.005)
