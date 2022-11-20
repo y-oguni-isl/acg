@@ -45,7 +45,7 @@ export default () => {
 
     subscribe((s, prev) => {
         if (s.availableNews === prev.availableNews) { return }
-        const addedNews = [...s.availableNews].filter((n) => !prev.availableNews.has(n))[0]
+        const addedNews = [...s.availableNews.difference(prev.availableNews)][0]
         if (!addedNews) { return }
         startTime = Date.now()
         group.visible = true

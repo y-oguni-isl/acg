@@ -15,6 +15,7 @@
   "dependencies": {
     "@tabler/icons": "^1.112.0",
     "autolinker": "^4.0.0",
+    "core-js": "^3.26.1",
     "glob": "^8.0.3",
     "immer": "^9.0.16",
     "preact": "^10.11.2",
@@ -31,6 +32,7 @@
     "@types/stats.js": "^0.17.0",
     "@types/three": "^0.144.0",
     "autoprefixer": "^10.4.13",
+    "core-dts": "^0.0.3",
     "license-checker": "^25.0.1",
     "postcss": "^8.4.18",
     "sass": "^1.56.1",

@@ -10,6 +10,8 @@
 }
 
 import 'typed-query-selector'
+import "core-js/proposals/map-upsert-stage-2"
+import "core-js/proposals/set-methods"
 import * as Stats from "stats.js"
 import * as THREE from 'three'
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js"
@@ -110,21 +112,17 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
             }
             if (Math.abs(enemy.position.z - airplane.position.z) < enemy.userData.radius && Math.abs(enemy.position.y - airplane.position.y) < enemy.userData.radius && enemy.position.x > airplane.position.x) {
                 // Show a hit effect
-                if (!laserHitEffectsSource.has(enemy)) {
-                    laserHitEffectsSource.set(enemy, laserHitEffects.allocate())
-                }
-                laserHitEffectsSource.get(enemy)!.position.copy(enemy.position).setZ(airplane.position.z)
+                laserHitEffectsSource.emplace(enemy, { insert: () => laserHitEffects.allocate() })
+                    .position.copy(enemy.position).setZ(airplane.position.z)
 
                 // Damage
                 enemy.userData.hp -= getAtk().Laser
                 ephemeralDOMStore.getState().setEnemyStatus({ hp: enemy.userData.hp, name: enemy.userData.name, money: enemy.userData.money })
             } else { // No collisions
+                // Delete the hit effect
                 if (laserHitEffectsSource.has(enemy)) {
-                    // Delete a hit effect
-                    if (laserHitEffectsSource.has(enemy)) {
-                        laserHitEffectsSource.get(enemy)!.free()
-                        laserHitEffectsSource.delete(enemy)
-                    }
+                    laserHitEffectsSource.get(enemy)!.free()
+                    laserHitEffectsSource.delete(enemy)
                 }
             }
 

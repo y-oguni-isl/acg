@@ -560,6 +560,8 @@ __metadata:
     "@types/three": "npm:^0.144.0"
     autolinker: "npm:^4.0.0"
     autoprefixer: "npm:^10.4.13"
+    core-dts: "npm:^0.0.3"
+    core-js: "npm:^3.26.1"
     glob: "npm:^8.0.3"
     immer: "npm:^9.0.16"
     license-checker: "npm:^25.0.1"
@@ -932,6 +934,20 @@ __metadata:
   dependencies:
     is-what: "npm:^4.1.6"
   checksum: 5cf2b3f2524430a300e99f715030ed17f76659e1b4b17913630bb44ac9de1714b1ba94b349dc1f61cf22ad3162029ccc65080aa1de8c8d2073079e2e1e783b2a
+  languageName: node
+  linkType: hard
+
+"core-dts@npm:^0.0.3":
+  version: 0.0.3
+  resolution: "core-dts@npm:0.0.3"
+  checksum: b083434ec2165f32d9ac73cecbf904d4148a1060a5e7d6e9a5214c479e49e4c69436352fe27bce1f5dc60906eab623a4ad3f1a7167e074a3093cd250fdf4e119
+  languageName: node
+  linkType: hard
+
+"core-js@npm:^3.26.1":
+  version: 3.26.1
+  resolution: "core-js@npm:3.26.1"
+  checksum: 74bf298c834701137b983f835e7fe8ac83febcbd4ae66a7adec68a85a076262c6b0c839bdd02ec5bd2f52f5e5f0feb55d66609be8594e1a3fba6e4f7885833a4
   languageName: node
   linkType: hard
 
