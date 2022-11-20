@@ -3,14 +3,16 @@ import Upgrades from "./upgrades"
 import create, { useStore } from "zustand"
 import { immer } from "zustand/middleware/immer"
 import { persist } from "zustand/middleware"
-import { bounties, deleteSaveData, enemyNames, getState, store, tutorialHTML, stageNames } from "../saveData"
+import { deleteSaveData, getState, store, tutorialHTML } from "../saveData"
 import { Ref, useEffect, useRef, useState } from "preact/hooks"
 import type { JSXInternal } from "preact/src/jsx"
 import { enableMapSet } from "immer"
 import SuperJSON from "superjson"
-import { updatePerSecond } from "../hooks"
 import { Debugger } from "../debug"
 import Autolinker from "autolinker"
+import stages from "../stages"
+import { entries, fromEntries } from "../util"
+import { updatePerSecond } from "../constants"
 
 enableMapSet()
 
@@ -47,7 +49,7 @@ export const domStore = create<{
 }))
 
 // Loading messages should not be persisted
-type EnemyStatus = { hp: number, name: typeof enemyNames[number] }  // TODO: name: string, maxHP: number
+type EnemyStatus = { hp: number, name: string, money: number }
 export const ephemeralDOMStore = create<{
     loadingMessage: Map<string, string>
     enemyStatus: EnemyStatus | null
@@ -77,8 +79,9 @@ const EnemyStats = () => {
         <h2 class="mb-2"><i class="ti ti-chart-line" /> Enemy Stats</h2>
         <div>
             <table>
+                <tr><td class="pr-1"><i class="ti ti-float-none" /></td><td>{enemyStatus.name}</td></tr>
                 <tr><td class="pr-1"><i class="ti ti-heart" /></td><td>{Math.max(0, Math.round(enemyStatus.hp))}</td></tr>
-                <tr><td class="pr-1"><i class="ti ti-moneybag" /></td><td>{bounties(enemyStatus.name)}</td></tr>
+                <tr><td class="pr-1"><i class="ti ti-moneybag" /></td><td>{enemyStatus.money}</td></tr>
             </table>
         </div>
     </div>
@@ -89,16 +92,10 @@ const UI = () => {
     const newsDialog = useRef() as Ref<HTMLDialogElement>
     const creditDialog = useRef() as Ref<HTMLDialogElement>
     const [creditHTML, setCreditHTML] = useState<string>("")
-    const areStageNamesVisible_ = useStore(store, (s): { [k in typeof stageNames[number]]: boolean } => {
-        return {
-            Earth: s.availableNews.has("aliensComing"),
-            Universe: s.availableNews.has("aliensComing"),
-            Final: s.availableNews.has("aliensComing") && s.upgrades['ATK×2'] > 0,
-        }
-    })
+    const areStageNamesVisible = useStore(store, () => fromEntries(entries(stages).map(([k, v]) => [k, v.visible()])))
     const loadingMessage = useStore(ephemeralDOMStore, (s) => s.loadingMessage)
     const weather = useStore(store, (s) => s.getWeather())
-    const weatherEffectWillBeEnabledInLessThan = useStore(store, (s) => Math.ceil(s.weatherEffectWillBeEnabledInLessThan[s.stage] / updatePerSecond / 60))
+    const weatherEffectWillBeEnabledInLessThan = useStore(store, (s) => Math.ceil((s.weatherEffectWillBeEnabledInLessThan[s.stage] ?? Number.MAX_SAFE_INTEGER) / updatePerSecond / 60))
     const transcending = useStore(store, (s) => s.transcending)
 
     useEffect(() => {
@@ -163,15 +160,15 @@ const UI = () => {
 
         <div class="absolute right-1 top-1 min-w-[13rem]">
             {/* Stages */}
-            {Object.values(areStageNamesVisible_).some((v) => v) && <div class="px-3 pt-1 pb-3 window">
+            {Object.values(areStageNamesVisible).some((v) => v) && <div class="px-3 pt-1 pb-3 window">
                 <h2 class="mb-2"><i class="ti ti-map-2" /> Stages</h2>
-                <div>{stageNames.map((name) =>
+                <div>{entries(stages).map(([name]) =>
                     <button
                         tabIndex={-1}
                         class="w-full mb-1"
                         onClick={() => { getState().setStageTransitingTo(name) }}
-                        disabled={!areStageNamesVisible_[name]}>
-                        {areStageNamesVisible_[name] ? name : "???"}
+                        disabled={!areStageNamesVisible[name]}>
+                        {areStageNamesVisible[name] ? name : "???"}
                     </button>)}
                 </div>
             </div>}

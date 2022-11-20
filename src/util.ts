@@ -1,5 +1,17 @@
-/** `Object.entries` with a narrower type. */
+/** `Object.entries` with a strict type. */
 export const entries = <K extends keyof any, V extends unknown>(obj: { readonly [k in K]?: V }): [K, V][] => Object.entries(obj) as any
+
+/** `Object.fromEntries` with a strict type. This function assumes that all values in K are used once. */
+export const fromEntries = <K extends keyof any, V>(obj: [K, V][]): { [k in K]: V } => Object.fromEntries(obj) as any
+
+/** Promise.all but accepts an object */
+export const PromiseAll = async <T>(obj: T): Promise<{ [k in keyof T]: Awaited<T[k]> }> => {
+    const result: Record<any, any> = {}
+    for (const [k, v] of Object.entries(obj as any)) {
+        result[k] = await v
+    }
+    return result as any
+}
 
 type RewriteMethodsToProperties<T> = {
     readonly [K in keyof T as T[K] extends ((...args: readonly number[]) => any) | ((v: THREE.Vector3) => any) ? K : never]?:

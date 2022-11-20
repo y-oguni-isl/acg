@@ -3,9 +3,12 @@ import { persist } from "zustand/middleware"
 import { immer } from 'zustand/middleware/immer'
 import { enableMapSet } from "immer"
 import SuperJSON from 'superjson'
-import { updatePerSecond } from './hooks'
+import type stages from './stages'
+import { updatePerSecond } from './constants'
 
 enableMapSet()
+
+type StageName = keyof typeof stages
 
 export const upgradeNames = [
     "Laser",
@@ -57,15 +60,6 @@ export const getInterval = () => ({
 
 export const price = (name: (typeof upgradeNames)[number]) => basePrice[name] * 2 ** getState().upgrades[name]
 
-export const enemyNames = ["Bird", "UFO", "Weather Effect UFO", "Planet"] as const
-
-export const bounties = (name: typeof enemyNames[number]) => ({
-    Bird: 1,
-    UFO: 100,
-    "Weather Effect UFO": 1000,
-    Planet: 10000,
-} satisfies Record<typeof enemyNames[number], number>)[name] * (500 ** getState().transcendence)
-
 /** If true, the name of the upgrade is shown as ??? */
 export const isUpgradeNameHidden = (name: (typeof upgradeNames)[number]) => getState().upgrades[name] === 0 && getState().money < price(name) * 2 / 3
 export const isWeatherSystemUnlocked = () => getState().completedTutorials.has("nextStage")
@@ -89,32 +83,23 @@ export const newsList = {
     ending1: ["Scientists Have Found The Way To Move To A Higher World", "Scientists have finally reached the Singularity, and as a result, they have been able to move to a higher world. In this new world, there are beings that do not exist in this one. The breakthrough is the result of invading the residence of the aliens, which allowed the scientists to access their technology. The scientists were able to use this technology to move to the new world, and they are now working to take over the world. The beings in this new world are not happy about this, and they are fighting back. The scientists are using their technology to fight back, and they believe that they will eventually be able to take over the world. They are using their technology to create armies, and they are prepared to fight against the beings in this new world. The scientists are determined to take over the world, and they are prepared to do whatever it takes."],
 } as const satisfies { readonly [k: string]: readonly [title: string, text: string] }
 
-export const stageNames = ["Earth", "Universe", "Final"] as const
-
 export type WeatherEffect = "Rain"
 
 const localStorageKey = "acgSaveData"
 let destroyed = false
 
-/** The interval of the weather effects. */
-const newWeatherEffectETA = (rand = () => Math.random()): Record<typeof stageNames[number], number> => ({
-    Earth: rand() * updatePerSecond * 60 * 6,
-    Universe: rand() * updatePerSecond * 60 * 12,
-    Final: rand() * updatePerSecond * 60 * 12,
-})
-
 type SaveData = {
     gameSessionId: string
-    stage: typeof stageNames[number]
-    stageTransitingTo: typeof stageNames[number] | null
+    stage: StageName
+    stageTransitingTo: StageName | null
     money: number
     /** The number of upgrades purchased by the player. */
     upgrades: Record<typeof upgradeNames[number], number>
     completedTutorials: Set<keyof typeof tutorialHTML>
     availableNews: Set<keyof typeof newsList>
     availableTutorials: Set<keyof typeof tutorialHTML>
-    weatherEffectWillBeEnabledIn: Record<typeof stageNames[number], number>  // the weather effect is enabled if countdown <= 0
-    weatherEffectWillBeEnabledInLessThan: Record<typeof stageNames[number], number>
+    weatherEffectWillBeEnabledIn: Partial<Record<StageName, number>>  // the weather effect is enabled if countdown <= 0
+    weatherEffectWillBeEnabledInLessThan: Partial<Record<StageName, number>>
     canTranscend: boolean
     transcending: boolean
     transcendence: number
@@ -125,7 +110,7 @@ type SaveData = {
     completeTutorial: (name: keyof typeof tutorialHTML) => void
     addNews: (name: keyof typeof newsList) => void
     addTutorial: (name: keyof typeof tutorialHTML) => void
-    setStageTransitingTo: (stage: typeof stageNames[number]) => void
+    setStageTransitingTo: (stage: StageName) => void
     completeStageTransition: () => void
     countdown: () => void
     getWeather: () => ({ name: WeatherEffect, enabled: boolean } | null)
@@ -136,6 +121,8 @@ type SaveData = {
     confirmTranscending: () => void
     cheat: () => void
 }
+
+const newWeatherEffectETA = (rand = Math.random()) => rand * updatePerSecond * 60 * 6
 
 /** This store maintains the stage of game, and it is persisted in the localStorage by the persist() middleware. */
 export const store = create<SaveData>()(persist(immer((set, get) => ({
@@ -148,8 +135,8 @@ export const store = create<SaveData>()(persist(immer((set, get) => ({
     availableNews: new Set(),
     openedNews: new Set(),
     availableTutorials: new Set(),
-    weatherEffectWillBeEnabledIn: newWeatherEffectETA(),
-    weatherEffectWillBeEnabledInLessThan: newWeatherEffectETA(() => 1),
+    weatherEffectWillBeEnabledIn: {},
+    weatherEffectWillBeEnabledInLessThan: {},
     canTranscend: false,
     transcending: false,
     transcendence: 0,
@@ -199,8 +186,10 @@ export const store = create<SaveData>()(persist(immer((set, get) => ({
     countdown: () => {
         if (!isWeatherSystemUnlocked()) { return }
         set((d) => {
-            d.weatherEffectWillBeEnabledIn[d.stage]--
-            d.weatherEffectWillBeEnabledInLessThan[d.stage]--
+            d.weatherEffectWillBeEnabledIn[d.stage] ??= newWeatherEffectETA()
+            d.weatherEffectWillBeEnabledInLessThan[d.stage] ??= newWeatherEffectETA(1)
+            d.weatherEffectWillBeEnabledIn[d.stage]!--
+            d.weatherEffectWillBeEnabledInLessThan[d.stage]!--
         })
         if (get().getWeather()?.enabled) {
             get().addTutorial("weatherEffect")
@@ -208,14 +197,14 @@ export const store = create<SaveData>()(persist(immer((set, get) => ({
     },
     getWeather: () => {
         if (!isWeatherSystemUnlocked()) { return null }
-        const enabled = get().weatherEffectWillBeEnabledIn[get().stage] <= 0
+        const enabled = (get().weatherEffectWillBeEnabledIn[get().stage] ?? Number.MAX_SAFE_INTEGER) <= 0
         if (get().stage === "Earth") { return { name: "Rain", enabled } }
         return null  // unimplemented
     },
     stopWeatherEffect: () => {
         set((d) => {
-            d.weatherEffectWillBeEnabledIn[d.stage] = newWeatherEffectETA()[d.stage]
-            d.weatherEffectWillBeEnabledInLessThan[d.stage] = newWeatherEffectETA(() => 1)[d.stage]
+            d.weatherEffectWillBeEnabledIn[d.stage] = newWeatherEffectETA()
+            d.weatherEffectWillBeEnabledInLessThan[d.stage] = newWeatherEffectETA(1)
         })
     },
     defeatedFinalBoss: () => {

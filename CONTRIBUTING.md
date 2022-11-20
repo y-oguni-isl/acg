@@ -27,18 +27,16 @@ You can search models through websites such as [sketchfab](https://sketchfab.com
 | src/debug.tsx | exports debugging components that should be removed in production. |
 | src/saveData.ts | exports the centralized store of the game state. |
 | src/dom/ | Preact components |
-| src/webgl/ | Three.js objects |
+| src/webgl/ | Three.js components |
+| src/stages/ | Stages |
 
 ## How can I add a stage?
-1. Add the map name to `stageNames` in `saveData.ts`.
-2. Fix all type errors.
+Just add a file `<id>_<name>.ts` in src/stages/.
 
 ## How can I add enemies to a stage?
 1. Download the 3D model for the enemy to public/models/.
-1. Add the copyright notice of the 3D model to `public/models/credit.html`.
-2. Load the file as object pools at `// Parallel download` in `main.ts`. We need two models, one alive and one dead.
-3. Add the object pools to the arrays `enemiesAlive` and `enemiesDead` in `main.ts`.
-4. Define the spawning condition of the enemy at `// Spawn enemies` in `main.ts`.
+2. Add the copyright notice of the 3D model to `public/models/credit.html`.
+3. Load the file in src/stages/*.ts. We need two models, one alive and one dead.
 
 # Using Shaders through Three.js
 src/webgl/createFog.ts has the most simple shader material. You can learn about the shading in Three.js by reading it and [the documentation of ShaderMaterial](https://threejs.org/docs/#api/en/materials/ShaderMaterial).
