@@ -18,13 +18,13 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js"
 import { onBeforeRender, onPreprocess, onUpdate } from './hooks'
-import { getAtk, getState, isVerticalMoveUnlocked, subscribe } from './saveData'
+import { getAtk, getState, subscribe } from './saveData'
 import { ephemeralDOMStore } from './dom'
 import { call, entries, fromEntries, PromiseAll } from './util'
 import * as webgl from "./webgl"
 import { getRenderingOption, init3DModelDebugger } from './debug'
 import stages from "./stages"
-import { updatePerSecond, xMax, xMin, yMax, yMin } from './constants'
+import { updatePerSecond } from './constants'
 
 /** The scene object, that contains all visible Three.js objects. */
 const scene = new THREE.Scene()
@@ -85,15 +85,6 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
         }
     })
 
-    // The enemy that the autopilot algorithm is currently targeting.
-    let autopilotTarget: ReturnType<typeof pools.enemies.Earth.alive.allocate> | null = null
-
-    // Keyboard events
-    const pressedKeys = new Set<string>()
-    window.addEventListener("keydown", (ev) => { pressedKeys.add(ev.code) })
-    window.addEventListener("keyup", (ev) => { pressedKeys.delete(ev.code) })
-    window.addEventListener("blur", () => { pressedKeys.clear() })
-
     // Main game loop
     onUpdate.add((t) => {
         // Spawn enemies
@@ -149,51 +140,10 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
             }
         }
 
-        if (getState().stageTransitingTo !== null) {
-            // Play the animation to move to another stage
-            airplane.position.x += 0.01 + Math.max(0, airplane.position.x) * 0.08
-            scene.rotateY(0.02)
-            scene.rotateZ(-0.003)
-            if (airplane.position.x > 2) {
-                stageTransitionPass.play(() => {
-                    airplane.position.x = 0
-                    scene.rotation.set(0, 0, 0)
-                })
-            }
-        } else {
-            // Move the airplane by WASD keys
-            if (pressedKeys.has("KeyD") && !pressedKeys.has("KeyA")) { airplane.userData.velocity.x = Math.min(1, Math.max(0, airplane.userData.velocity.x) + 0.3) }
-            if (pressedKeys.has("KeyA") && !pressedKeys.has("KeyD")) { airplane.userData.velocity.x = Math.max(-1, Math.min(0, airplane.userData.velocity.x) - 0.3) }
-            if (pressedKeys.has("KeyW") && !pressedKeys.has("KeyS")) { airplane.userData.velocity.y = Math.min(1, Math.max(0, airplane.userData.velocity.y) + 0.3) }
-            if (pressedKeys.has("KeyS") && !pressedKeys.has("KeyW")) { airplane.userData.velocity.y = Math.max(-1, Math.min(0, airplane.userData.velocity.y) - 0.3) }
-            if (pressedKeys.has("Space") && isVerticalMoveUnlocked()) {
-                airplane.position.y = Math.min(0.5, airplane.position.y + 0.005)
-            } else {
-                airplane.position.y = Math.max(0, airplane.position.y - 0.005)
-            }
-
-            if (pressedKeys.size === 0 ||
-                pressedKeys.has("KeyA") && pressedKeys.has("KeyD") ||
-                pressedKeys.has("KeyW") && pressedKeys.has("KeyS")) {
-                airplane.userData.velocity.multiplyScalar(0.8)
-            }
-            if (airplane.userData.velocity.length() > 1) { airplane.userData.velocity.normalize() }
-            airplane.position.setZ(Math.min(xMax, Math.max(xMin, airplane.position.z + airplane.userData.velocity.x * 0.015)))
-            airplane.position.setX(Math.min(yMax, Math.max(yMin, airplane.position.x + airplane.userData.velocity.y * 0.01)))
-
-            // Autopilot
-            if ((getState().getWeather()?.enabled ? getState().upgrades.Autopilot - 5 : getState().upgrades.Autopilot) > 0 && pressedKeys.size === 0) { // TODO: add a switch to disable autopilot
-                const findMin = <T>(arr: readonly T[], key: (v: T) => void) => arr.length === 0 ? null : arr.reduce((p, c) => key(p) < key(c) ? p : c, arr[0]!)
-                if (!autopilotTarget || !enemiesAlive.flatMap((o) => o.children).includes(autopilotTarget) || autopilotTarget.position.x < airplane.position.x) {
-                    autopilotTarget = findMin(enemiesAlive.flatMap((o) => o.children).filter((e) => e.position.x > airplane.position.x + 0.3 && e.userData.name !== "Weather Effect UFO"), (e) => e.position.x)
-                }
-                if (autopilotTarget) {
-                    const autopilotSpeed = 0.1 * getState().upgrades.Autopilot
-                    if (Math.abs(autopilotTarget.position.z - airplane.position.z) > 0.02) {
-                        airplane.userData.velocity.x = Math.min(1.0, Math.max(-1.0, airplane.userData.velocity.x + Math.sign(autopilotTarget.position.z - airplane.position.z) * autopilotSpeed))
-                    }
-                }
-            }
+        // Update the autopilot algorithm's target
+        const findMin = <T>(arr: readonly T[], key: (v: T) => void) => arr.length === 0 ? undefined : arr.reduce((p, c) => key(p) < key(c) ? p : c, arr[0]!)
+        if (!airplane.userData.autopilotTarget || !enemiesAlive.flatMap((o) => o.children as { position: THREE.Vector3 }[]).includes(airplane.userData.autopilotTarget) || airplane.userData.autopilotTarget.position.x < airplane.position.x) {
+            airplane.userData.autopilotTarget = findMin(enemiesAlive.flatMap((o) => o.children).filter((e) => e.position.x > airplane.position.x + 0.3 && e.userData.name !== "Weather Effect UFO"), (e) => e.position.x)
         }
 
         // Weather
@@ -225,6 +175,22 @@ const stageTransitionPass = webgl.createStageTransitionPass()
     if (getRenderingOption("rain")) { effectComposer.addPass(webgl.createRainPass(camera, getRenderingOption("rain.blur"))) }
     effectComposer.addPass(stageTransitionPass.pass)
 }
+
+// Stage transition animation
+onUpdate.add(() => {
+    if (getState().stageTransitingTo === null) { return }
+
+    // Play the animation to move to another stage
+    airplane.position.x += 0.01 + Math.max(0, airplane.position.x) * 0.08
+    scene.rotateY(0.02)
+    scene.rotateZ(-0.003)
+    if (airplane.position.x > 2) {
+        stageTransitionPass.play(() => {
+            airplane.position.x = 0
+            scene.rotation.set(0, 0, 0)
+        })
+    }
+})
 
 // Resize the canvas to fit to the window
 window.addEventListener("resize", () => {
@@ -293,8 +259,8 @@ playAudio()
 // Clear the loading message
 ephemeralDOMStore.getState().removeLoadingMessage("loadingModels")
 
+// The first tutorial message
 getState().addTutorial("wasd")
-
 window.addEventListener("keyup", (ev) => {
     if (["KeyW", "KeyS", "KeyA", "KeyD"].includes(ev.code) &&
         getState().availableTutorials.has("wasd")) {
