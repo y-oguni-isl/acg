@@ -1,18 +1,21 @@
 import * as THREE from "three"
 import { onBeforeRender } from "../hooks"
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils"
+import { logObjectPoolSize } from "../debug"
 
 type Instance<T extends THREE.Object3D> = T & {
     free: () => void
     getOriginalScale: () => THREE.Vector3
 }
 
+const counter: Record<string, number> = new Proxy({}, { get: (target, p, receiver) => Reflect.get(target, p, receiver) ?? 1 })  // defaultdict(lambda: 1)
+
 /**
  * The object pool (https://en.wikipedia.org/wiki/Object_pool_pattern).
  * Changes to vertices and shaders in the model are shared between all copies. Positions and rotations are maintained independently for each copy.
  * 
  * ```
- * const pool = new ObjectPool(model)
+ * const pool = new ObjectPool("name", model)
  * scene.add(pool)
  * const copy = pool.allocate() // allocate() copies the `model` if the (private) `pool.pool` is empty, attaches the copy to `pool`, and returns it.
  * copy.free() // free() detaches the copy from `pool` and gives the object back to the `pool.pool`.
@@ -29,8 +32,9 @@ export default class ObjectPool<T extends THREE.Object3D> extends THREE.Object3D
     readonly #onCloneListeners = new Set<(copy: Instance<T>) => void>()
     readonly #onAllocateListeners = new Set<(copy: Instance<T>) => T["userData"]>()
 
-    constructor(model: T) {
+    constructor(name: string, model: T) {
         super()
+        this.name = `${name}${counter[name]++}`
         this.#model = model
         let mesh!: THREE.Mesh<THREE.BufferGeometry, THREE.Material> | undefined
         model.traverse((obj) => { if (obj instanceof THREE.Mesh) { mesh = obj } })
@@ -42,7 +46,7 @@ export default class ObjectPool<T extends THREE.Object3D> extends THREE.Object3D
     withVertexAnimation(f: (positions: THREE.BufferAttribute, originalPositions: THREE.BufferAttribute) => void) {
         if (this.#noMesh) { return this }
         onBeforeRender.add(() => {
-            if (!this.parent) { return }
+            if (!this.parent || this.children.length === 0) { return }
             f(this.mesh.geometry.attributes.position as THREE.BufferAttribute, this.#originalPositions)
             this.mesh.geometry.attributes.position!.needsUpdate = true
             this.mesh.geometry.computeVertexNormals()
@@ -75,6 +79,7 @@ export default class ObjectPool<T extends THREE.Object3D> extends THREE.Object3D
                 this.#pool.add(copy)
             }
             copy.getOriginalScale = () => this.#model.scale.clone()
+            logObjectPoolSize(this.name, this.children.length + this.#pool.size + 1)
             this.#onCloneListeners.forEach((f) => f(copy))
             return copy
         })()

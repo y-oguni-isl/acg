@@ -11,18 +11,22 @@ const modelDebuggerStore = create<{
     paused: boolean
     object: THREE.Object3D | null
     version: number,
+    objectPools: Record<string, number>
     setObject: (obj: THREE.Object3D) => void
     stop: () => void
     resume: () => void
     refreshDebugger: () => void
+    setObjectPoolSize: (name: string, count: number) => void
 }>()(immer((set) => ({
     paused: false as boolean,
     object: null as THREE.Object3D | null,
     version: 0,
+    objectPools: {},
     setObject: (obj) => { set((d) => { d.object = obj }) },
     stop: () => { set((d) => { d.paused = true }) },
     resume: () => { set((d) => { d.paused = false }) },
     refreshDebugger: () => { set((d) => { d.version++ }) },
+    setObjectPoolSize: (name: string, count: number) => { set((d) => { d.objectPools[name] = count }) }
 })))
 
 const renderingOptionsStore = create<{
@@ -46,10 +50,11 @@ const renderingOptionsStore = create<{
 
 /** Returns a boolean indicating whether the component should be rendered or not, which can be controlled in the rendering options window. */
 export const getRenderingOption = renderingOptionsStore.getState().getRenderingOption
+export const logObjectPoolSize = modelDebuggerStore.getState().setObjectPoolSize
 
 export const Debugger = () => {
     if (import.meta.env.PROD) { return <></> }
-    const { object, resume, stop, paused, refreshDebugger } = useStore(modelDebuggerStore)
+    const { object, resume, stop, paused, refreshDebugger, objectPools } = useStore(modelDebuggerStore)
     const { renderingOptions, setRenderingOption } = useStore(renderingOptionsStore)
     return <div class="absolute right-56 bottom-1 [font-size:50%]">
         {/* DEBUG: Rendering options */}
@@ -90,6 +95,12 @@ export const Debugger = () => {
                     </tr>
                 </table>
             </>)}
+        </div>
+        <div class="px-3 pt-1 pb-3 window">
+            <h2>[Debug] Object Pools</h2>
+            <table>
+                {ObjectEntries(objectPools).sort((a, b) => a[0].localeCompare(b[0])).map(([k, v]) => <tr><td>{k}</td><td>{v}</td></tr>)}
+            </table>
         </div>
     </div>
 }

@@ -72,7 +72,7 @@ const pools = await PromiseAll({
     const enemiesDead = ObjectValues(pools.enemies).flatMap((v) => v.weatherDead ? [v.dead, v.weatherDead] : [v.dead])
 
     // hit effect
-    const laserHitEffects = show(new webgl.ObjectPool(webgl.enableSelectiveBloom(new THREE.Mesh(new THREE.IcosahedronGeometry(0.006), new THREE.MeshBasicMaterial({ color: 0xff66ff })))))
+    const laserHitEffects = show(new webgl.ObjectPool("hitEffect", webgl.enableSelectiveBloom(new THREE.Mesh(new THREE.IcosahedronGeometry(0.006), new THREE.MeshBasicMaterial({ color: 0xff66ff })))))
     const laserHitEffectsSource = new WeakMap<ReturnType<typeof pools.enemies.Earth.alive.allocate>, ReturnType<typeof laserHitEffects.allocate>>()
 
     // Delete everything when switching to another stage

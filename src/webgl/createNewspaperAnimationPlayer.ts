@@ -15,7 +15,7 @@ export default () => {
 
     // Load the 3D model asynchronously
     (async () => {
-        const newspapers = new ObjectPool(call(await loadGLTF("models/y2k_newspaper_article.glb", 0.1), { rotateY: Math.PI / 2, rotateX: Math.PI * 0.3, scale: { multiplyScalar: 2 }, position: { set: [0.8, 0.5, 0.5] } }))
+        const newspapers = new ObjectPool("newspaper", call(await loadGLTF("models/y2k_newspaper_article.glb", 0.1), { rotateY: Math.PI / 2, rotateX: Math.PI * 0.3, scale: { multiplyScalar: 2 }, position: { set: [0.8, 0.5, 0.5] } }))
             .withVertexAnimation((positions, originalPositions) => {
                 for (let i = 0; i < positions.count; i++) {
                     positions.setY(i, originalPositions.getY(i) +

@@ -15,7 +15,7 @@ super();
 // gl_FragColor.rgb *= 1.0 + (sin(time * 0.006) + 1.0) / 2.0 * 10.0;
 }`
     })
-    return new ObjectPool(enableSelectiveBloom(m))
+    return new ObjectPool("enemyPlanet", enableSelectiveBloom(m))
         .onClone((copy) => {
             onBeforeRender.add((time) => {
                 copy.rotation.set(0, time * 0.0001, 0)

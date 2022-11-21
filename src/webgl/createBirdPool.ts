@@ -4,7 +4,7 @@ import loadGLTF from "./loadGLTF"
 import ObjectPool from "./ObjectPool"
 
 export default async (animation: boolean) => {
-    const pool = new ObjectPool(call(await loadGLTF("models/low_polygon_art__white_eagle_bird.glb", 0.1), { rotateX: -Math.PI / 2, rotateZ: -Math.PI / 2, scale: { multiplyScalar: 0.3 } }))
+    const pool = new ObjectPool("bird", call(await loadGLTF("models/low_polygon_art__white_eagle_bird.glb", 0.1), { rotateX: -Math.PI / 2, rotateZ: -Math.PI / 2, scale: { multiplyScalar: 0.3 } }))
     if (animation) {
         pool.withVertexAnimation((positions, originalPositions) => {
             for (let i = 0; i < positions.count; i++) {
