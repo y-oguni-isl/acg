@@ -229,11 +229,11 @@ const UI = () => {
         </dialog>
 
         {/* Newspaper */}
-        <dialog ref={newsDialog} class="bg-gray-100 w-[400px] h-[620px] p-5 box-border shadow-2xl select-none [transition:opacity_ease_0.3s]" onClick={closeDialogOnClick}>
-            {state.news && <div class="[line-height:1.2] [font-size:12px] text-justify overflow-y-hidden  h-full">
+        <dialog ref={newsDialog} class="bg-gray-100 w-[400px] h-[620px] p-5 box-border shadow-2xl select-none [transition:opacity_ease_0.3s] [font-family:KottaOne]" onClick={closeDialogOnClick}>
+            {state.news && <div class="[line-height:1.2] [font-size:12px] text-justify overflow-y-hidden h-full">
                 <h2 class="text-lg tracking-wide font-bold mb-4 [border-bottom:3px_solid_rgb(130,130,130)] text-center">{state.news[0]}</h2>
                 <span>{state.news[1]}</span>
-                <span class="text-gray-500">{randomText}</span>
+                <span class="text-gray-500"> {randomText}</span>
             </div>}
         </dialog>
 
