@@ -43,13 +43,13 @@ export default class ObjectPool<T extends THREE.Object3D> extends THREE.Object3D
         this.#originalPositions = this.#noMesh ? null as any : this.mesh.geometry.attributes.position!.clone()
     }
 
-    withVertexAnimation(f: (positions: THREE.BufferAttribute, originalPositions: THREE.BufferAttribute) => void) {
+    withVertexAnimation(f: (positions: THREE.BufferAttribute, originalPositions: THREE.BufferAttribute) => void, opts: { computeVertexNormals?: boolean } = {}) {
         if (this.#noMesh) { return this }
         onBeforeRender.add(() => {
             if (!this.parent || this.children.length === 0) { return }
             f(this.mesh.geometry.attributes.position as THREE.BufferAttribute, this.#originalPositions)
             this.mesh.geometry.attributes.position!.needsUpdate = true
-            this.mesh.geometry.computeVertexNormals()
+            if (opts.computeVertexNormals !== false) { this.mesh.geometry.computeVertexNormals() } // very slow
         })
         return this
     }
