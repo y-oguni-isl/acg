@@ -186,7 +186,8 @@ const UI = () => {
                         tabIndex={-1}
                         class="w-full mb-1"
                         onClick={() => { getState().setStageTransitingTo(name) }}
-                        disabled={!areStageNamesVisible[name] || stage === name}>
+                        disabled={!areStageNamesVisible[name] || stage === name}
+                        data-checked={stage === name}>
                         {areStageNamesVisible[name] ? name : "???"}
                     </button>)}
                 </div>
