@@ -22,63 +22,63 @@ export default class ObjectPool<T extends THREE.Object3D> extends THREE.Object3D
     declare children: Instance<T>[]
 
     readonly mesh
-    private readonly noMesh
-    private readonly originalPositions
+    readonly #noMesh
+    readonly #originalPositions
+    readonly #model: T
+    readonly #pool = new Set<Instance<T>>()
+    readonly #onCloneListeners = new Set<(copy: Instance<T>) => void>()
+    readonly #onAllocateListeners = new Set<(copy: Instance<T>) => T["userData"]>()
 
-    constructor(private readonly model: T) {
+    constructor(model: T) {
         super()
+        this.#model = model
         let mesh!: THREE.Mesh<THREE.BufferGeometry, THREE.Material> | undefined
         model.traverse((obj) => { if (obj instanceof THREE.Mesh) { mesh = obj } })
-        this.noMesh = mesh === undefined
+        this.#noMesh = mesh === undefined
         this.mesh = mesh ?? new THREE.Mesh()
-        this.originalPositions = this.noMesh ? null as any : this.mesh.geometry.attributes.position!.clone()
+        this.#originalPositions = this.#noMesh ? null as any : this.mesh.geometry.attributes.position!.clone()
     }
 
-    private readonly pool = new Set<Instance<T>>()
-
     withVertexAnimation(f: (positions: THREE.BufferAttribute, originalPositions: THREE.BufferAttribute) => void) {
-        if (this.noMesh) { return this }
+        if (this.#noMesh) { return this }
         onBeforeRender.add(() => {
             if (!this.parent) { return }
-            f(this.mesh.geometry.attributes.position as THREE.BufferAttribute, this.originalPositions)
+            f(this.mesh.geometry.attributes.position as THREE.BufferAttribute, this.#originalPositions)
             this.mesh.geometry.attributes.position!.needsUpdate = true
             this.mesh.geometry.computeVertexNormals()
         })
         return this
     }
 
-    private onCloneListeners = new Set<(copy: Instance<T>) => void>()
-    private onAllocateListeners = new Set<(copy: Instance<T>) => T["userData"]>()
-
     onClone(f: (copy: Instance<T>) => void) {
-        this.onCloneListeners.add(f)
+        this.#onCloneListeners.add(f)
         return this
     }
 
     /** The return value of the callback is assigned to `copy.userData`. */
     onAllocate<UserData extends Record<string, unknown>>(f: (copy: Instance<T>) => UserData) {
-        this.onAllocateListeners.add(f)
+        this.#onAllocateListeners.add(f)
         return this as any as ObjectPool<Omit<T, "userData"> & { userData: UserData }>
     }
 
     allocate(): Instance<T> {
         const copy = ((): Instance<T> => {
-            for (const item of this.pool) {
-                this.pool.delete(item)
+            for (const item of this.#pool) {
+                this.#pool.delete(item)
                 return item
             }
 
             // NOTE: model.clone() doesn't work when the model has animations: https://discourse.threejs.org/t/skinnedmesh-cloning-issues/27551
-            const copy = SkeletonUtils.clone(this.model) as Instance<T>
+            const copy = SkeletonUtils.clone(this.#model) as Instance<T>
             copy.free = () => {
                 if (copy.parent) { copy.removeFromParent() }
-                this.pool.add(copy)
+                this.#pool.add(copy)
             }
-            copy.getOriginalScale = () => this.model.scale.clone()
-            this.onCloneListeners.forEach((f) => f(copy))
+            copy.getOriginalScale = () => this.#model.scale.clone()
+            this.#onCloneListeners.forEach((f) => f(copy))
             return copy
         })()
-        this.onAllocateListeners.forEach((f) => { Object.assign(copy.userData, f(copy)) })
+        this.#onAllocateListeners.forEach((f) => { Object.assign(copy.userData, f(copy)) })
         this.add(copy)
         return copy
     }

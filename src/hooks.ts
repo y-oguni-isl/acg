@@ -4,5 +4,5 @@ export const onBeforeRender = new Set<(time: number, deltaTime: number) => void>
 
 export const onPreprocess = new Set<() => void>()
 
-/** Unlike onBeforeRender, functions in this set are will be called at a fixed interval even if the FPS drops, and you don't need to worry about delta timing. */
+/** Unlike onBeforeRender, functions in this set will be called at a fixed interval even if the FPS drops, and you don't need to worry about delta timing. */
 export const onUpdate = new Set<(updateCount: number) => void>()

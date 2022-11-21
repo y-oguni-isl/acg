@@ -216,7 +216,11 @@ if (stats) {
 
     const prevTime = { render: 0, update: 0 }
     let updateCount = 0
+    let renderCount = 0
     renderer.setAnimationLoop((time: number): void => {
+        const render = !ephemeralDOMStore.getState().powerSaveMode // || renderCount % 120 === 0
+        renderCount++
+
         // FPS monitor
         stats?.update()
 
@@ -234,20 +238,24 @@ if (stats) {
             // Fire the onBeforeRender hook
             const deltaTime = time - prevTime.render
             prevTime.render = time
-            onBeforeRender.forEach((f) => f(time, deltaTime))
+            if (render) { onBeforeRender.forEach((f) => f(time, deltaTime)) }
 
             // Move and rotate the camera
-            camera.position.z = airplane.position.z
-            camera.lookAt(getState().stage === "Final" ? new THREE.Vector3(0.5, 0, airplane.position.z) : new THREE.Vector3(0, 0, airplane.position.z))
-            camera.rotation.x += airplane.userData.velocity.x * 0.05
-            camera.rotation.y -= Math.abs(airplane.userData.velocity.y * 0.02)
+            if (render) {
+                camera.position.z = airplane.position.z
+                camera.lookAt(getState().stage === "Final" ? new THREE.Vector3(0.5, 0, airplane.position.z) : new THREE.Vector3(0, 0, airplane.position.z))
+                camera.rotation.x += airplane.userData.velocity.x * 0.05
+                camera.rotation.y -= Math.abs(airplane.userData.velocity.y * 0.02)
+            }
         }
 
-        // Fire the onPreprocess hook
-        onPreprocess.forEach((f) => f())
+        if (render) {
+            // Fire the onPreprocess hook
+            onPreprocess.forEach((f) => f())
 
-        // Render the scene to the canvas
-        effectComposer.render()
+            // Render the scene to the canvas
+            effectComposer.render()
+        }
     })
 }
 

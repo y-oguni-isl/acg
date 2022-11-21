@@ -53,12 +53,15 @@ type EnemyStatus = { hp: number, name: string, money: number }
 export const ephemeralDOMStore = create<{
     loadingMessage: Map<string, string>
     enemyStatus: EnemyStatus | null
+    powerSaveMode: boolean
     setLoadingMessage: (key: string, message: string) => void,
     removeLoadingMessage: (key: string) => void,
     setEnemyStatus: (status: EnemyStatus) => void
+    updatePowerSaveModeState: () => void
 }>()(immer((set, get) => ({
     loadingMessage: new Map(),
     enemyStatus: null as (EnemyStatus | null),
+    powerSaveMode: false,
     setLoadingMessage: (key, message) => { set((d) => { d.loadingMessage.set(key, message) }) },
     removeLoadingMessage: (key: string) => { set((d) => { d.loadingMessage.delete(key) }) },
     setEnemyStatus: (status) => {
@@ -66,8 +69,14 @@ export const ephemeralDOMStore = create<{
             d.enemyStatus = status
             d.enemyStatus.hp = Math.max(0, Math.round(d.enemyStatus.hp))
         })
-    }
+    },
+    updatePowerSaveModeState: () => { set((d) => { d.powerSaveMode = document.visibilityState === "hidden" || !document.hasFocus() }) }
 })))
+
+ephemeralDOMStore.getState().updatePowerSaveModeState()
+document.addEventListener("visibilitychange", () => { ephemeralDOMStore.getState().updatePowerSaveModeState() })
+window.addEventListener("blur", () => { ephemeralDOMStore.getState().updatePowerSaveModeState() })
+window.addEventListener("focus", () => { ephemeralDOMStore.getState().updatePowerSaveModeState() })
 
 /** Close the dialog when the user clicks outside the dialog */
 const closeDialogOnClick = (ev: JSXInternal.TargetedMouseEvent<HTMLDialogElement>) => {
@@ -102,6 +111,7 @@ const UI = () => {
     const weather = useStore(store, (s) => s.getWeather(), shallow)
     const weatherEffectWillBeEnabledInLessThan = useStore(store, (s) => Math.ceil((s.weatherEffectWillBeEnabledInLessThan[s.stage] ?? Number.MAX_SAFE_INTEGER) / constants.updatePerSecond / 60))
     const transcending = useStore(store, (s) => s.transcending)
+    const powerSaveMode = useStore(ephemeralDOMStore, (s) => s.powerSaveMode)
 
     useEffect(() => {
         for (const f of [
@@ -159,6 +169,12 @@ const UI = () => {
 
         {/* Tutorial message */}
         <Tutorial />
+
+        {powerSaveMode && <div class="absolute text-center w-full top-[45%] select-none [transition:opacity_ease_1s] whitespace-pre-wrap pointer-events-none z-10">
+            <div class="py-3 px-8 mx-auto w-fit text-white bg-slate-800 bg-opacity-70 rounded-sm">
+                Power Save Mode
+            </div>
+        </div>}
 
         <div class="absolute right-1 top-1 min-w-[13rem]">
             {/* Stages */}
