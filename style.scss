@@ -14,7 +14,7 @@ body {
 }
 
 .window {
-    @apply text-gray-50 backdrop-blur-3xl drop-shadow-lg select-none border-opacity-40 border-2 border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600;
+    @apply text-gray-50 backdrop-blur-3xl drop-shadow-lg select-none border-opacity-40 border-2 rounded-md border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600;
     background: linear-gradient(240deg, rgba(55, 65, 81, 0.144) 0%, rgba(55, 65, 81, 0.4) 100%);
 
     &.gold {
@@ -26,8 +26,12 @@ body {
 .window h2 { @apply font-bold; }
 
 button {
-    @apply text-gray-50 backdrop-blur-3xl drop-shadow-lg select-none border-opacity-40 border-2 border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600;
+    @apply text-gray-50 tracking-wider backdrop-blur-3xl drop-shadow-lg select-none border-opacity-40 border-2 rounded-sm border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600;
     background: linear-gradient(240deg, rgb(55, 65, 81, 0.7) 0%, rgb(55, 65, 81, 0.7) 100%);
+
+    &:disabled {
+        background: linear-gradient(240deg, rgb(52, 98, 171, 0.7) 0%, rgb(139, 169, 217, 0.7) 100%);
+    }
 
     &:hover:not(:disabled) {
         animation: 0.1s forwards alternate button-hover;
@@ -38,18 +42,13 @@ button {
         background: linear-gradient(240deg, rgba(255, 202, 27, 0.8) 0%, rgba(255, 231, 16, 0.7) 100%);
 
         &:hover:not(:disabled) {
-            animation: none;
+            animation: 0.1s forwards alternate button-hover-gold;
         }
     }
 }
 
-.tooltip {
-    @apply backdrop-blur-3xl;
-    background: linear-gradient(240deg, rgb(55, 65, 81, 0.2) 0%, rgb(55, 65, 81, 0.2) 100%);
-}
-
-$from1: rgb(55, 65,  81, 0.7);
-$from2: rgb( 55,  65,  81, 0.7);
+$from1: rgb(55, 65, 81, 0.7);
+$from2: rgb(55, 65, 81, 0.7);
 $to1: rgb(52, 98, 171, 0.7);
 $to2: rgb(139, 169, 217, 0.7);
 
@@ -59,6 +58,19 @@ $to2: rgb(139, 169, 217, 0.7);
         #{$i * 10%}  { background: linear-gradient(240deg, mix($to1, $from1, $i * 10%) 0%, mix($to2, $from2, $i * 10%) 100%); }
     }
     to   { background: linear-gradient(240deg, $to1 0%, $to2 100%); }
+}
+
+$from1-gold: rgba(255, 202, 27, 0.8);
+$from2-gold: rgba(255, 231, 16, 0.7);
+$to1-gold: rgba(255, 202, 27, 0.8);
+$to2-gold: rgba(255, 243, 140, 0.7);
+
+@keyframes button-hover-gold {
+    from { background: linear-gradient(240deg, $from1-gold 0%, $from2-gold 100%); }
+    @for $i from 1 through 9 {
+        #{$i * 10%}  { background: linear-gradient(240deg, mix($to1-gold, $from1-gold, $i * 10%) 0%, mix($to2-gold, $from2-gold, $i * 10%) 100%); }
+    }
+    to   { background: linear-gradient(240deg, $to1-gold 0%, $to2-gold 100%); }
 }
 
 input:not([type]),input[type=text] { @apply text-gray-700 pl-1; }

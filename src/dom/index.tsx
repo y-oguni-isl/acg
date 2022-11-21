@@ -90,9 +90,9 @@ const EnemyStats = () => {
     const enemyStatus = useStore(ephemeralDOMStore, (s) => s.enemyStatus, shallow)
     if (!enemyStatus) { return <></> }
     return <div class="px-3 pt-1 pb-3 window mt-1 mb-1">
-        <h2 class="mb-2"><i class="ti ti-chart-line" /> Enemy Stats</h2>
+        <h2 class="mb-2 tracking-wide"><i class="ti ti-chart-line" /> Enemy Stats</h2>
         <div>
-            <table>
+            <table class="tracking-wide">
                 <tr><td class="pr-1"><i class="ti ti-float-none" /></td><td>{enemyStatus.name}</td></tr>
                 <tr><td class="pr-1"><i class="ti ti-heart" /></td><td>{enemyStatus.hp}</td></tr>
                 <tr><td class="pr-1"><i class="ti ti-moneybag" /></td><td>{enemyStatus.money}</td></tr>
@@ -112,6 +112,7 @@ const UI = () => {
     const weatherEffectWillBeEnabledInLessThan = useStore(store, (s) => Math.ceil((s.weatherEffectWillBeEnabledInLessThan[s.stage] ?? Number.MAX_SAFE_INTEGER) / constants.updatePerSecond / 60))
     const transcending = useStore(store, (s) => s.transcending)
     const powerSaveMode = useStore(ephemeralDOMStore, (s) => s.powerSaveMode)
+    const stage = useStore(store, (s) => s.stage)
 
     useEffect(() => {
         for (const f of [
@@ -179,13 +180,13 @@ const UI = () => {
         <div class="absolute right-1 top-1 min-w-[13rem]">
             {/* Stages */}
             {ObjectValues(areStageNamesVisible).some((v) => v) && <div class="px-3 pt-1 pb-3 window">
-                <h2 class="mb-2"><i class="ti ti-map-2" /> Stages</h2>
+                <h2 class="mb-2 tracking-wide"><i class="ti ti-map-2" /> Stages</h2>
                 <div>{ObjectKeys(stages).map((name) =>
                     <button
                         tabIndex={-1}
                         class="w-full mb-1"
                         onClick={() => { getState().setStageTransitingTo(name) }}
-                        disabled={!areStageNamesVisible[name]}>
+                        disabled={!areStageNamesVisible[name] || stage === name}>
                         {areStageNamesVisible[name] ? name : "???"}
                     </button>)}
                 </div>
@@ -193,11 +194,11 @@ const UI = () => {
 
             {/* Weather */}
             {weather !== null && <div class="px-3 pt-1 pb-3 window mt-1 mb-1">
-                <h2 class="mb-2"><i class="ti ti-sun" /> Weather</h2>
+                <h2 class="mb-2 tracking-wide"><i class="ti ti-sun" /> Weather</h2>
                 <div>
                     <table>
-                        <tr><td class="pr-1">{!weather.enabled && ">"}</td><td class={!weather.enabled ? "font-bold" : ""}>Normal</td></tr>
-                        <tr><td class="pr-1">{weather.enabled && ">"}</td><td class={weather.enabled ? "font-bold" : ""}>{weather.name}{!weather.enabled && <> (in {"<" + weatherEffectWillBeEnabledInLessThan} min{weatherEffectWillBeEnabledInLessThan !== 1 && "s"})</>}</td></tr>
+                        <tr><td class="pr-1">{!weather.enabled && ">"}</td><td class={"tracking-wider " + (!weather.enabled ? "font-bold" : "")}>Normal</td></tr>
+                        <tr><td class="pr-1">{weather.enabled && ">"}</td><td class={"tracking-wider " + (weather.enabled ? "font-bold" : "")}>{weather.name}{!weather.enabled && <span class="text-gray-300"> (in {"<" + weatherEffectWillBeEnabledInLessThan} min{weatherEffectWillBeEnabledInLessThan !== 1 && "s"})</span>}</td></tr>
                     </table>
                 </div>
             </div>}
@@ -209,9 +210,9 @@ const UI = () => {
         <Debugger />
 
         {/* The buttons at the left bottom corner */}
-        <div class="absolute left-1 bottom-1 px-5 pb-1 window">
-            <span class="cursor-pointer" onClick={() => { creditDialog.current!.showModal() }}><i class="ti ti-license" /> Credit</span>
-            <span class="cursor-pointer text-red-400 ml-5" onClick={() => {
+        <div class="absolute left-1 bottom-1 px-5 pb-1 window tracking-wide">
+            <span class="cursor-pointer hover:text-gray-200" onClick={() => { creditDialog.current!.showModal() }}><i class="ti ti-license" /> Credit</span>
+            <span class="cursor-pointer text-red-400 hover:text-red-500 ml-5" onClick={() => {
                 if (confirm("Are you sure you want to reset your save data?")) {
                     deleteSaveData()
                     location.reload()
@@ -222,7 +223,7 @@ const UI = () => {
         {/* Credits */}
         <dialog ref={creditDialog} class="window p-2" onClick={closeDialogOnClick}>
             <div class="p-5">
-                <h1 class="text-xl mb-2">Credits</h1>
+                <h1 class="text-xl mb-2 tracking-wider w-full text-center">Credits</h1>
                 <ul dangerouslySetInnerHTML={{ __html: creditHTML ?? "" }} class="w-full h-full block [&_li]:mb-2 [&_h2]:font-bold [&_a]:text-violet-300 select-text list-disc ml-5"></ul>
             </div>
         </dialog>
@@ -230,7 +231,7 @@ const UI = () => {
         {/* Newspaper */}
         <dialog ref={newsDialog} class="bg-gray-100 w-[400px] h-[620px] p-5 box-border shadow-2xl select-none [transition:opacity_ease_0.3s]" onClick={closeDialogOnClick}>
             {state.news && <div class="[line-height:1.2] [font-size:12px] text-justify overflow-y-hidden  h-full">
-                <h2 class="text-lg font-bold mb-4 [border-bottom:3px_solid_rgb(130,130,130)] text-center">{state.news[0]}</h2>
+                <h2 class="text-lg tracking-wide font-bold mb-4 [border-bottom:3px_solid_rgb(130,130,130)] text-center">{state.news[0]}</h2>
                 <span>{state.news[1]}</span>
                 <span class="text-gray-500">{randomText}</span>
             </div>}

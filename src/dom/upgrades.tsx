@@ -40,7 +40,7 @@ const Upgrades = () => {
         .map(([k]) => k), shallow)
     return <div class="absolute left-1 top-1 w-56">
         <div class="px-3 pt-1 pb-3 window">
-            <h2 class="mb-2"><i class="ti ti-chevrons-up" /> Upgrades</h2>
+            <h2 class="mb-2 tracking-wide"><i class="ti ti-chevrons-up" /> Upgrades</h2>
             {upgrades.map((name, i) => <Row key={name} name={name} rowNumber={i} />)}
         </div>
         {getState().canTranscend && <div class="px-3 pt-1 pb-3 window gold mt-1">
@@ -73,7 +73,7 @@ const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
 
     return <div
         ref={ref}
-        class="relative block hover:cursor-pointer mb-1 backdrop-blur-3xl drop-shadow-md select-none border-opacity-40 border-[1px] border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600"
+        class="relative block hover:cursor-pointer mb-1 backdrop-blur-3xl drop-shadow-md select-none border-opacity-40 border-[1px] rounded-sm border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600"
         disabled={disabled}
         onMouseDown={() => {
             if (disabled) { return }
@@ -82,8 +82,8 @@ const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
         onMouseEnter={() => { setMouseHover(true) }}
         onMouseLeave={() => { setMouseHover(false) }}>
         <div class="px-2 hover:bg-[linear-gradient(0deg,rgba(255,255,255,1)_0%,rgba(255,255,255,0)_10%)]">
-            <span class="inline-block w-28">{isUpgradeNameHidden ? "???" : props.name}</span>
-            <span class="float-right">{count}{props.name === "Autopilot" && weather?.enabled && <b class="text-red-400"> (-5)</b>}</span>
+            <span class="inline-block w-28 tracking-wider">{isUpgradeNameHidden ? "???" : props.name}</span>
+            <span class="float-right tracking-tight">{count}{props.name === "Autopilot" && weather?.enabled && <b class="text-red-400"> (-5)</b>}</span>
         </div>
         {mouseHover && <Tooltip name={props.name} />}
     </div>
@@ -96,12 +96,14 @@ const Tooltip = (props: { name: constants.UpgradeName }) => {
     const money = useStore(store, (s) => s.money)
     const isUpgradeNameHidden = useStore(store, (s) => constants.isUpgradeNameHidden(props.name, s))
 
-    return <div class="absolute left-full top-0 ml-1 px-3 tooltip whitespace-nowrap pointer-events-none">
-        <div class="font-bold">Price: {money} / {price}</div>
-        {!isUpgradeNameHidden && <>
-            {atk && <div>Damage: {atk}</div>}
-            {interval && <div>Interval: {interval}</div>}
-        </>}
+    return <div class="absolute left-full top-0 ml-7 px-6 py-1 backdrop-blur-3xl bg-[linear-gradient(240deg,rgba(31,37,46,0.4)_0%,rgba(30,36,44,0.4)_100%)] whitespace-nowrap pointer-events-none rounded-sm [font-size:80%]">
+        <table>
+            <tr><td class="font-bold tracking-wider pr-2 text-right">Price</td><td><i class="ti ti-moneybag" /> {money} / {price}</td></tr>
+            {!isUpgradeNameHidden && <>
+                {atk && <tr><td class="tracking-wider text-right pr-2">Damage</td><td><i class="ti ti-swords" /> {atk}</td></tr>}
+                {interval && <tr><td class="tracking-wider text-right pr-2">Interval</td><td><i class="ti ti-hourglass" /> {interval}</td></tr>}
+            </>}
+        </table>
     </div>
 }
 
