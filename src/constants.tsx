@@ -69,11 +69,11 @@ export const price = (name: UpgradeName, { upgrades }: { upgrades: Record<Upgrad
 
 /** The list of tutorials and their texts. */
 export const tutorialHTML = {
-    wasd: `You have become a <b>fighter</b> pilot that shoots <b>laser</b> beams. This world is peaceful, so your first mission is to protect farmers from harmful <b>birds</b>.<br>The controls are simple, <b><i class="ti ti-keyboard"></i> WASD to move</b> and aim your targets.`,
-    upgrade: `You can now buy <b><i class="ti ti-chevrons-up"></i> upgrades</b> for your aircraft! To do so, <b>click</b> on the button in the <b>top left</b> corner of the screen.`,
-    nextStage: `You can now move on to the <b><i class="ti ti-map-2"></i> next stage</b>! To do so, <b>click</b> the button in the <b>top right</b> corner of the screen.`,
-    backToPreviousStage: `If you're finding this stage too <b>difficult</b>, go back to the previous stage and <b>try again</b> after you get more upgrades.`,
-    weatherEffect: `We need to kill a <b><i class="ti ti-ufo"></i> UFO</b> in order to stop the <b><i class="ti ti-cloud-rain"></i> rain</b>. The UFO has a device that can manipulate the weather, and the rain is interfering with the <b>autopilot</b> system.`,
+    wasd: <>You have become a <b>fighter</b> pilot that shoots <b>laser</b> beams. This world is peaceful, so your first mission is to protect farmers from harmful <b>birds</b>.<br />The controls are simple, <b><i class="ti ti-keyboard"></i> WASD to move</b> and aim your targets.</>,
+    upgrade: <>You can now buy <b><i class="ti ti-chevrons-up"></i> upgrades</b> for your aircraft! To do so, <b>click</b> on the button in the <b>top left</b> corner of the screen.</>,
+    nextStage: <>You can now move on to the <b><i class="ti ti-map-2"></i> next stage</b>! To do so, <b>click</b> the button in the <b>top right</b> corner of the screen.</>,
+    backToPreviousStage: <>If you're finding this stage too <b>difficult</b>, go back to the previous stage and <b>try again</b> after you get more upgrades.</>,
+    weatherEffect: <>We need to kill a <b><i class="ti ti-ufo"></i> UFO</b> in order to stop the <b><i class="ti ti-cloud-rain"></i> rain</b>. The UFO has a device that can manipulate the weather, and the rain is interfering with the <b>autopilot</b> system.</>,
     // ending1congratulations: "Congratulations, you have saved the world from the aliens. Thanks for playing!",
     // TODO: "As a bonus, you can fly around vertically with the space key from now on."
 }

@@ -26,7 +26,7 @@ const Tutorial = () => {
         [...s.availableTutorials.difference(s.completedTutorials)]
             .sort((a, b) => tutorialIndices.get(a)! - tutorialIndices.get(b)!)[0])
     return <div style={{ opacity: tutorial === undefined ? "0" : "1" }} class="absolute w-full text-center top-[70%] text-white bg-slate-800 bg-opacity-70 select-none [transition:opacity_ease_1s] whitespace-pre-wrap pointer-events-none z-10">
-        {tutorial && <><i class="ti ti-message-report" /> <span class="[&>b]:text-orange-300" dangerouslySetInnerHTML={{ __html: constants.tutorialHTML[tutorial] }}></span></>}
+        {tutorial && <><i class="ti ti-message-report" /> <span class="[&>b]:text-orange-300">{constants.tutorialHTML[tutorial]}</span></>}
     </div>
 }
 
