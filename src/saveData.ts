@@ -1,8 +1,8 @@
-import create from 'zustand'
+import create from "zustand"
 import { persist } from "zustand/middleware"
-import { immer } from 'zustand/middleware/immer'
+import { immer } from "zustand/middleware/immer"
 import { enableMapSet } from "immer"
-import SuperJSON from 'superjson'
+import SuperJSON from "superjson"
 import * as constants from "./constants"
 
 enableMapSet()

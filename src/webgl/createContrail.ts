@@ -1,10 +1,10 @@
-import * as THREE from 'three'
+import * as THREE from "three"
 import { toTrianglesDrawMode } from "three/examples/jsm/utils/BufferGeometryUtils"
-import { onUpdate } from '../hooks'
-import { subscribe } from '../saveData'
-import createContrailFrag from './createContrail.frag'
-import createContrailVert from './createContrail.vert'
-import { enableSelectiveBloom } from './createSelectiveBloomPass'
+import { onUpdate } from "../hooks"
+import { subscribe } from "../saveData"
+import createContrailFrag from "./createContrail.frag"
+import createContrailVert from "./createContrail.vert"
+import { enableSelectiveBloom } from "./createSelectiveBloomPass"
 
 const airplaneSpeedAgainstGround = 0.005
 const samplingInterval = 2

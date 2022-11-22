@@ -1,8 +1,8 @@
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
-import { onBeforeRender } from '../hooks'
-import { getState } from '../saveData'
-import createStageTransitionPassFrag from './createStageTransitionPass.frag'
-import createStageTransitionPassVert from './createStageTransitionPass.vert'
+import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass"
+import { onBeforeRender } from "../hooks"
+import { getState } from "../saveData"
+import createStageTransitionPassFrag from "./createStageTransitionPass.frag"
+import createStageTransitionPassVert from "./createStageTransitionPass.vert"
 
 export default () => {
     let played = false

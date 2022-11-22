@@ -1,9 +1,9 @@
-import * as THREE from 'three'
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass'
-import { onBeforeRender } from '../hooks'
-import { getState, subscribe } from '../saveData'
-import rainFrag from './createRainPass.frag'
-import rainVert from './createRainPass.vert'
+import * as THREE from "three"
+import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass"
+import { onBeforeRender } from "../hooks"
+import { getState, subscribe } from "../saveData"
+import rainFrag from "./createRainPass.frag"
+import rainVert from "./createRainPass.vert"
 
 /** Returns a shader pass that makes the scene look like you're looking the scene through a glass on a rainy day. */
 export default (camera: THREE.PerspectiveCamera, blur: boolean) => {

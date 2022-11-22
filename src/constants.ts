@@ -1,4 +1,4 @@
-import type stages from './stages'
+import type stages from "./stages"
 
 // The area the airplane and enemies can move exist.
 //                                                                  screen position:
@@ -37,9 +37,9 @@ export const basePrice = {
 } satisfies Record<UpgradeName, number>
 
 export const getAtk = ({ upgrades }: { upgrades: Record<UpgradeName, number> }) => ({
-    Laser: upgrades.Laser + 1 * (upgrades['ATK×2'] + 1),
+    Laser: upgrades.Laser + 1 * (upgrades["ATK×2"] + 1),
     Autopilot: undefined,
-    Hammer: upgrades.Hammer === 0 ? undefined : 2000 * (upgrades['ATK×2'] + 1),
+    Hammer: upgrades.Hammer === 0 ? undefined : 2000 * (upgrades["ATK×2"] + 1),
     "ATK×2": undefined,
     placeholder2: undefined,
     placeholder3: undefined,

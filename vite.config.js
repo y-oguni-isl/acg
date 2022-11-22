@@ -1,12 +1,12 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from "vite"
 import preact from "@preact/preset-vite"
 import * as licenseChecker from "license-checker"
 import * as fs from "fs"
 import assert from "assert/strict"
 import { generate } from "./codegen"
-import path from 'path'
+import path from "path"
 
-const escape = (t) => t.replaceAll('&', '&amp').replaceAll('<', '&lt').replaceAll('>', '&gt;').replaceAll("'", '&#39;').replaceAll('"', '&quot;')
+const escape = (t) => t.replaceAll("&", "&amp").replaceAll("<", "&lt").replaceAll(">", "&gt;").replaceAll("'", "&#39;").replaceAll('"', "&quot;")
 
 /** @type {fs.FSWatcher | undefined} */
 let watcher
@@ -58,7 +58,7 @@ export default defineConfig({
             }
         },
     ],
-    base: '',
+    base: "",
     build: {
         target: "esnext",
         rollupOptions: {

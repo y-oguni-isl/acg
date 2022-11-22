@@ -24,7 +24,7 @@ export default {
             call(new THREE.DirectionalLight(0xf5eeba, 0.4), { position: { set: [0.3, 1, -1] } }),
         ))
     },
-    visible: () => getState().availableNews.has("aliensComing") && getState().upgrades['ATK×2'] > 0,
+    visible: () => getState().availableNews.has("aliensComing") && getState().upgrades["ATK×2"] > 0,
     createEnemyPools: async (): Promise<EnemyPools> => {
         const pools = await PromiseAll({
             alive: webgl.createEnemyPlanet().then((m) => m.onAllocate((copy): EnemyUserData => ({

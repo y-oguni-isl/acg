@@ -9,22 +9,22 @@
     broadcastChannel.postMessage("hello")
 }
 
-import 'typed-query-selector'
+import "typed-query-selector"
 import "core-js/proposals/map-upsert-stage-2"
 import "core-js/proposals/set-methods"
 import * as Stats from "stats.js"
-import * as THREE from 'three'
+import * as THREE from "three"
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js"
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js"
-import { onBeforeRender, onPreprocess, onUpdate } from './hooks'
-import { getState, subscribe } from './saveData'
-import { ephemeralDOMStore } from './dom'
-import { call, ObjectEntries, fromEntries, PromiseAll, ObjectValues } from './util'
+import { onBeforeRender, onPreprocess, onUpdate } from "./hooks"
+import { getState, subscribe } from "./saveData"
+import { ephemeralDOMStore } from "./dom"
+import { call, ObjectEntries, fromEntries, PromiseAll, ObjectValues } from "./util"
 import * as webgl from "./webgl"
-import { getRenderingOption, init3DModelDebugger } from './debug'
+import { getRenderingOption, init3DModelDebugger } from "./debug"
 import stages from "./stages"
-import { updatePerSecond } from './constants'
+import { updatePerSecond } from "./constants"
 import * as constants from "./constants"
 
 /** The scene object, that contains all visible Three.js objects. */

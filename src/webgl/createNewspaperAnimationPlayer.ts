@@ -1,10 +1,10 @@
 import * as THREE from "three"
 import loadGLTF from "./loadGLTF"
-import ObjectPool from './ObjectPool'
-import { onBeforeRender } from '../hooks'
-import { subscribe } from '../saveData'
-import { domStore } from '../dom'
-import { call } from '../util'
+import ObjectPool from "./ObjectPool"
+import { onBeforeRender } from "../hooks"
+import { subscribe } from "../saveData"
+import { domStore } from "../dom"
+import { call } from "../util"
 import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise"
 import * as constants from "../constants"
 

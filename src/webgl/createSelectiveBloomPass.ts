@@ -20,7 +20,7 @@ export const enableSelectiveBloom = <T extends THREE.Object3D>(obj: T): T => {
  * 
  * @example
  * ```
- * import { enableSelectiveBloom } from './shader/selective_bloom'
+ * import { enableSelectiveBloom } from "./shader/selective_bloom"
  * 
  * const ball = new THREE.Mesh(new THREE.IcosahedronGeometry(0.1), new THREE.MeshBasicMaterial({ color: "purple" }))
  * enableSelectiveBloom(ball)
@@ -43,7 +43,7 @@ export default (renderer: THREE.WebGLRenderer, camera: THREE.Camera, renderPass:
             fragmentShader: selective_bloomFrag,
             defines: {},
         }),
-        'texture1',
+        "texture1",
     )
     additiveBlendingPass.needsSwap = true
     onPreprocess.add(() => {

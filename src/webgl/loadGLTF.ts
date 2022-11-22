@@ -1,7 +1,7 @@
-import * as THREE from 'three'
+import * as THREE from "three"
 import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
-import { getRenderingOption } from '../debug'
-import { ephemeralDOMStore } from '../dom'
+import { getRenderingOption } from "../debug"
+import { ephemeralDOMStore } from "../dom"
 
 /** Downloads and parses a .gltf (text) or .glb (binary) file. The model will be resized if the `height` argument is a number. */
 const loadGLTF = async (filepath: string, height: number | null): Promise<THREE.Object3D> => {

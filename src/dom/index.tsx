@@ -13,7 +13,7 @@ import Autolinker from "autolinker"
 import stages from "../stages"
 import { ObjectEntries, fromEntries, ObjectKeys, ObjectValues } from "../util"
 import * as constants from "../constants"
-import shallow from 'zustand/shallow'
+import shallow from "zustand/shallow"
 
 enableMapSet()
 
