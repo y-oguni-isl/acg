@@ -78,9 +78,15 @@ document.addEventListener("visibilitychange", () => { ephemeralDOMStore.getState
 window.addEventListener("blur", () => { ephemeralDOMStore.getState().updatePowerSaveModeState() })
 window.addEventListener("focus", () => { ephemeralDOMStore.getState().updatePowerSaveModeState() })
 
+const closeDialog = (dialog: HTMLDialogElement) => {
+    dialog.style.opacity = "0"
+    setTimeout(() => { dialog.close() }, 300)
+}
+
 /** Close the dialog when the user clicks outside the dialog */
 const closeDialogOnClick = (ev: JSXInternal.TargetedMouseEvent<HTMLDialogElement>) => {
-    if (ev.target === ev.currentTarget) { (ev.currentTarget as HTMLDialogElement).close() }
+    if (ev.target !== ev.currentTarget) { return }
+    closeDialog(ev.currentTarget as HTMLDialogElement)
 }
 
 /** A random text to fill newspapers. */
@@ -101,10 +107,19 @@ const EnemyStats = () => {
     </div>
 }
 
+/** showModal() with an animation */
+const showModal = (dialog: HTMLDialogElement) => {
+    dialog.style.transition = "opacity ease 0.3s"
+    dialog.style.opacity = "0"
+    dialog.showModal()
+    dialog.style.opacity = "1"
+}
+
 const UI = () => {
     const state = useStore(domStore)
     const newsDialog = useRef<HTMLDialogElement>(null)
     const creditDialog = useRef<HTMLDialogElement>(null)
+    const resetProgressDialog = useRef<HTMLDialogElement>(null)
     const [creditHTML, setCreditHTML] = useState<string>("")
     const areStageNamesVisible = useStore(store, () => fromEntries(ObjectEntries(stages).map(([k, v]) => [k, v.visible()])), shallow)
     const loadingMessage = useStore(ephemeralDOMStore, (s) => s.loadingMessage)
@@ -132,10 +147,9 @@ const UI = () => {
     useEffect(() => {
         if (state.news === null) { return }
         setTimeout(() => {
-            newsDialog.current!.style.opacity = "0"
-            newsDialog.current!.showModal()
-            newsDialog.current!.style.opacity = "1"
-            newsDialog.current!.addEventListener("close", () => {
+            if (!newsDialog.current) { return }
+            showModal(newsDialog.current)
+            newsDialog.current.addEventListener("close", () => {
                 domStore.getState().hideNews()
                 getState().addTutorial("nextStage")
             }, { once: true })
@@ -185,10 +199,9 @@ const UI = () => {
                 <div>{ObjectKeys(stages).map((name) =>
                     <button
                         tabIndex={-1}
-                        class="w-full mb-1"
+                        class={"w-full mb-1" + (stage === name ? " button-primary" : "")}
                         onClick={() => { getState().setStageTransitingTo(name) }}
-                        disabled={!areStageNamesVisible[name] || stage === name}
-                        data-checked={stage === name}>
+                        disabled={!areStageNamesVisible[name] || stage === name}>
                         {areStageNamesVisible[name] ? name : "???"}
                     </button>)}
                 </div>
@@ -211,14 +224,23 @@ const UI = () => {
 
         <Debugger />
 
-        {/* The buttons at the left bottom corner */}
-        <div class="absolute left-1 bottom-1 px-5 pb-1 window tracking-wide">
-            <span class="cursor-pointer hover:text-gray-200" onClick={() => { creditDialog.current!.showModal() }}><i class="ti ti-license" /> Credit</span>
-            <span class="cursor-pointer text-red-400 hover:text-red-500 ml-5" onClick={() => {
-                if (confirm("Are you sure you want to reset your save data?")) {
+        <dialog class="window" ref={resetProgressDialog} onClick={closeDialogOnClick}>
+            <p>Are you sure you want to reset your save data?</p>
+            <div class="float-right mt-4">
+                <button class="px-4 button-primary" onClick={() => {
                     deleteSaveData()
                     location.reload()
-                }
+                }}>Yes</button>
+                <button class="px-4 ml-2" onClick={() => { closeDialog(resetProgressDialog.current!) }}>Cancel</button>
+            </div>
+        </dialog>
+
+        {/* The buttons at the left bottom corner */}
+        <div class="absolute left-1 bottom-1 px-5 pb-1 window tracking-wide">
+            <span class="cursor-pointer hover:text-gray-200" onClick={() => { showModal(creditDialog.current!) }}><i class="ti ti-license" /> Credit</span>
+            <span class="cursor-pointer text-red-400 hover:text-red-500 ml-5" onClick={() => {
+                if (!resetProgressDialog.current) { return }
+                showModal(resetProgressDialog.current)
             }}><i class="ti ti-eraser" /> Reset Progress</span>
         </div>
 
@@ -231,7 +253,7 @@ const UI = () => {
         </dialog>
 
         {/* Newspaper */}
-        <dialog ref={newsDialog} class="bg-gray-100 w-[400px] h-[620px] p-5 box-border shadow-2xl select-none [transition:opacity_ease_0.3s] [font-family:KottaOne]" onClick={closeDialogOnClick}>
+        <dialog ref={newsDialog} class="bg-gray-100 w-[400px] h-[620px] p-5 box-border shadow-2xl select-none [font-family:KottaOne]" onClick={closeDialogOnClick}>
             {state.news && <div class="[line-height:1.2] [font-size:12px] text-justify overflow-y-hidden h-full">
                 <h2 class="text-lg tracking-wide font-bold mb-4 [border-bottom:3px_solid_rgb(130,130,130)] text-center">{state.news[0]}</h2>
                 <span>{state.news[1]}</span>

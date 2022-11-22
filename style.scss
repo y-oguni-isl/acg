@@ -2,6 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
+$button1: rgb(55, 65, 81, 0.7);
+$button2: rgb(55, 65, 81, 0.7);
+$button1-hover: rgb(52, 98, 171, 0.7);
+$button2-hover: rgb(139, 169, 217, 0.7);
+
+$button1-gold: rgba(255, 202, 27, 0.8);
+$button2-gold: rgba(255, 231, 16, 0.7);
+$button1-hover-gold: rgba(255, 202, 27, 0.8);
+$button2-hover-gold: rgba(255, 243, 140, 0.7);
+
+$button1-primary: rgb(52, 98, 171, 0.7);
+$button2-primary: rgb(139, 169, 217, 0.7);
+$button1-hover-primary: rgba(69, 128, 222, 0.7);
+$button2-hover-primary: rgba(160, 194, 249, 0.7);
+
+@each $name, $col1, $col2, $col1-hover, $col2-hover in
+    button-hover-animation $button1 $button2 $button1-hover $button2-hover,
+    button-hover-animation-gold $button1-gold $button2-gold $button1-hover-gold $button2-hover-gold,
+    button-hover-animation-primary $button1-primary $button2-primary $button1-hover-primary $button2-hover-primary {
+    @keyframes #{$name} {
+        from { background: linear-gradient(240deg, $col1 0%, $col2 100%); }
+        @for $i from 1 through 9 {
+            #{$i * 10%}  { background: linear-gradient(240deg, mix($col1-hover, $col1, $i * 10%) 0%, mix($col2-hover, $col2, $i * 10%) 100%); }
+        }
+        to   { background: linear-gradient(240deg, $col1-hover 0%, $col2-hover 100%); }
+    }
+}
+
+input:not([type]),input[type=text] { @apply text-gray-700 pl-1; }
+
 body {
     font-family: Turpis, serif;
 }
@@ -36,12 +66,18 @@ button {
     @apply text-gray-50 tracking-wider backdrop-blur-3xl drop-shadow-lg select-none border-opacity-40 border-2 rounded-sm border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600;
     background: linear-gradient(240deg, rgb(55, 65, 81, 0.7) 0%, rgb(55, 65, 81, 0.7) 100%);
 
-    &[data-checked=true] {
-        background: linear-gradient(240deg, rgb(52, 98, 171, 0.7) 0%, rgb(139, 169, 217, 0.7) 100%);
-    }
+    &:focus { @apply outline-none; }
 
     &:hover:not(:disabled) {
-        animation: 0.1s forwards alternate button-hover;
+        animation: 0.1s forwards button-hover-animation;
+    }
+
+    &.button-primary {
+        background: linear-gradient(240deg, $button1-primary 0%, $button2-primary 100%);
+
+        &:hover:not(:disabled) {
+            animation: 0.1s forwards button-hover-animation-primary;
+        }
     }
 
     .gold & {
@@ -49,35 +85,7 @@ button {
         background: linear-gradient(240deg, rgba(255, 202, 27, 0.8) 0%, rgba(255, 231, 16, 0.7) 100%);
 
         &:hover:not(:disabled) {
-            animation: 0.1s forwards alternate button-hover-gold;
+            animation: 0.1s forwards button-hover-animation-gold;
         }
     }
 }
-
-$from1: rgb(55, 65, 81, 0.7);
-$from2: rgb(55, 65, 81, 0.7);
-$to1: rgb(52, 98, 171, 0.7);
-$to2: rgb(139, 169, 217, 0.7);
-
-@keyframes button-hover {
-    from { background: linear-gradient(240deg, $from1 0%, $from2 100%); }
-    @for $i from 1 through 9 {
-        #{$i * 10%}  { background: linear-gradient(240deg, mix($to1, $from1, $i * 10%) 0%, mix($to2, $from2, $i * 10%) 100%); }
-    }
-    to   { background: linear-gradient(240deg, $to1 0%, $to2 100%); }
-}
-
-$from1-gold: rgba(255, 202, 27, 0.8);
-$from2-gold: rgba(255, 231, 16, 0.7);
-$to1-gold: rgba(255, 202, 27, 0.8);
-$to2-gold: rgba(255, 243, 140, 0.7);
-
-@keyframes button-hover-gold {
-    from { background: linear-gradient(240deg, $from1-gold 0%, $from2-gold 100%); }
-    @for $i from 1 through 9 {
-        #{$i * 10%}  { background: linear-gradient(240deg, mix($to1-gold, $from1-gold, $i * 10%) 0%, mix($to2-gold, $from2-gold, $i * 10%) 100%); }
-    }
-    to   { background: linear-gradient(240deg, $to1-gold 0%, $to2-gold 100%); }
-}
-
-input:not([type]),input[type=text] { @apply text-gray-700 pl-1; }
