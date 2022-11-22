@@ -25,6 +25,7 @@ type SaveData = {
     canTranscend: boolean
     transcending: boolean
     transcendence: number
+    killCount: Record<`${constants.StageName}_${string}`, number>
     cheated: boolean
 
     addMoney: (delta: number) => void
@@ -41,6 +42,7 @@ type SaveData = {
     transcend: () => void
     cancelTranscending: () => void
     confirmTranscending: () => void
+    incrementKillCount: (name: string) => void
     cheat: () => void
 }
 
@@ -62,6 +64,7 @@ export const store = create<SaveData>()(persist(immer((set, get) => ({
     canTranscend: false,
     transcending: false,
     transcendence: 0,
+    killCount: {},
     cheated: false,
 
     addMoney: (delta) => {
@@ -146,6 +149,12 @@ export const store = create<SaveData>()(persist(immer((set, get) => ({
             d.transcendence++
             d.canTranscend = false
         })
+    },
+    incrementKillCount: (name) => {
+        set((d) => { d.killCount[`${get().stage}_${name}`] = (d.killCount[`${get().stage}_${name}`] ?? 0) + 1 })
+        if (get().killCount[`Universe_UFO`] ?? 0 > 10) {
+            getState().completeTutorial("backToPreviousStage")
+        }
     },
     cheat: () => { set((d) => { d.cheated = true }) },
 } as SaveData)), {

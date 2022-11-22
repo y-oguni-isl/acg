@@ -122,6 +122,7 @@ const pools = await PromiseAll({
             if (enemy.position.x < -1 || enemy.userData.hp <= 0) {
                 if (enemy.userData.hp <= 0) {
                     enemy.userData.onKilled()
+                    getState().incrementKillCount(enemy.userData.name)
                     getState().addMoney(enemy.userData.money)
                 }
                 enemy.free()
