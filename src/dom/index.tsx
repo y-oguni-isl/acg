@@ -33,10 +33,16 @@ const Tutorial = () => {
 /** The current state of the DOM (HTML). */
 export const domStore = create<{
     news: readonly [headline: string, text: string] | null
+    usePowerSaveMode: boolean
+    sfxVolume: number
+    bgmVolume: number
     showNews: (news: readonly [headline: string, text: string]) => void
     hideNews: () => void
 }>()(persist(immer((set, get) => ({
     news: null as readonly [headline: string, text: string] | null,
+    usePowerSaveMode: true,
+    sfxVolume: 1,
+    bgmVolume: 1,
     showNews: (news) => { set((d) => { d.news = [...news] }) },
     hideNews: () => { set((d) => { d.news = null }) },
 })), {
@@ -70,7 +76,7 @@ export const ephemeralDOMStore = create<{
             d.enemyStatus.hp = Math.max(0, Math.round(d.enemyStatus.hp))
         })
     },
-    updatePowerSaveModeState: () => { set((d) => { d.powerSaveMode = document.visibilityState === "hidden" || !document.hasFocus() }) }
+    updatePowerSaveModeState: () => { set((d) => { d.powerSaveMode = domStore.getState().usePowerSaveMode && (document.visibilityState === "hidden" || !document.hasFocus()) }) }
 })))
 
 ephemeralDOMStore.getState().updatePowerSaveModeState()
@@ -78,15 +84,26 @@ document.addEventListener("visibilitychange", () => { ephemeralDOMStore.getState
 window.addEventListener("blur", () => { ephemeralDOMStore.getState().updatePowerSaveModeState() })
 window.addEventListener("focus", () => { ephemeralDOMStore.getState().updatePowerSaveModeState() })
 
-const closeDialog = (dialog: HTMLDialogElement) => {
+/** showModal() with an animation */
+const showModal = (dialog: HTMLDialogElement) => {
+    dialog.style.transition = "opacity ease 0.3s"
     dialog.style.opacity = "0"
+    dialog.classList.remove("open")
+    dialog.showModal()
+    dialog.style.opacity = "1"
+    dialog.classList.add("open")
+}
+
+const closeModal = (dialog: HTMLDialogElement) => {
+    dialog.style.opacity = "0"
+    dialog.classList.remove("open")
     setTimeout(() => { dialog.close() }, 300)
 }
 
 /** Close the dialog when the user clicks outside the dialog */
-const closeDialogOnClick = (ev: JSXInternal.TargetedMouseEvent<HTMLDialogElement>) => {
+const modalOnClickHandler = (ev: JSXInternal.TargetedMouseEvent<HTMLDialogElement>) => {
     if (ev.target !== ev.currentTarget) { return }
-    closeDialog(ev.currentTarget as HTMLDialogElement)
+    closeModal(ev.currentTarget as HTMLDialogElement)
 }
 
 /** A random text to fill newspapers. */
@@ -107,19 +124,12 @@ const EnemyStats = () => {
     </div>
 }
 
-/** showModal() with an animation */
-const showModal = (dialog: HTMLDialogElement) => {
-    dialog.style.transition = "opacity ease 0.3s"
-    dialog.style.opacity = "0"
-    dialog.showModal()
-    dialog.style.opacity = "1"
-}
-
 const UI = () => {
     const state = useStore(domStore)
     const newsDialog = useRef<HTMLDialogElement>(null)
     const creditDialog = useRef<HTMLDialogElement>(null)
     const resetProgressDialog = useRef<HTMLDialogElement>(null)
+    const optionsDialog = useRef<HTMLDialogElement>(null)
     const [creditHTML, setCreditHTML] = useState<string>("")
     const areStageNamesVisible = useStore(store, () => fromEntries(ObjectEntries(stages).map(([k, v]) => [k, v.visible()])), shallow)
     const loadingMessage = useStore(ephemeralDOMStore, (s) => s.loadingMessage)
@@ -179,12 +189,13 @@ const UI = () => {
     }
 
     return <>
-        {/* Upgrades */}
+        {/* Top-Left Pane */}
         <Upgrades />
 
-        {/* Tutorial message */}
+        {/* Tutorial Message */}
         <Tutorial />
 
+        {/* Power Save Mode */}
         {powerSaveMode && <div class="absolute text-center w-full top-[45%] select-none [transition:opacity_ease_1s] whitespace-pre-wrap pointer-events-none z-10">
             <div class="relative py-3 px-8 mx-auto w-fit window-popup">
                 <h2 class="tracking-wide text-orange-300"><i class="ti ti-zzz" /> Power Save Mode</h2>
@@ -192,6 +203,7 @@ const UI = () => {
             </div>
         </div>}
 
+        {/* Top-Right pane */}
         <div class="absolute right-1 top-1 min-w-[13rem]">
             {/* Stages */}
             {ObjectValues(areStageNamesVisible).some((v) => v) && <div class="px-3 pt-1 pb-3 window">
@@ -224,36 +236,59 @@ const UI = () => {
 
         <Debugger />
 
-        <dialog class="window" ref={resetProgressDialog} onClick={closeDialogOnClick}>
+        {/* "Reset Progress" Dialog */}
+        <dialog class="window" ref={resetProgressDialog} onClick={modalOnClickHandler}>
             <p>Are you sure you want to reset your save data?</p>
             <div class="float-right mt-4">
                 <button class="px-4 button-primary" onClick={() => {
                     deleteSaveData()
                     location.reload()
                 }}>Yes</button>
-                <button class="px-4 ml-2" onClick={() => { closeDialog(resetProgressDialog.current!) }}>Cancel</button>
+                <button class="px-4 ml-2" onClick={() => { closeModal(resetProgressDialog.current!) }}>Cancel</button>
             </div>
         </dialog>
 
-        {/* The buttons at the left bottom corner */}
+        {/* Bottom-Left Pane */}
         <div class="absolute left-1 bottom-1 px-5 pb-1 window tracking-wide">
-            <span class="cursor-pointer hover:text-gray-200" onClick={() => { showModal(creditDialog.current!) }}><i class="ti ti-license" /> Credit</span>
-            <span class="cursor-pointer text-orange-300 hover:text-orange-400 ml-5" onClick={() => {
-                if (!resetProgressDialog.current) { return }
-                showModal(resetProgressDialog.current)
-            }}><i class="ti ti-eraser" /> Reset Progress</span>
+            <span class="cursor-pointer hover:text-white" onClick={() => { showModal(creditDialog.current!) }}><i class="ti ti-license" /> Credits</span>
+            <span class="cursor-pointer hover:text-white ml-5" onClick={() => { showModal(optionsDialog.current!) }}><i class="ti ti-tool" /> Options</span>
         </div>
 
-        {/* Credits */}
-        <dialog ref={creditDialog} class="window p-2" onClick={closeDialogOnClick}>
+        {/* Credits Dialog */}
+        <dialog ref={creditDialog} class="window p-2" onClick={modalOnClickHandler}>
             <div class="p-5">
                 <h1 class="text-xl mb-2 tracking-wider w-full text-center">Credits</h1>
                 <ul dangerouslySetInnerHTML={{ __html: creditHTML ?? "" }} class="w-full h-full block [&_li]:mb-2 [&_h2]:font-bold [&_a]:text-violet-300 select-text list-disc ml-5"></ul>
             </div>
         </dialog>
 
-        {/* Newspaper */}
-        <dialog ref={newsDialog} class="bg-gray-100 w-[400px] h-[620px] p-5 box-border shadow-2xl select-none [font-family:KottaOne] [-webkit-text-stroke:3px_rgba(0,0,0,0.05)]" onClick={closeDialogOnClick}>
+        {/* Options Dialog */}
+        <dialog ref={optionsDialog} class="window p-2" onClick={modalOnClickHandler}>
+            <div class="py-2 px-8">
+                <h1 class="text-xl mb-2 tracking-wider w-full text-center">Options</h1>
+                <table>
+                    <tr>
+                        <td class="pr-4 text-right">Power Save Mode</td>
+                        <td><label class="cursor-pointer"><input type="checkbox" checked={state.usePowerSaveMode} onChange={(ev) => { domStore.setState({ usePowerSaveMode: ev.currentTarget.checked }) }} /> enabled</label></td>
+                    </tr>
+                    <tr>
+                        <td class="pr-4 text-right">Sound Effect</td>
+                        <td><input type="range" class="w-32 align-middle" value={state.sfxVolume} min={0} max={1} step={0.05} onChange={(ev) => { domStore.setState({ sfxVolume: +ev.currentTarget.value }) }} /></td>
+                    </tr>
+                    <tr>
+                        <td class="pr-4 text-right">Background Music</td>
+                        <td><input type="range" class="w-32 align-middle" value={state.bgmVolume} min={0} max={1} step={0.05} onChange={(ev) => { domStore.setState({ bgmVolume: +ev.currentTarget.value }) }} /></td>
+                    </tr>
+                </table>
+                <div class="cursor-pointer text-orange-300 hover:text-orange-400 mt-4" onClick={() => {
+                    if (!resetProgressDialog.current) { return }
+                    showModal(resetProgressDialog.current)
+                }}><i class="ti ti-eraser" /> Reset Progress</div>
+            </div>
+        </dialog>
+
+        {/* Newspaper Dialog */}
+        <dialog ref={newsDialog} class="bg-gray-100 w-[400px] h-[620px] p-5 box-border shadow-2xl select-none [font-family:KottaOne] [-webkit-text-stroke:3px_rgba(0,0,0,0.05)]" onClick={modalOnClickHandler}>
             {state.news && <div class="[line-height:1.2] [font-size:12px] text-justify overflow-y-hidden h-full">
                 <h2 class="text-lg tracking-wide font-bold mb-4 [border-bottom:3px_solid_rgb(130,130,130)] text-center">{state.news[0]}</h2>
                 <span>{state.news[1]}</span>
@@ -261,7 +296,7 @@ const UI = () => {
             </div>}
         </dialog>
 
-        {/* Loading message */}
+        {/* Loading Message */}
         {loadingMessage.size > 0 && <div class="text-gray-100 absolute top-[35%] left-0 w-full text-center whitespace-pre">{[...loadingMessage.values()].join("\n")}</div>}
     </>
 }
