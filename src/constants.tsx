@@ -11,8 +11,8 @@ export const upgradeNames = [
     "Autopilot",
     "Hammer",
     "ATK×2",
-    "placeholder2",
-    "placeholder3",
+    "Vacuum",
+    "Missile",
     "placeholder4",
     "placeholder5",
     "placeholder6",
@@ -22,6 +22,8 @@ export type UpgradeName = (typeof upgradeNames)[number]
 
 export type StageName = keyof typeof stages
 
+export type ItemName = "Food" | "Scrap"
+
 export type WeatherEffect = "Rain"
 
 export const basePrice = {
@@ -29,8 +31,8 @@ export const basePrice = {
     Autopilot: 100,
     Hammer: 100 * 15,
     "ATK×2": 100 * 15 ** 2,
-    placeholder2: 100 * 15 ** 3,
-    placeholder3: 100 * 15 ** 4,
+    Vacuum: 100 * 15 ** 3,
+    Missile: 100 * 15 ** 4,
     placeholder4: 100 * 15 ** 5,
     placeholder5: 100 * 15 ** 6,
     placeholder6: 100 * 15 ** 7,
@@ -41,8 +43,8 @@ export const getAtk = ({ upgrades }: { upgrades: Record<UpgradeName, number> }) 
     Autopilot: undefined,
     Hammer: upgrades.Hammer === 0 ? undefined : 2000 * (upgrades["ATK×2"] + 1),
     "ATK×2": undefined,
-    placeholder2: undefined,
-    placeholder3: undefined,
+    Vacuum: undefined,
+    Missile: undefined,
     placeholder4: undefined,
     placeholder5: undefined,
     placeholder6: undefined,
@@ -53,8 +55,8 @@ export const getInterval = ({ upgrades }: { upgrades: Record<UpgradeName, number
     Autopilot: undefined,
     Hammer: upgrades.Hammer === 0 ? undefined : Math.ceil(50 / upgrades.Hammer),
     "ATK×2": undefined,
-    placeholder2: undefined,
-    placeholder3: undefined,
+    Vacuum: undefined,
+    Missile: undefined,
     placeholder4: undefined,
     placeholder5: undefined,
     placeholder6: undefined,
@@ -66,6 +68,8 @@ export const isWeatherSystemUnlocked = (state: { completedTutorials: Set<Tutoria
 export const isVerticalMoveUnlocked = () => false
 
 export const price = (name: UpgradeName, { upgrades }: { upgrades: Record<UpgradeName, number> }) => basePrice[name] * 2 ** upgrades[name]
+
+export const explorationCost = (lv: number) => +(500 * 1.25 ** (lv - 1)).toPrecision(2)
 
 /** The list of tutorials and their texts. */
 export const tutorialHTML = {

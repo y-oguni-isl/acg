@@ -1,3 +1,4 @@
+import type { ItemName } from "../constants"
 import type { ObjectPool } from "../webgl"
 
 export type EnemyUserData = {
@@ -8,6 +9,7 @@ export type EnemyUserData = {
     onKilled: () => void
     radius: number
     money: number
+    items: Partial<Record<ItemName, number>>
 }
 
 export type EnemyPools = {

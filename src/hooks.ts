@@ -1,5 +1,6 @@
 // Object3D.onBeforeRender does't fire for THREE.Object3D or THREE.Group
 
+import type { ItemName } from "./constants"
 import { ReadonlyVector3 } from "./util"
 
 /** Functions in this set will be called every time just before rendering. */
@@ -16,6 +17,7 @@ export type Collidable = {
         readonly radius: number
         readonly name: string
         readonly money: number
+        readonly items: { readonly [k in ItemName]?: number }
         hp: number
     }
 }

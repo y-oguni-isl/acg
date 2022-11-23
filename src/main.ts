@@ -184,6 +184,7 @@ if (stats) {
                             enemy.userData.onKilled()
                             getState().incrementKillCount(enemy.userData.name)
                             getState().addMoney(enemy.userData.money)
+                            getState().addItems(enemy.userData.items)
                         }
                         enemy.free()
                         onEnemyRemoved.forEach((f) => f(enemy))

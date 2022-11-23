@@ -55,7 +55,7 @@ export const domStore = create<{
 }))
 
 // Loading messages should not be persisted
-type EnemyStatus = { hp: number, name: string, money: number }
+type EnemyStatus = { hp: number, name: string, money: number, items: { readonly [k in constants.ItemName]?: number } }
 export const ephemeralDOMStore = create<{
     loadingMessage: Map<string, string>
     enemyStatus: EnemyStatus | null
@@ -119,8 +119,19 @@ const EnemyStats = () => {
                 <tr><td class="pr-1"><i class="ti ti-float-none" /></td><td>{enemyStatus.name}</td></tr>
                 <tr><td class="pr-1"><i class="ti ti-heart" /></td><td>{enemyStatus.hp}</td></tr>
                 <tr><td class="pr-1"><i class="ti ti-moneybag" /></td><td>{enemyStatus.money}</td></tr>
+                <tr><td class="pr-1"><i class="ti ti-notes" /></td><td>{ObjectEntries(enemyStatus.items).map(([k, v]) => <>{k} {v}</>)}</td></tr>
             </table>
         </div>
+    </div>
+}
+
+const Items = () => {
+    const items = useStore(store, (s) => s.items)
+    return <div class="px-3 pt-1 pb-3 window mt-1 mb-1">
+        <h2 class="mb-2 tracking-wide"><i class="ti ti-notes" /> Items</h2>
+        <table class="w-full">{ObjectEntries(items).map(([k, v]) =>
+            <tr><td><i class="ti ti-meat" /> {k}</td><td class="text-right">{v}</td></tr>)}
+        </table>
     </div>
 }
 
@@ -138,6 +149,8 @@ const UI = () => {
     const transcending = useStore(store, (s) => s.transcending)
     const powerSaveMode = useStore(ephemeralDOMStore, (s) => s.powerSaveMode)
     const stage = useStore(store, (s) => s.stage)
+    const hasVacuum = useStore(store, (s) => s.upgrades.Vacuum > 0)
+    const explorationLv = useStore(store, (s) => s.getExplorationLv())
 
     useEffect(() => {
         for (const f of [
@@ -190,7 +203,10 @@ const UI = () => {
 
     return <>
         {/* Top-Left Pane */}
-        <Upgrades />
+        <div class="absolute left-1 top-1 w-72">
+            <Upgrades />
+            {hasVacuum && <Items />}
+        </div>
 
         {/* Tutorial Message */}
         <Tutorial />
@@ -232,6 +248,13 @@ const UI = () => {
 
             {/* Enemy */}
             <EnemyStats />
+
+            {/* Explore */}
+            {hasVacuum && <div class="px-3 pt-1 pb-3 window mt-1 mb-1">
+                <h2 class="mb-2 tracking-wide"><i class="ti ti-route" /> Explore: <span class="tracking-tight">Lv. {explorationLv}</span></h2>
+                {explorationLv >= 2 && <button class="block w-full text-left pl-[3.3rem]" onClick={() => { getState().explorePrev() }}><i class="ti ti-arrow-back" /> Prev</button>}
+                <button class="block w-full text-left pl-[3.3rem]" onClick={() => { getState().exploreNext() }}><i class="ti ti-arrow-forward" /> Next<span class="[font-size:80%] tracking-tighter"><i class="ti ti-meat ml-3 mr-1" />{constants.explorationCost(explorationLv)}</span></button>
+            </div>}
         </div>
 
         <Debugger />
@@ -243,7 +266,7 @@ const UI = () => {
                 <button class="px-4 button-primary" onClick={() => {
                     deleteSaveData()
                     location.reload()
-                }}>Yes</button>
+                }}>Reset</button>
                 <button class="px-4 ml-2" onClick={() => { closeModal(resetProgressDialog.current!) }}>Cancel</button>
             </div>
         </dialog>

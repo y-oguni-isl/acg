@@ -38,7 +38,7 @@ const Upgrades = () => {
     const upgrades = useStore(store, (s) => ObjectEntries(s.upgrades)
         .filter((_, i, arr) => i < 2 || arr[i - 1]![1] > 0 || arr[i - 2]![1] > 0)
         .map(([k]) => k), shallow)
-    return <div class="absolute left-1 top-1 w-56">
+    return <>
         <div class="px-3 pt-1 pb-3 window">
             <h2 class="mb-2 tracking-wide"><i class="ti ti-chevrons-up" /> Upgrades</h2>
             {upgrades.map((name, i) => <Row key={name} name={name} rowNumber={i} />)}
@@ -50,7 +50,7 @@ const Upgrades = () => {
             {/* Higher plane of existence = enemies have more HP and money */}
             <button class="w-full" tabIndex={-1} onClick={() => { getState().transcend() }}>Show Bonus</button>
         </div>}
-    </div>
+    </>
 }
 
 const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
@@ -82,7 +82,17 @@ const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
         onMouseEnter={() => { setMouseHover(true) }}
         onMouseLeave={() => { setMouseHover(false) }}>
         <div class="px-2 hover:bg-[linear-gradient(0deg,rgba(255,255,255,1)_0%,rgba(255,255,255,0)_10%)]">
-            <span class="inline-block w-28 tracking-wider">{isUpgradeNameHidden ? "???" : props.name}</span>
+            <span class="inline-block w-28 tracking-wider">{isUpgradeNameHidden ? "???" : <><i class={"mr-1 ti " + ({
+                Laser: "ti-flare",
+                Autopilot: "ti-plane",
+                Hammer: "ti-hammer",
+                "ATK×2": "ti-swords",
+                Vacuum: "ti-windmill",
+                Missile: "ti-rocket",
+                placeholder4: "ti-circle-dotted",
+                placeholder5: "ti-circle-dotted",
+                placeholder6: "ti-circle-dotted",
+            } satisfies Record<constants.UpgradeName, string>)[props.name]} />{props.name}</>}</span>
             <span class="float-right tracking-tight">{count}{props.name === "Autopilot" && weather?.enabled && <b class="text-red-400"> (-5)</b>}</span>
         </div>
         {mouseHover && <Tooltip name={props.name} />}
@@ -102,6 +112,7 @@ const Tooltip = (props: { name: constants.UpgradeName }) => {
             {!isUpgradeNameHidden && <>
                 {atk && <tr><td class="tracking-wider text-right pr-2">Damage</td><td><i class="ti ti-swords" /> {atk}</td></tr>}
                 {interval && <tr><td class="tracking-wider text-right pr-2">Interval</td><td><i class="ti ti-hourglass" /> {interval}</td></tr>}
+                {props.name === "Missile" && <tr><td class="tracking-wider text-right pr-2">Ammo</td><td><i class="ti ti-settings" /> 10 / sec</td></tr>}
             </>}
         </table>
     </div>

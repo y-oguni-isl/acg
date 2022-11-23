@@ -49,7 +49,7 @@ export default async (source: THREE.Object3D) => {
 
                 // Damage
                 enemy.userData.hp -= constants.getAtk(getState()).Laser
-                ephemeralDOMStore.getState().setEnemyStatus({ hp: enemy.userData.hp, name: enemy.userData.name, money: enemy.userData.money })
+                ephemeralDOMStore.getState().setEnemyStatus({ hp: enemy.userData.hp, name: enemy.userData.name, money: enemy.userData.money, items: enemy.userData.items })
             } else { // No collisions
                 // Delete the hit effect
                 if (laserHitEffectTargetMap.has(enemy)) {

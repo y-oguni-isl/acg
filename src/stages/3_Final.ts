@@ -30,14 +30,15 @@ export default {
             alive: webgl.createEnemyPlanet().then((m) => m.onAllocate((copy): EnemyUserData => ({
                 name: "Planet",
                 time: 0,
-                hp: 150000 * (500 ** getState().transcendence),
+                hp: 150000 * getState().getExplorationLv() * (500 ** getState().transcendence),
                 update: () => { /* skip */ },
                 onKilled: () => {
                     pools.dead.allocate().position.copy(copy.position)
                     getState().defeatedFinalBoss()
                 },
                 radius: 1,
-                money: 10000 * (500 ** getState().transcendence),
+                money: 10000 * getState().getExplorationLv() * (500 ** getState().transcendence),
+                items: {},
             }))),
             dead: webgl.createEnemyPlanet().then((m) => m.onAllocate(() => ({ time: 0 }))),
             spawn: (t: number) => {

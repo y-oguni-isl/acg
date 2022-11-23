@@ -4,6 +4,7 @@ import { immer } from "zustand/middleware/immer"
 import { enableMapSet } from "immer"
 import SuperJSON from "superjson"
 import * as constants from "./constants"
+import { ObjectEntries } from "./util"
 
 enableMapSet()
 
@@ -14,7 +15,9 @@ type SaveData = {
     gameSessionId: string
     stage: constants.StageName
     stageTransitingTo: constants.StageName | null
+    exploration: Partial<Record<constants.StageName, number>>
     money: number
+    items: Partial<Record<constants.ItemName, number>>
     /** The number of upgrades purchased by the player. */
     upgrades: Record<constants.UpgradeName, number>
     completedTutorials: Set<constants.TutorialName>
@@ -29,6 +32,7 @@ type SaveData = {
     cheated: boolean
 
     addMoney: (delta: number) => void
+    addItems: (delta: Partial<Record<constants.ItemName, number>>) => void
     buyUpgrade: (name: constants.UpgradeName) => void
     completeTutorial: (name: constants.TutorialName) => void
     addNews: (name: constants.NewsName) => void
@@ -44,6 +48,9 @@ type SaveData = {
     confirmTranscending: () => void
     incrementKillCount: (name: string) => void
     cheat: () => void
+    exploreNext: () => void
+    explorePrev: () => void
+    getExplorationLv: () => number
 }
 
 const newWeatherEffectETA = (rand = Math.random()) => rand * constants.updatePerSecond * 60 * 6
@@ -53,7 +60,9 @@ export const store = create<SaveData>()(persist(immer((set, get) => ({
     gameSessionId: crypto.randomUUID(),
     stage: "Earth",
     stageTransitingTo: null,
+    exploration: {},
     money: 0,
+    items: {},
     upgrades: Object.fromEntries(constants.upgradeNames.map((name) => [name, 0])) as Record<constants.UpgradeName, number>,
     completedTutorials: new Set(),
     availableNews: new Set(),
@@ -72,6 +81,13 @@ export const store = create<SaveData>()(persist(immer((set, get) => ({
         document.title = `ACG Final Project $${get().money}`
         if (get().money >= constants.price(constants.upgradeNames[0]!, get())) { get().addTutorial("upgrade") }
         if (!constants.isUpgradeNameHidden("Hammer", get())) { get().addNews("hammer") }
+    },
+    addItems: (delta) => {
+        set((d) => {
+            for (const [k, v] of ObjectEntries(delta)) {
+                d.items[k] = (d.items[k] ?? 0) + v
+            }
+        })
     },
     buyUpgrade: (name) => {
         set((d) => { d.money -= constants.price(name, get()); d.upgrades[name]++ })
@@ -157,10 +173,23 @@ export const store = create<SaveData>()(persist(immer((set, get) => ({
         }
     },
     cheat: () => { set((d) => { d.cheated = true }) },
+    exploreNext: () => {
+        const lv = get().getExplorationLv()
+        if ((get().items.Food ?? 0) < constants.explorationCost(lv)) { return }
+        set((d) => {
+            d.items.Food = (d.items.Food ?? 0) - constants.explorationCost(lv)
+            d.exploration[d.stage] = lv + 1
+        })
+    },
+    explorePrev: () => {
+        if (get().getExplorationLv() <= 1) { throw new Error() }
+        set((d) => { d.exploration[d.stage] = (d.exploration[d.stage] ?? 1) - 1 })
+    },
+    getExplorationLv: () => get().exploration[get().stage] ?? 1,
 } as SaveData)), {
     // Options for the "persist" middleware
     name: localStorageKey,
-    version: 6,
+    version: 7,
     // Allow saving Map, Set, etc.
     serialize: (s) => { if (destroyed) { throw new Error("destroyed") } return SuperJSON.stringify(s) },
     deserialize: (s) => SuperJSON.parse(s) as any,

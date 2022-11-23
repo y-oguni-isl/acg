@@ -41,6 +41,7 @@ Just add a file `<id>_<name>.ts` in src/stages/.
 ## How can I add a weapon?
 1. Update `upgradeNames` in `constants.tsx`.
 2. Add `src/weapons/<name>.ts`.
+3. Fix type errors.
 
 # Using Shaders through Three.js
 src/webgl/createFog.ts has the most simple shader material. You can learn about the shading in Three.js by reading it and [the documentation of ShaderMaterial](https://threejs.org/docs/#api/en/materials/ShaderMaterial).
