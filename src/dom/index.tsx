@@ -25,8 +25,8 @@ const Tutorial = () => {
     const tutorial = useStore(store, (s) =>
         [...s.availableTutorials.difference(s.completedTutorials)]
             .sort((a, b) => tutorialIndices.get(a)! - tutorialIndices.get(b)!)[0])
-    return <div style={{ opacity: tutorial === undefined ? "0" : "1" }} class="absolute w-full text-center top-[70%] text-white bg-slate-800 bg-opacity-70 select-none [transition:opacity_ease_1s] whitespace-pre-wrap pointer-events-none z-10">
-        {tutorial && <><i class="ti ti-message-report" /> <span class="[&>b]:text-orange-300">{constants.tutorialHTML[tutorial]}</span></>}
+    return <div style={{ opacity: tutorial === undefined ? "0" : "1" }} class="absolute w-[90%] py-3 left-[5%] px-16 text-center top-[70%] [transition:opacity_ease_1s] whitespace-pre-wrap pointer-events-none z-10 window-popup">
+        {tutorial && <><i class="ti ti-message-report absolute left-4 top-0 [font-size:250%]" /><span class="[&>b]:text-orange-300">{constants.tutorialHTML[tutorial]}</span></>}
     </div>
 }
 
@@ -186,9 +186,9 @@ const UI = () => {
         <Tutorial />
 
         {powerSaveMode && <div class="absolute text-center w-full top-[45%] select-none [transition:opacity_ease_1s] whitespace-pre-wrap pointer-events-none z-10">
-            <div class="relative py-3 px-8 mx-auto w-fit text-white bg-slate-800 bg-opacity-70 rounded-sm">
-                <h2 class="tracking-wide">Power Save Mode</h2>
-                <p class="[font-size:60%] text-gray-200 tracking-wide">Power Save Mode stops rendering the game,<br />but the game still runs in the background.</p>
+            <div class="relative py-3 px-8 mx-auto w-fit window-popup">
+                <h2 class="tracking-wide text-orange-300"><i class="ti ti-zzz" /> Power Save Mode</h2>
+                <p class="[font-size:60%] tracking-wide">Power Save Mode stops rendering the game,<br />but the game still runs in the background.</p>
             </div>
         </div>}
 
@@ -238,7 +238,7 @@ const UI = () => {
         {/* The buttons at the left bottom corner */}
         <div class="absolute left-1 bottom-1 px-5 pb-1 window tracking-wide">
             <span class="cursor-pointer hover:text-gray-200" onClick={() => { showModal(creditDialog.current!) }}><i class="ti ti-license" /> Credit</span>
-            <span class="cursor-pointer text-red-400 hover:text-red-500 ml-5" onClick={() => {
+            <span class="cursor-pointer text-orange-300 hover:text-orange-400 ml-5" onClick={() => {
                 if (!resetProgressDialog.current) { return }
                 showModal(resetProgressDialog.current)
             }}><i class="ti ti-eraser" /> Reset Progress</span>
@@ -253,7 +253,7 @@ const UI = () => {
         </dialog>
 
         {/* Newspaper */}
-        <dialog ref={newsDialog} class="bg-gray-100 w-[400px] h-[620px] p-5 box-border shadow-2xl select-none [font-family:KottaOne]" onClick={closeDialogOnClick}>
+        <dialog ref={newsDialog} class="bg-gray-100 w-[400px] h-[620px] p-5 box-border shadow-2xl select-none [font-family:KottaOne] [-webkit-text-stroke:3px_rgba(0,0,0,0.05)]" onClick={closeDialogOnClick}>
             {state.news && <div class="[line-height:1.2] [font-size:12px] text-justify overflow-y-hidden h-full">
                 <h2 class="text-lg tracking-wide font-bold mb-4 [border-bottom:3px_solid_rgb(130,130,130)] text-center">{state.news[0]}</h2>
                 <span>{state.news[1]}</span>
@@ -262,7 +262,7 @@ const UI = () => {
         </dialog>
 
         {/* Loading message */}
-        {loadingMessage.size > 0 && <div class="text-white absolute top-[35%] left-0 w-full text-center whitespace-pre">{[...loadingMessage.values()].join("\n")}</div>}
+        {loadingMessage.size > 0 && <div class="text-gray-100 absolute top-[35%] left-0 w-full text-center whitespace-pre">{[...loadingMessage.values()].join("\n")}</div>}
     </>
 }
 

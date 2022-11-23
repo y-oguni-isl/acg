@@ -51,7 +51,8 @@ body {
 }
 
 .window {
-    @apply text-gray-50 backdrop-blur-3xl drop-shadow-lg select-none border-opacity-40 border-2 rounded-md border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600;
+    @apply text-gray-200 backdrop-blur-3xl drop-shadow-lg select-none border-opacity-40 border-2 rounded-md border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600;
+    -webkit-text-stroke: 5px rgba(255, 255, 255, 0.1);
     background: linear-gradient(240deg, rgba(55, 65, 81, 0.144) 0%, rgba(55, 65, 81, 0.4) 100%);
 
     &.gold {
@@ -62,8 +63,14 @@ body {
 
 .window h2 { @apply font-bold; }
 
+.window-popup {
+    @apply text-gray-100 backdrop-blur-sm select-none border-opacity-40 rounded-xl border-[1px] border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600;
+    -webkit-text-stroke: 5px rgba(255, 255, 255, 0.1);
+    background: linear-gradient(240deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.53) 100%);
+}
+
 button {
-    @apply text-gray-50 tracking-wider backdrop-blur-3xl drop-shadow-lg select-none border-opacity-40 border-2 rounded-sm border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600;
+    @apply text-gray-200 tracking-wider backdrop-blur-3xl drop-shadow-lg select-none border-opacity-40 border-2 rounded-sm border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600;
     background: linear-gradient(240deg, rgb(55, 65, 81, 0.7) 0%, rgb(55, 65, 81, 0.7) 100%);
 
     &:focus { @apply outline-none; }

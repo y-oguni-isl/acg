@@ -73,7 +73,7 @@ const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
 
     return <div
         ref={ref}
-        class="relative block hover:cursor-pointer mb-1 backdrop-blur-3xl drop-shadow-md select-none border-opacity-40 border-[1px] rounded-sm border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600"
+        class="relative block hover:cursor-pointer mb-1 backdrop-blur-3xl drop-shadow-md select-none border-opacity-40 border-[1px] rounded-lg border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600"
         disabled={disabled}
         onMouseDown={() => {
             if (disabled) { return }
@@ -96,7 +96,7 @@ const Tooltip = (props: { name: constants.UpgradeName }) => {
     const money = useStore(store, (s) => s.money)
     const isUpgradeNameHidden = useStore(store, (s) => constants.isUpgradeNameHidden(props.name, s))
 
-    return <div class="absolute left-full top-0 ml-7 px-6 py-1 backdrop-blur-3xl bg-[linear-gradient(240deg,rgba(31,37,46,0.4)_0%,rgba(30,36,44,0.4)_100%)] whitespace-nowrap pointer-events-none rounded-sm [font-size:80%]">
+    return <div class="absolute left-full top-0 ml-7 px-6 py-1 backdrop-blur-3xl bg-[linear-gradient(240deg,rgba(31,37,46,0.4)_0%,rgba(30,36,44,0.4)_100%)] whitespace-nowrap pointer-events-none rounded-sm [font-size:80%] [-webkit-text-stroke:5px_rgba(255,255,255,0.15)]">
         <table>
             <tr><td class="font-bold tracking-wider pr-2 text-right">Price</td><td><i class="ti ti-moneybag" /> {money} / {price}</td></tr>
             {!isUpgradeNameHidden && <>
