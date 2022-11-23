@@ -48,3 +48,5 @@ export const call = <T>(obj: T, props: RewriteMethodsToProperties<T>): T => {
     }
     return obj
 }
+
+export type ReadonlyVector3 = Readonly<Pick<THREE.Vector3, "x" | "y" | "z" | "isVector3" | "getComponent" | "clone" | "dot" | "lengthSq" | "length" | "manhattanLength" | "manhattanDistanceTo" | "angleTo" | "distanceTo" | "distanceToSquared" | "equals" | "toArray">>

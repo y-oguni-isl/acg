@@ -17,7 +17,7 @@ import * as THREE from "three"
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js"
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js"
-import { onBeforeRender, onPreprocess, onUpdate } from "./hooks"
+import { onBeforeRender, onCollisionDetection, onEnemyRemoved, onPreprocess, onUpdate } from "./hooks"
 import { getState, subscribe } from "./saveData"
 import { ephemeralDOMStore } from "./dom"
 import { call, ObjectEntries, fromEntries, PromiseAll, ObjectValues } from "./util"
@@ -25,7 +25,7 @@ import * as webgl from "./webgl"
 import { getRenderingOption, init3DModelDebugger } from "./debug"
 import stages from "./stages"
 import { updatePerSecond } from "./constants"
-import * as constants from "./constants"
+import weapons from "./weapons"
 
 /** The scene object, that contains all visible Three.js objects. */
 const scene = new THREE.Scene()
@@ -36,8 +36,8 @@ const show = <T extends Omit<THREE.Object3D, "userData">>(obj: T): T => { scene.
 // Airplane
 const airplane = show(await webgl.createAirplane())
 
-// Contrail and laser
-scene.add(webgl.createContrail(airplane), webgl.createLaser(airplane))
+// Contrail
+scene.add(webgl.createContrail(airplane))
 
 // Stages
 for (const [name, stage] of ObjectEntries(stages)) {
@@ -50,8 +50,7 @@ for (const [name, stage] of ObjectEntries(stages)) {
 const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10), { position: { set: [-0.5, 0.6, 0] } })
 
 // Parallel download
-const pools = await PromiseAll({
-    hammers: webgl.createHammerPool(airplane).then(show),
+const { enemies } = await PromiseAll({
     enemies: PromiseAll(fromEntries(ObjectEntries(stages)
         .map(([k, v]) => [
             k,
@@ -64,94 +63,23 @@ const pools = await PromiseAll({
                 return m
             }),
         ]))),
+    weapons: Promise.all(weapons.map((weapon) => weapon(airplane).then(show))),
 })
 
-// Enemies
-{
-    const enemiesAlive = ObjectValues(pools.enemies).flatMap((v) => v.weatherAlive ? [v.alive, v.weatherAlive] : [v.alive])
-    const enemiesDead = ObjectValues(pools.enemies).flatMap((v) => v.weatherDead ? [v.dead, v.weatherDead] : [v.dead])
+const listAliveEnemies = () => ObjectValues(enemies).flatMap((v) => v.weatherAlive ? [...v.alive.children, ...v.weatherAlive.children] : [...v.alive.children])
+const listDeadEnemies = () => ObjectValues(enemies).flatMap((v) => v.weatherDead ? [...v.dead.children, ...v.weatherDead.children] : [...v.dead.children])
 
-    // hit effect
-    const laserHitEffects = show(new webgl.ObjectPool("hitEffect", webgl.enableSelectiveBloom(new THREE.Mesh(new THREE.IcosahedronGeometry(0.006), new THREE.MeshBasicMaterial({ color: 0xff66ff })))))
-    const laserHitEffectsSource = new WeakMap<ReturnType<typeof pools.enemies.Earth.alive.allocate>, ReturnType<typeof laserHitEffects.allocate>>()
-
-    // Delete everything when switching to another stage
-    subscribe((state, prev) => {
-        if (state.stage === prev.stage && state.transcendence === prev.transcendence) { return }
-        for (const enemy of enemiesAlive.flatMap((o) => o.children)) {
-            laserHitEffectsSource.get(enemy)?.free()
-        }
-        for (const enemy of [...enemiesAlive.flatMap((o) => o.children), ...enemiesDead.flatMap((o) => o.children)]) {
-            enemy.free()
-        }
-    })
-
-    // Main game loop
-    onUpdate.add((t) => {
-        // Spawn enemies
-        pools.enemies[getState().stage].spawn(t)
-
-        for (const enemy of enemiesAlive.flatMap((o) => o.children)) {
-            // Move enemies
-            enemy.userData.update()
-
-            // Collisions between the enemy and the player's attacks
-            for (const hammer of pools.hammers?.children ?? []) {
-                if (hammer.position.distanceTo(enemy.position) < enemy.userData.radius + 0.02) {
-                    enemy.userData.hp -= constants.getAtk(getState()).Hammer ?? 0
-                    hammer.free()
-                }
-            }
-            if (Math.abs(enemy.position.z - airplane.position.z) < enemy.userData.radius && Math.abs(enemy.position.y - airplane.position.y) < enemy.userData.radius && enemy.position.x > airplane.position.x) {
-                // Show a hit effect
-                laserHitEffectsSource.emplace(enemy, { insert: () => laserHitEffects.allocate() })
-                    .position.copy(enemy.position).setZ(airplane.position.z)
-
-                // Damage
-                enemy.userData.hp -= constants.getAtk(getState()).Laser
-                ephemeralDOMStore.getState().setEnemyStatus({ hp: enemy.userData.hp, name: enemy.userData.name, money: enemy.userData.money })
-            } else { // No collisions
-                // Delete the hit effect
-                if (laserHitEffectsSource.has(enemy)) {
-                    laserHitEffectsSource.get(enemy)!.free()
-                    laserHitEffectsSource.delete(enemy)
-                }
-            }
-
-            // Delete the enemy if it is outside screen or is killed
-            if (enemy.position.x < -1 || enemy.userData.hp <= 0) {
-                if (enemy.userData.hp <= 0) {
-                    enemy.userData.onKilled()
-                    getState().incrementKillCount(enemy.userData.name)
-                    getState().addMoney(enemy.userData.money)
-                }
-                enemy.free()
-                laserHitEffectsSource.get(enemy)?.free()
-                laserHitEffectsSource.delete(enemy)
-            }
-            enemy.userData.time++
-        }
-
-        // Animate dead enemies
-        for (const body of enemiesDead.flatMap((o) => o.children)) {
-            body.position.y -= 0.001 * body.userData.time
-            body.rotateZ(0.1 * (Math.random() - 0.5)) // free fall
-            body.userData.time++
-            if (body.userData.time > 100) {
-                body.free()
-            }
-        }
-
-        // Update the autopilot algorithm's target
-        const findMin = <T>(arr: readonly T[], key: (v: T) => void) => arr.length === 0 ? undefined : arr.reduce((p, c) => key(p) < key(c) ? p : c, arr[0]!)
-        if (!airplane.userData.autopilotTarget || !enemiesAlive.flatMap((o) => o.children as { position: THREE.Vector3 }[]).includes(airplane.userData.autopilotTarget) || airplane.userData.autopilotTarget.position.x < airplane.position.x) {
-            airplane.userData.autopilotTarget = findMin(enemiesAlive.flatMap((o) => o.children).filter((e) => e.position.x > airplane.position.x + 0.3 && e.userData.name !== "Weather Effect UFO"), (e) => e.position.x)
-        }
-
-        // Weather
-        getState().countdown()
-    })
-}
+// Delete all enemies when switching to another stage
+subscribe((state, prev) => {
+    if (state.stage === prev.stage && state.transcendence === prev.transcendence) { return }
+    for (const enemy of listAliveEnemies()) {
+        enemy.free()
+        onEnemyRemoved.forEach((f) => f(enemy))
+    }
+    for (const enemy of listDeadEnemies()) {
+        enemy.free()
+    }
+})
 
 // Update the loading message
 ephemeralDOMStore.getState().setLoadingMessage("loadingModels", `Loading models...`)
@@ -212,6 +140,8 @@ if (stats) {
     stats.dom.style.top = ""
     document.body.append(stats.dom)
 }
+
+// Main game loop
 {
     const isPaused = init3DModelDebugger(camera, renderer, scene)
 
@@ -228,11 +158,58 @@ if (stats) {
         if (isPaused() || getState().transcending) {  // if the game is paused
             prevTime.update = prevTime.render = Date.now()  // do nothing and update the prevTimes
         } else {
-            // Fire the onUpdate hook
+            // Update
             const numUpdates = Math.floor((time - prevTime.update) / (1000 / updatePerSecond))
             prevTime.update += numUpdates * (1000 / updatePerSecond)
-            for (let i = 0; i < numUpdates; i++) {
+            for (let _ = 0; _ < numUpdates; _++) {
+                // Spawn enemies
+                enemies[getState().stage].spawn(updateCount)
+
+                // Move enemies
+                listAliveEnemies().forEach((e) => e.userData.update())
+
+                // Fire the onUpdate hook
                 onUpdate.forEach((f) => f(updateCount))
+
+                // Collisions between the enemy and the player's attacks
+                {
+                    const aliveEnemies = listAliveEnemies()
+                    onCollisionDetection.forEach((f) => f(aliveEnemies))
+                }
+
+                // Delete the enemy if it is outside screen or is killed
+                for (const enemy of listAliveEnemies()) {
+                    if (enemy.position.x < -1 || enemy.userData.hp <= 0) {
+                        if (enemy.userData.hp <= 0) {
+                            enemy.userData.onKilled()
+                            getState().incrementKillCount(enemy.userData.name)
+                            getState().addMoney(enemy.userData.money)
+                        }
+                        enemy.free()
+                        onEnemyRemoved.forEach((f) => f(enemy))
+                    }
+                    enemy.userData.time++
+                }
+
+                // Animate dead enemies
+                for (const body of listDeadEnemies()) {
+                    body.position.y -= 0.001 * body.userData.time
+                    body.rotateZ(0.1 * (Math.random() - 0.5)) // free fall
+                    body.userData.time++
+                    if (body.userData.time > 100) {
+                        body.free()
+                    }
+                }
+
+                // Update the autopilot algorithm's target
+                const findMin = <T>(arr: readonly T[], key: (v: T) => void) => arr.length === 0 ? undefined : arr.reduce((p, c) => key(p) < key(c) ? p : c, arr[0]!)
+                if (!airplane.userData.autopilotTarget || !(listAliveEnemies() as { position: THREE.Vector3 }[]).includes(airplane.userData.autopilotTarget) || airplane.userData.autopilotTarget.position.x < airplane.position.x) {
+                    airplane.userData.autopilotTarget = findMin(listAliveEnemies().filter((e) => e.position.x > airplane.position.x + 0.3 && e.userData.name !== "Weather Effect UFO"), (e) => e.position.x)
+                }
+
+                // Weather
+                getState().countdown()
+
                 updateCount++
             }
 

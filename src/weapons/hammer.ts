@@ -1,27 +1,24 @@
 import * as THREE from "three"
-import { onBeforeRender, onUpdate } from "../hooks"
+import { onBeforeRender, onCollisionDetection, onUpdate } from "../hooks"
 import { getState, subscribe } from "../saveData"
-import createHammerPoolFrag from "./createHammerPool.frag"
-import createHammerPoolVert from "./createHammerPool.vert"
-import { enableSelectiveBloom } from "./createSelectiveBloomPass"
-import { overrideMaterial } from "./extendMaterial"
-import loadGLTF from "./loadGLTF"
-import ObjectPool from "./ObjectPool"
+import createHammerPoolFrag from "./hammer.frag"
+import createHammerPoolVert from "./hammer.vert"
 import * as constants from "../constants"
+import * as webgl from "../webgl"
 
 export default async (source: THREE.Object3D) => {
-    const model = await loadGLTF("models/hammer.glb", 0.03)
+    const model = await webgl.loadGLTF("models/hammer.glb", 0.03)
     model.position.set(-0.01, 0, -0.06)  // move the center of the mass to the origin
     const uniforms = { stage: { value: getState().stage } }
     subscribe((state) => { uniforms.stage.value = state.stage })
-    overrideMaterial(model, new THREE.ShaderMaterial({
+    webgl.overrideMaterial(model, new THREE.ShaderMaterial({
         uniforms,
         vertexShader: createHammerPoolVert,
         fragmentShader: createHammerPoolFrag
     }))
-    enableSelectiveBloom(model)
+    webgl.enableSelectiveBloom(model)
 
-    const models = new ObjectPool("hammer", new THREE.Object3D().add(model))
+    const pool = new webgl.ObjectPool("hammer", new THREE.Object3D().add(model))
         .onClone((copy) => {
             onBeforeRender.add((time) => {
                 copy.rotation.x += Math.random() * 0.05
@@ -37,10 +34,10 @@ export default async (source: THREE.Object3D) => {
     onUpdate.add((t) => {
         const interval = constants.getInterval(getState()).Hammer
         if (interval && t % interval === 0) {
-            const model = models.allocate()
+            const model = pool.allocate()
             model.position.copy(source.position)
         }
-        for (const m of models.children) {
+        for (const m of pool.children) {
             m.userData.time++
             m.position.x += m.userData.velocity.x * 0.01
             m.position.y = Math.sin(m.userData.time * 0.15) * 0.03
@@ -51,5 +48,16 @@ export default async (source: THREE.Object3D) => {
         }
     })
 
-    return models
+    onCollisionDetection.add((enemies) => {
+        for (const enemy of enemies) {
+            for (const hammer of pool.children) {
+                if (enemy.position.distanceTo(hammer.position) < enemy.userData.radius + 0.02) {
+                    enemy.userData.hp -= constants.getAtk(getState()).Hammer ?? 0
+                    hammer.free()
+                }
+            }
+        }
+    })
+
+    return pool
 }

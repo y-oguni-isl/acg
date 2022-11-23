@@ -12,21 +12,22 @@ export const generate = () => {
         const dir = "src/webgl"
 
         for (const f of /** @type {string[]} */(glob.sync(dir + "/**/*.ts"))) {
-            if (f === "index.ts" || !/^[^.]+.ts$/.test(f)) { continue }
+            if (path.basename(f) === "index.ts" || !/^[^.]+.ts$/.test(path.basename(f))) { continue }
             const content = fs.readFileSync(f).toString()
             /** @type {string[]} */
             const names = []
 
-            // Default exports
+            // List default exported identifiers
             if (/^export default/m.test(content)) {
                 names.push(`default as ${path.basename(f).slice(0, -".ts".length)}`)
             }
 
-            // Named exports
+            // List named exported identifiers
             for (const m of content.matchAll(/^export const (\w+)/mg)) {
                 names.push(m[1])
             }
 
+            // Reexport the identifiers
             if (names.length > 0) {
                 reexports += `export { ${names.join(", ")} } from "./${path.relative(dir, f).slice(0, -".ts".length)}"\n`
             }
@@ -45,6 +46,7 @@ ${reexports}
         /** @type {string[]} */
         const names = []
 
+        // List files whose name matches to `<id>_<name>.ts` in the directory
         for (const f of /** @type {string[]} */(glob.sync(dir + "/**/*.ts"))) {
             if (/^\d+_[^.]+\.ts/.test(path.basename(f))) {
                 names.push(path.basename(f).slice(0, -".ts".length))
@@ -52,6 +54,7 @@ ${reexports}
         }
         names.sort((a, b) => a.localeCompare(b))
 
+        // Reexport the files
         fs.writeFileSync(path.join(dir, "index.ts"), `\
 // This file is auto-generated with \`node codegen.js\`.
 ${names.map((name) => `import ${name.split("_").at(-1)} from "./${name}"`).join("\n")}
@@ -59,6 +62,31 @@ ${names.map((name) => `import ${name.split("_").at(-1)} from "./${name}"`).join(
 export default {
 ${names.map((name) => `    ${name.split("_").at(-1)},`).join("\n")}
 } as const
+`)
+    }
+
+    // src/weapons/index.ts
+    {
+        const dir = "src/weapons"
+        /** @type {string[]} */
+        const names = []
+
+        // List files in the directory
+        for (const f of /** @type {string[]} */(glob.sync(dir + "/**/*.ts"))) {
+            if (/^[^.]+\.ts/.test(path.basename(f)) && path.basename(f) !== "index.ts") {
+                names.push(path.basename(f).slice(0, -".ts".length))
+            }
+        }
+        names.sort((a, b) => a.localeCompare(b))
+
+        // Reexport the files
+        fs.writeFileSync(path.join(dir, "index.ts"), `\
+// This file is auto-generated with \`node codegen.js\`.
+${names.map((name) => `import ${name.split(".").at(0)} from "./${name}"`).join("\n")}
+
+export default [
+${names.map((name) => `    ${name.split(".").at(0)},`).join("\n")}
+]
 `)
     }
 }

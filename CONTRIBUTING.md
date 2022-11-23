@@ -38,6 +38,10 @@ Just add a file `<id>_<name>.ts` in src/stages/.
 2. Add the copyright notice of the 3D model to `public/models/credit.html`.
 3. Load the file in `createEnemyPools` in `src/stages/....ts`. We need two models, one alive and one dead.
 
+## How can I add a weapon?
+1. Update `upgradeNames` in `constants.tsx`.
+2. Add `src/weapons/<name>.ts`.
+
 # Using Shaders through Three.js
 src/webgl/createFog.ts has the most simple shader material. You can learn about the shading in Three.js by reading it and [the documentation of ShaderMaterial](https://threejs.org/docs/#api/en/materials/ShaderMaterial).
 
@@ -66,6 +70,25 @@ store.subscribe((state, prev) => {
     // ... code to run when `foo` is changed
 })
 ```
+
+# Main Game Loop
+1. Repeat a number of times proportional to the time elapsed since the previous frame:
+   1. Spawn enemies
+   2. Move enemies
+   3. `onUpdate` event
+   4. `onCollisionDetection` event
+   5. Delete enemies
+   6. Animate dead enemies
+   7. Update the autopilot algorithm
+   8. Tick the weather system
+2. if not `powerSaveMode`:
+   1. `onBeforeRender` event
+   2. Move camera
+   3. `onPreprocess` event
+   4. render()
+
+# codegen.js
+`codegen.js` is run before every build and updates `src/weapons/index.ts`, `src/stages/index.ts`, and `src/webgl/index.ts`.
 
 # Cheating
 The store in `saveData.ts` is set to a property of `window` so that you can modify its value from the [dev tools](https://developer.chrome.com/docs/devtools/open/) console.
