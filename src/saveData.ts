@@ -69,13 +69,13 @@ export const store = create<SaveData>()(persist(immer((set, get) => ({
 
     addMoney: (delta) => {
         set((d) => { d.money += delta })
-        document.title = `ACG final project $${get().money}`
+        document.title = `ACG Final Project $${get().money}`
         if (get().money >= constants.price(constants.upgradeNames[0]!, get())) { get().addTutorial("upgrade") }
         if (!constants.isUpgradeNameHidden("Hammer", get())) { get().addNews("hammer") }
     },
     buyUpgrade: (name) => {
         set((d) => { d.money -= constants.price(name, get()); d.upgrades[name]++ })
-        document.title = `ACG final project $${get().money}`
+        document.title = `ACG Final Project $${get().money}`
         if (get().upgrades.Autopilot > 0) {
             get().addNews("aliensComing")
         }
