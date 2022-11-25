@@ -20,17 +20,17 @@ const modelDebuggerStore = create<{
     resume: () => void
     refreshDebugger: () => void
     setObjectPoolSize: (name: string, count: number) => void
-}>()(immer((set) => ({
+}>()((set, get) => ({
     paused: false as boolean,
     object: null as THREE.Object3D | null,
     version: 0,
     objectPools: {},
-    setObject: (obj) => { set((d) => { d.object = obj }) },
-    stop: () => { set((d) => { d.paused = true }) },
-    resume: () => { set((d) => { d.paused = false }) },
-    refreshDebugger: () => { set((d) => { d.version++ }) },
-    setObjectPoolSize: (name: string, count: number) => { set((d) => { d.objectPools[name] = count }) }
-})))
+    setObject: (obj) => { set({ object: obj }) },
+    stop: () => { set({ paused: true }) },
+    resume: () => { set({ paused: false }) },
+    refreshDebugger: () => { set({ version: get().version + 1 }) },
+    setObjectPoolSize: (name: string, count: number) => { set({ objectPools: { ...get().objectPools, [name]: count } }) }
+}))
 
 const renderingOptionsStore = create<{
     renderingOptions: Record<string, boolean>
@@ -39,7 +39,7 @@ const renderingOptionsStore = create<{
 }>()(persist(immer((set, get) => ({
     renderingOptions: {},
     getRenderingOption: (name, defaultValue = true) => {
-        set((d) => { if (!(name in d.renderingOptions)) { d.renderingOptions[name] = defaultValue } })
+        if (!(name in get().renderingOptions)) { set((d) => { d.renderingOptions[name] = defaultValue }) }
         return get().renderingOptions[name]!
     },
     setRenderingOption: (name, value) => { set((d) => { d.renderingOptions[name] = value }) },

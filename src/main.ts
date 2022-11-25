@@ -30,6 +30,9 @@ import { getRenderingOption, init3DModelDebugger } from "./debug"
 import stages from "./stages"
 import { updatePerSecond } from "./constants"
 import weapons from "./weapons"
+import { setAutoFreeze } from "immer"
+
+setAutoFreeze(false) // Disable auto freeze because it'll make immer 2.7x faster https://immerjs.github.io/immer/performance/#pre-freeze-data
 
 /** The scene object, that contains all visible Three.js objects. */
 const scene = new THREE.Scene()

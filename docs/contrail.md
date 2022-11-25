@@ -1,5 +1,8 @@
-triangle strip で、定期的に、各頂点の座標を2つ前のpolygonの対応する頂点の座標で置換して、先頭の2つの頂点の座標をairplaneの位置に合わせる。
-そのgeometryに図1のようにUVを貼って、shaderで描画。
+1. We make the geometry as the typical triangle strip.
+
+The geometry (model) is based on the typical triangle strip, and we periodically replace the coordinates of each vertex with the coordinates of the corresponding vertex of the polygon two previous, aligning the coordinates of the first two vertices with the position of the airplane.
+
+We map UV vectors to the geometry as shown in Fig. 1 then shade it with the code in `createContrail.frag.ts`.
 
 > ![](/docs/figures/contrail.png)\
 > 図1: UV

@@ -72,17 +72,15 @@ export const store = create<SaveData>()(persist(immer((set, get) => ({
     cheated: false,
 
     addMoney: (delta) => {
-        set((d) => { d.money += delta })
+        set({ money: get().money + delta })
         document.title = `ACG Final Project $${get().money}`
         if (get().money >= constants.price(constants.upgradeNames[0]!, get())) { get().addTutorial("upgrade") }
         if (!constants.isUpgradeNameHidden("Hammer", get())) { get().addNews("hammer") }
     },
     addItems: (delta) => {
-        set((d) => {
-            for (const [k, v] of ObjectEntries(delta)) {
-                d.items[k] = (d.items[k] ?? 0) + v
-            }
-        })
+        const items = { ...get().items }
+        for (const [k, v] of ObjectEntries(delta)) { items[k] = (items[k] ?? 0) + v }  // a lot faster than immer
+        set({ items })
     },
     buyUpgrade: (name) => {
         set((d) => { d.money -= constants.price(name, get()); d.upgrades[name]++ })
@@ -123,11 +121,16 @@ export const store = create<SaveData>()(persist(immer((set, get) => ({
     },
     countdown: () => {
         if (!constants.isWeatherSystemUnlocked(get())) { return }
-        set((d) => {
-            d.weatherEffectWillBeEnabledIn[d.stage] ??= newWeatherEffectETA()
-            d.weatherEffectWillBeEnabledInLessThan[d.stage] ??= newWeatherEffectETA(1)
-            d.weatherEffectWillBeEnabledIn[d.stage]!--
-            d.weatherEffectWillBeEnabledInLessThan[d.stage]!--
+        const s = get()
+        set({
+            weatherEffectWillBeEnabledIn: {
+                ...s.weatherEffectWillBeEnabledIn,
+                [s.stage]: (s.weatherEffectWillBeEnabledIn[s.stage] ?? newWeatherEffectETA()) - 1,
+            },
+            weatherEffectWillBeEnabledInLessThan: {
+                ...s.weatherEffectWillBeEnabledInLessThan,
+                [s.stage]: (s.weatherEffectWillBeEnabledInLessThan[s.stage] ?? newWeatherEffectETA(1)) - 1,
+            },
         })
         if (get().getWeather()?.enabled) {
             get().addTutorial("weatherEffect")
