@@ -112,7 +112,7 @@ const randomText = Array(10000).fill(0).map(() => Array(Math.floor(Math.random()
 const EnemyStats = () => {
     const enemyStatus = useStore(ephemeralDOMStore, (s) => s.enemyStatus, shallow)
     if (!enemyStatus) { return <></> }
-    return <div class="px-3 pt-1 pb-3 window mt-1 mb-1">
+    return <div class="px-3 pt-1 pb-3 window mt-3 mb-1">
         <h2 class="mb-2 tracking-wide"><i class="ti ti-chart-line" /> Enemy Stats</h2>
         <div>
             <table class="tracking-wide">
@@ -127,12 +127,25 @@ const EnemyStats = () => {
 
 const Items = () => {
     const items = useStore(store, (s) => s.items)
-    return <div class="px-3 pt-1 pb-3 window mt-1 mb-1">
+    return <div class="px-3 pt-1 pb-3 window mt-3 mb-1">
         <h2 class="mb-2 tracking-wide"><i class="ti ti-notes" /> Items</h2>
         <table class="w-full">{ObjectEntries(items).map(([k, v]) =>
             <tr><td><i class="ti ti-meat" /> {k}</td><td class="text-right">{v}</td></tr>)}
         </table>
     </div>
+}
+
+const Transcend = () => {
+    const canTranscend = useStore(store, (s) => s.canTranscend)
+    return <>
+        {canTranscend && <div class="px-3 pt-1 pb-3 window gold mt-3">
+            <p class="text-xs mb-2">
+                You have reached the point of singularity and can transcended to a higher plane of existence.
+            </p>
+            {/* Higher plane of existence = enemies have more HP and money */}
+            <button class="w-full" tabIndex={-1} onClick={() => { getState().transcend() }}>Show Bonus</button>
+        </div>}
+    </>
 }
 
 const UI = () => {
@@ -203,9 +216,10 @@ const UI = () => {
 
     return <>
         {/* Top-Left Pane */}
-        <div class="absolute left-1 top-1 w-72">
+        <div class="absolute left-[-4px] top-[-2px] w-72">
             <Upgrades />
             {hasVacuum && <Items />}
+            <Transcend />
         </div>
 
         {/* Tutorial Message */}
@@ -220,9 +234,9 @@ const UI = () => {
         </div>}
 
         {/* Top-Right pane */}
-        <div class="absolute right-1 top-1 min-w-[13rem]">
+        <div class="absolute right-[-4px] top-[-2px] min-w-[13rem]">
             {/* Stages */}
-            {ObjectValues(areStageNamesVisible).some((v) => v) && <div class="px-3 pt-1 pb-3 window">
+            {ObjectValues(areStageNamesVisible).some((v) => v) && <div class="px-3 pt-1 pb-3 mt-3 window">
                 <h2 class="mb-2 tracking-wide"><i class="ti ti-map-2" /> Stages</h2>
                 <div>{ObjectKeys(stages).map((name) =>
                     <button
@@ -236,7 +250,7 @@ const UI = () => {
             </div>}
 
             {/* Weather */}
-            {weather !== null && <div class="px-3 pt-1 pb-3 window mt-1 mb-1">
+            {weather !== null && <div class="px-3 pt-1 pb-3 window mt-3 mb-1">
                 <h2 class="mb-2 tracking-wide"><i class="ti ti-sun" /> Weather</h2>
                 <div>
                     <table>
@@ -250,7 +264,7 @@ const UI = () => {
             <EnemyStats />
 
             {/* Explore */}
-            {hasVacuum && <div class="px-3 pt-1 pb-3 window mt-1 mb-1">
+            {hasVacuum && <div class="px-3 pt-1 pb-3 window mt-3 mb-1">
                 <h2 class="mb-2 tracking-wide"><i class="ti ti-route" /> Explore: <span class="tracking-tight">Lv. {explorationLv}</span></h2>
                 {explorationLv >= 2 && <button class="block w-full text-left pl-[3.3rem]" onClick={() => { getState().explorePrev() }}><i class="ti ti-arrow-back" /> Prev</button>}
                 <button class="block w-full text-left pl-[3.3rem]" onClick={() => { getState().exploreNext() }}><i class="ti ti-arrow-forward" /> Next<span class="[font-size:80%] tracking-tighter"><i class="ti ti-meat ml-3 mr-1" />{constants.explorationCost(explorationLv)}</span></button>
@@ -272,7 +286,7 @@ const UI = () => {
         </dialog>
 
         {/* Bottom-Left Pane */}
-        <div class="absolute left-1 bottom-1 px-5 pb-1 window tracking-wide">
+        <div class="absolute left-[-4px] bottom-[-2px] px-5 pb-1 window tracking-wide">
             <span class="cursor-pointer hover:text-white" onClick={() => { showModal(creditDialog.current!) }}><i class="ti ti-license" /> Credits</span>
             <span class="cursor-pointer hover:text-white ml-5" onClick={() => { showModal(optionsDialog.current!) }}><i class="ti ti-tool" /> Options</span>
         </div>

@@ -39,17 +39,10 @@ const Upgrades = () => {
         .filter((_, i, arr) => i < 2 || arr[i - 1]![1] > 0 || arr[i - 2]![1] > 0)
         .map(([k]) => k), shallow)
     return <>
-        <div class="px-3 pt-1 pb-3 window">
+        <div class="px-3 pt-1 pb-3 mt-3 window">
             <h2 class="mb-2 tracking-wide"><i class="ti ti-chevrons-up" /> Upgrades</h2>
             {upgrades.map((name, i) => <Row key={name} name={name} rowNumber={i} />)}
         </div>
-        {getState().canTranscend && <div class="px-3 pt-1 pb-3 window gold mt-1">
-            <p class="text-xs mb-2">
-                You have reached the point of singularity and can transcended to a higher plane of existence.
-            </p>
-            {/* Higher plane of existence = enemies have more HP and money */}
-            <button class="w-full" tabIndex={-1} onClick={() => { getState().transcend() }}>Show Bonus</button>
-        </div>}
     </>
 }
 
