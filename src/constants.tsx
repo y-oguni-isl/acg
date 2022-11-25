@@ -75,6 +75,8 @@ export const getInterval = ({ upgrades }: { upgrades: Record<UpgradeName, number
     placeholder6: undefined,
 } satisfies Record<UpgradeName, number | undefined>)
 
+export const getVacuumGain = ({ upgrades }: { upgrades: Record<UpgradeName, number> }) => 1 + 0.2 * (upgrades.Vacuum - 1)
+
 /** If true, the name of the upgrade is shown as ??? */
 export const isUpgradeNameHidden = (name: UpgradeName, state: { readonly upgrades: Record<UpgradeName, number>, readonly money: number }) => state.upgrades[name] === 0 && state.money < price(name, state) * 2 / 3
 export const isWeatherSystemUnlocked = (state: { completedTutorials: SerializableSet<TutorialName> }) => state.completedTutorials.nextStage ?? false

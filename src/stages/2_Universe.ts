@@ -7,7 +7,7 @@ import createSkyboxFrag from "./2_Universe.frag"
 import createSkyboxVert from "./2_Universe.vert"
 import * as webgl from "../webgl"
 import type { EnemyPools, EnemyUserData } from "./types"
-import { xMax, xMin } from "../constants"
+import * as constants from "../constants"
 
 export default {
     createModel: () => {
@@ -38,7 +38,7 @@ export default {
                         copy.scale.copy(copy.getOriginalScale().multiply(new THREE.Vector3(1, 1 - (copy.userData.time % 80) / 3, 1)))
                     } else if (copy.userData.time % 80 === 3 + 1) {  // teleportation
                         copy.position.x -= 0.35 + Math.random() * 0.2
-                        copy.position.z = Math.max(xMin, Math.min(xMax, copy.position.z + (Math.random() - 0.5) * 0.2))
+                        copy.position.z = Math.max(constants.xMin, Math.min(constants.xMax, copy.position.z + (Math.random() - 0.5) * 0.2))
                     } else if (copy.userData.time % 80 <= 3 + 1 + 3) { // after teleportation
                         copy.scale.copy(copy.getOriginalScale().multiply(new THREE.Vector3(1, (copy.userData.time % 80 - (3 + 1)) / 3, 1)))
                     } else {
@@ -48,12 +48,12 @@ export default {
                 onKilled: () => { pools.dead.allocate().position.copy(copy.position) },
                 radius: 0.03,
                 money: 100 * getState().getExplorationLv() * (500 ** getState().transcendence),
-                items: { Scrap: 1 * getState().getExplorationLv() * (500 ** getState().transcendence) }
+                items: { Scrap: Math.floor(1 * constants.getVacuumGain(getState()) * getState().getExplorationLv() * (500 ** getState().transcendence)) }
             }))),
             dead: webgl.createUFOPool().then((m) => m.onAllocate(() => ({ time: 0 }))),
             spawn: (t: number) => {
                 if (t % 31 === 0 && (getState().availableNews.aliensComing ?? false)) {
-                    pools.alive.allocate().position.set(2, 0, ((t * 0.06) % 1) * (xMax - xMin) + xMin)
+                    pools.alive.allocate().position.set(2, 0, ((t * 0.06) % 1) * (constants.xMax - constants.xMin) + constants.xMin)
                 }
             },
         }) satisfies EnemyPools

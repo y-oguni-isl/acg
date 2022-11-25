@@ -5,7 +5,7 @@ import { getState } from "../saveData"
 import { PromiseAll, call } from "../util"
 import * as webgl from "../webgl"
 import type { EnemyPools, EnemyUserData } from "./types"
-import { xMax, xMin } from "../constants"
+import * as constants from "../constants"
 
 export default {
     createModel: () => {
@@ -34,7 +34,7 @@ export default {
                 onKilled: () => { pools.dead.allocate().position.copy(copy.position) },
                 radius: 0.03,
                 money: 1 * getState().getExplorationLv() * (500 ** getState().transcendence),
-                items: { Food: 1 * getState().getExplorationLv() * (500 ** getState().transcendence) },
+                items: { Food: Math.floor(1 * constants.getVacuumGain(getState()) * getState().getExplorationLv() * (500 ** getState().transcendence)) },
             }))),
             dead: webgl.createBirdPool(false).then((m) => m.onAllocate(() => ({ time: 0 }))),
             weatherAlive: webgl.createUFOPool().then((m) => m.onAllocate((copy): EnemyUserData => ({
@@ -49,15 +49,15 @@ export default {
                 },
                 radius: 0.03,
                 money: 1000 * getState().getExplorationLv() * (500 ** getState().transcendence),
-                items: { Scrap: 1 * getState().getExplorationLv() * (500 ** getState().transcendence) },
+                items: { Scrap: Math.floor(1 * constants.getVacuumGain(getState()) * getState().getExplorationLv() * (500 ** getState().transcendence)) },
             }))),
             weatherDead: webgl.createUFOPool().then((m) => m.onAllocate(() => ({ time: 0 }))),
             spawn: (t: number) => {
                 if (t % 5 === 0) {
-                    pools.alive.allocate().position.set(2, 0, ((t * 0.06) % 1) * (xMax - xMin) + xMin)
+                    pools.alive.allocate().position.set(2, 0, ((t * 0.06) % 1) * (constants.xMax - constants.xMin) + constants.xMin)
                 }
                 if (getState().getWeather()?.enabled && pools.weatherAlive.children.length === 0) {
-                    pools.weatherAlive.allocate().position.set(1, 0, Math.random() * (xMax - xMin) + xMin)
+                    pools.weatherAlive.allocate().position.set(1, 0, Math.random() * (constants.xMax - constants.xMin) + constants.xMin)
                 }
             }
         })

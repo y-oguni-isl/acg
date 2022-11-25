@@ -101,13 +101,15 @@ const TooltipContent = (props: { name: constants.UpgradeName }) => {
     const interval = useStore(store, (s) => constants.getInterval(s)[props.name])
     const money = useStore(store, (s) => s.money)
     const isUpgradeNameHidden = useStore(store, (s) => constants.isUpgradeNameHidden(props.name, s))
+    const vacuumGain = useStore(store, (s) => constants.getVacuumGain(s).toFixed(2))
 
     return <table>
         <tr><td class="font-bold tracking-wider pr-2 text-right">Price</td><td><i class="ti ti-moneybag" /> {money} / {price}</td></tr>
         {!isUpgradeNameHidden && <>
             {atk && <tr><td class="tracking-wider text-right pr-2">Damage</td><td><i class="ti ti-swords" /> {atk}</td></tr>}
             {interval && <tr><td class="tracking-wider text-right pr-2">Interval</td><td><i class="ti ti-hourglass" /> {interval}</td></tr>}
-            {props.name === "Missile" && <tr><td class="tracking-wider text-right pr-2">Ammo</td><td><i class="ti ti-settings" /> 1000 / shot</td></tr>}
+            {props.name === "Missile" && <tr><td class="tracking-wider text-right pr-2">Ammo</td><td><i class="ti ti-notes" /> <i class="ti ti-settings" />×1000 / shot</td></tr>}
+            {props.name === "Vacuum" && <tr><td class="tracking-wider text-right pr-2">Items</td><td><i class="ti ti-notes" /> ×{vacuumGain}</td></tr>}
         </>}
     </table>
 }

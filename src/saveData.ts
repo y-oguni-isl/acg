@@ -72,14 +72,14 @@ export const store = create<SaveData>()(persist(immer((set, get) => ({
     cheated: false,
 
     addMoney: (delta) => {
-        set({ money: get().money + delta })
+        set({ money: Math.floor(get().money + delta) })
         document.title = `ACG Final Project $${get().money}`
         if (get().money >= constants.price(constants.upgradeNames[0]!, get())) { get().addTutorial("upgrade") }
         if (!constants.isUpgradeNameHidden("Hammer", get())) { get().addNews("hammer") }
     },
     addItems: (delta) => {
         const items = { ...get().items }
-        for (const [k, v] of ObjectEntries(delta)) { items[k] = (items[k] ?? 0) + v }  // a lot faster than immer
+        for (const [k, v] of ObjectEntries(delta)) { items[k] = Math.floor((items[k] ?? 0) + v) }  // a lot faster than immer
         set({ items })
     },
     buyUpgrade: (name) => {
