@@ -6,7 +6,7 @@ import * as constants from "../constants"
 import * as webgl from "../webgl"
 
 export default async (source: THREE.Object3D) => {
-    const model = await webgl.loadGLTF("models/hammer.glb", 0.03)
+    const model = await webgl.loadGLTF("models/hammer_notexture.glb", 0.03)
     model.position.set(-0.01, 0, -0.06)  // move the center of the mass to the origin
     const uniforms = { daytime: { value: getState().stage === "Earth" } }
     subscribe((state) => { uniforms.daytime.value = state.stage === "Earth" })
