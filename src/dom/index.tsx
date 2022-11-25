@@ -290,13 +290,6 @@ const UI = () => {
             {/* Explore */}
             {hasVacuum && stage !== "Final" && <div class="px-3 pt-1 pb-3 window mt-3 mb-1">
                 <h2 class="mb-2 tracking-wide"><i class="ti ti-route" /> Explore: <span class="tracking-tight">Lv. {explorationLv}</span></h2>
-                {explorationLv >= 2 && <button
-                    class="block w-full text-left pl-[3.3rem]"
-                    onClick={() => { getState().explorePrev() }}
-                    onMouseEnter={() => { setTooltip("explorationPrev", <ExplorationPrevTooltip />) }}
-                    onMouseLeave={() => { removeTooltip("explorationPrev") }}>
-                    <i class="ti ti-arrow-back" /> Prev
-                </button>}
                 <button
                     class="block w-full text-left pl-[3.3rem]"
                     onClick={() => { getState().exploreNext() }}
@@ -304,6 +297,13 @@ const UI = () => {
                     onMouseLeave={() => { removeTooltip("explorationNext") }}>
                     <i class="ti ti-arrow-forward" /> Next<span class="[font-size:80%] tracking-tighter"><i class="ti ti-meat ml-3 mr-1" />{constants.explorationCost(explorationLv)}</span>
                 </button>
+                {explorationLv >= 2 && <button
+                    class="block w-full text-left pl-[3.3rem] mt-1"
+                    onClick={() => { getState().explorePrev() }}
+                    onMouseEnter={() => { setTooltip("explorationPrev", <ExplorationPrevTooltip />) }}
+                    onMouseLeave={() => { removeTooltip("explorationPrev") }}>
+                    <i class="ti ti-arrow-back" /> Prev
+                </button>}
             </div>}
         </div>
 
