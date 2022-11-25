@@ -104,7 +104,7 @@ const TooltipContent = (props: { name: constants.UpgradeName }) => {
         {!isUpgradeNameHidden && <>
             {atk && <tr><td class="tracking-wider text-right pr-2">Damage</td><td><i class="ti ti-swords" /> {atk}</td></tr>}
             {interval && <tr><td class="tracking-wider text-right pr-2">Interval</td><td><i class="ti ti-hourglass" /> {interval}</td></tr>}
-            {props.name === "Missile" && <tr><td class="tracking-wider text-right pr-2">Ammo</td><td><i class="ti ti-settings" /> 1000 / sec</td></tr>}
+            {props.name === "Missile" && <tr><td class="tracking-wider text-right pr-2">Ammo</td><td><i class="ti ti-settings" /> 1000 / shot</td></tr>}
         </>}
     </table>
 }

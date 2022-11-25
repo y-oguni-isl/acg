@@ -15,8 +15,8 @@ export default {
                 onBeforeRender.add((time) => { m.rotation.y = time * 0.0001 })
                 stage.add(
                     call(m, { rotateX: -Math.PI / 2, position: { setY: -0.5 } }),
-                    new THREE.AmbientLight(0xffffff, 0.025),
-                    call(new THREE.DirectionalLight(0xf5eeba, 1.6), { position: { set: [0.3, 1, -1] } }),
+                    webgl.enableSelectiveBloom(new THREE.AmbientLight(0xffffff, 0.025)),
+                    call(webgl.enableSelectiveBloom(new THREE.DirectionalLight(0xf5eeba, 1.6)), { position: { set: [0.3, 1, -1] } }),
                     !getRenderingOption("fog") ? new THREE.Object3D() : webgl.createFog(),
                 )
             })

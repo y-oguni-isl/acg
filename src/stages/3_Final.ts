@@ -20,8 +20,8 @@ export default {
                 vertexShader: createSkyboxVert,
                 fragmentShader: createSkyboxFrag,
             })),
-            new THREE.AmbientLight(0xaaaaff, 0.2),
-            call(new THREE.DirectionalLight(0xf5eeba, 0.4), { position: { set: [0.3, 1, -1] } }),
+            webgl.enableSelectiveBloom(new THREE.AmbientLight(0xaaaaff, 0.2)),
+            call(webgl.enableSelectiveBloom(new THREE.DirectionalLight(0xf5eeba, 0.4)), { position: { set: [0.3, 1, -1] } }),
         ))
     },
     visible: () => getState().availableNews.has("aliensComing") && getState().upgrades["ATK×2"] > 0,

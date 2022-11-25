@@ -8,8 +8,12 @@ import selective_bloomFrag from "./createSelectiveBloomPass.frag"
 import selective_bloomVert from "./createSelectiveBloomPass.vert"
 
 const bloomLayer = 1
-export const enableSelectiveBloom = <T extends THREE.Object3D>(obj: T): T => {
-    obj.traverse((child) => { child.layers.set(bloomLayer) })
+const bloomOnlyLayer = 2
+export const enableSelectiveBloom = <T extends THREE.Object3D>(obj: T, opts: { noDiffusion?: boolean } = {}): T => {
+    obj.traverse((child) => {
+        child.layers.set(bloomLayer)
+        if (opts.noDiffusion) { child.layers.set(bloomOnlyLayer) }
+    })
     return obj
 }
 
@@ -49,8 +53,10 @@ export default (renderer: THREE.WebGLRenderer, camera: THREE.Camera, renderPass:
     onPreprocess.add(() => {
         camera.layers.disableAll()
         camera.layers.enable(bloomLayer)
+        camera.layers.enable(bloomOnlyLayer)
         effectComposer.render()
         camera.layers.enableAll()
+        camera.layers.disable(bloomOnlyLayer)
     })
     window.addEventListener("resize", () => { effectComposer.setSize(window.innerWidth, window.innerHeight) })
     return additiveBlendingPass
