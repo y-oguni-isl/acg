@@ -1,4 +1,5 @@
 import type stages from "./stages"
+import { SerializableSet } from "./util"
 
 // The area the airplane and enemies can move exist.
 //                                                                  screen position:
@@ -69,7 +70,7 @@ export const getInterval = ({ upgrades }: { upgrades: Record<UpgradeName, number
 
 /** If true, the name of the upgrade is shown as ??? */
 export const isUpgradeNameHidden = (name: UpgradeName, state: { readonly upgrades: Record<UpgradeName, number>, readonly money: number }) => state.upgrades[name] === 0 && state.money < price(name, state) * 2 / 3
-export const isWeatherSystemUnlocked = (state: { completedTutorials: Set<TutorialName> }) => state.completedTutorials.has("nextStage")
+export const isWeatherSystemUnlocked = (state: { completedTutorials: SerializableSet<TutorialName> }) => state.completedTutorials.nextStage ?? false
 export const isVerticalMoveUnlocked = () => false
 
 export const price = (name: UpgradeName, { upgrades }: { upgrades: Record<UpgradeName, number> }) => basePrice[name] * 2 ** upgrades[name]

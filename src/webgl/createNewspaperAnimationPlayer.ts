@@ -4,7 +4,7 @@ import ObjectPool from "./ObjectPool"
 import { onBeforeRender } from "../hooks"
 import { subscribe } from "../saveData"
 import { domStore } from "../dom"
-import { call } from "../util"
+import { call, ObjectKeys } from "../util"
 import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise"
 import * as constants from "../constants"
 
@@ -46,7 +46,7 @@ export default () => {
 
     subscribe((s, prev) => {
         if (s.availableNews === prev.availableNews) { return }
-        const addedNews = [...s.availableNews.difference(prev.availableNews)][0]
+        const addedNews = [...new Set(ObjectKeys(s.availableNews)).difference(new Set(ObjectKeys(prev.availableNews)))][0]
         if (!addedNews) { return }
         startTime = Date.now()
         group.visible = true

@@ -26,7 +26,7 @@ export default {
             call(webgl.enableSelectiveBloom(new THREE.DirectionalLight(0xf5eeba, 0.4)), { position: { set: [0.3, 1, -1] } }),
         )
     },
-    visible: () => getState().availableNews.has("aliensComing"),
+    visible: () => getState().availableNews.aliensComing ?? false,
     createEnemyPools: async (): Promise<EnemyPools> => {
         const pools = await PromiseAll({
             alive: webgl.createUFOPool().then((m) => m.onAllocate((copy): EnemyUserData => ({
@@ -52,7 +52,7 @@ export default {
             }))),
             dead: webgl.createUFOPool().then((m) => m.onAllocate(() => ({ time: 0 }))),
             spawn: (t: number) => {
-                if (t % 31 === 0 && getState().availableNews.has("aliensComing")) {
+                if (t % 31 === 0 && (getState().availableNews.aliensComing ?? false)) {
                     pools.alive.allocate().position.set(2, 0, ((t * 0.06) % 1) * (xMax - xMin) + xMin)
                 }
             },

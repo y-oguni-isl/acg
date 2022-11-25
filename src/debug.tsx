@@ -5,7 +5,6 @@ import create, { useStore } from "zustand"
 import { ObjectEntries, ObjectKeys } from "./util"
 import { persist } from "zustand/middleware"
 import { immer } from "zustand/middleware/immer"
-import SuperJSON from "superjson"
 
 const modelDebuggerStore = create<{
     paused: boolean
@@ -42,10 +41,7 @@ const renderingOptionsStore = create<{
     setRenderingOption: (name, value) => { set((d) => { d.renderingOptions[name] = value }) },
 })), {
     name: "acgRenderingOptions",
-    version: 1,
-    // Allow saving Map, Set, etc.
-    serialize: (s) => { return SuperJSON.stringify(s) },
-    deserialize: (s) => SuperJSON.parse(s) as any,
+    version: 2,
 }))
 
 /** Returns a boolean indicating whether the component should be rendered or not, which can be controlled in the rendering options window. */

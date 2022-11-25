@@ -1,12 +1,8 @@
 import create from "zustand"
 import { persist } from "zustand/middleware"
 import { immer } from "zustand/middleware/immer"
-import { enableMapSet } from "immer"
-import SuperJSON from "superjson"
 import * as constants from "./constants"
-import { ObjectEntries } from "./util"
-
-enableMapSet()
+import { ObjectEntries, SerializableSet } from "./util"
 
 const localStorageKey = "acgSaveData"
 let destroyed = false
@@ -20,9 +16,9 @@ type SaveData = {
     items: Partial<Record<constants.ItemName, number>>
     /** The number of upgrades purchased by the player. */
     upgrades: Record<constants.UpgradeName, number>
-    completedTutorials: Set<constants.TutorialName>
-    availableNews: Set<constants.NewsName>
-    availableTutorials: Set<constants.TutorialName>
+    completedTutorials: SerializableSet<constants.TutorialName>
+    availableNews: SerializableSet<constants.NewsName>
+    availableTutorials: SerializableSet<constants.TutorialName>
     weatherEffectWillBeEnabledIn: Partial<Record<constants.StageName, number>>  // the weather effect is enabled if countdown <= 0
     weatherEffectWillBeEnabledInLessThan: Partial<Record<constants.StageName, number>>
     canTranscend: boolean
@@ -64,10 +60,9 @@ export const store = create<SaveData>()(persist(immer((set, get) => ({
     money: 0,
     items: {},
     upgrades: Object.fromEntries(constants.upgradeNames.map((name) => [name, 0])) as Record<constants.UpgradeName, number>,
-    completedTutorials: new Set(),
-    availableNews: new Set(),
-    openedNews: new Set(),
-    availableTutorials: new Set(),
+    completedTutorials: {},
+    availableNews: {},
+    availableTutorials: {},
     weatherEffectWillBeEnabledIn: {},
     weatherEffectWillBeEnabledInLessThan: {},
     canTranscend: false,
@@ -99,17 +94,17 @@ export const store = create<SaveData>()(persist(immer((set, get) => ({
     },
     completeTutorial: (name) => {
         set((d) => {
-            d.completedTutorials.add(name)
+            d.completedTutorials[name] = true
             if (name === "nextStage") {
-                d.availableTutorials.add("backToPreviousStage")
+                d.availableTutorials.backToPreviousStage = true
             }
         })
     },
     addNews: (name) => {
-        if (get().availableNews.has(name)) { return }
-        set((d) => { d.availableNews.add(name) })
+        if (get().availableNews[name]) { return }
+        set((d) => { d.availableNews[name] = true })
     },
-    addTutorial: (name) => { set((d) => { d.availableTutorials.add(name) }) },
+    addTutorial: (name) => { set((d) => { d.availableTutorials[name] = true }) },
     setStageTransitingTo: (stage) => {
         if (get().stage === stage) { return }
         set((d) => { d.stageTransitingTo = stage })
@@ -187,12 +182,9 @@ export const store = create<SaveData>()(persist(immer((set, get) => ({
     },
     getExplorationLv: () => get().exploration[get().stage] ?? 1,
 } as SaveData)), {
-    // Options for the "persist" middleware
     name: localStorageKey,
-    version: 7,
-    // Allow saving Map, Set, etc.
-    serialize: (s) => { if (destroyed) { throw new Error("destroyed") } return SuperJSON.stringify(s) },
-    deserialize: (s) => SuperJSON.parse(s) as any,
+    version: 8,
+    serialize: (s) => { if (destroyed) { throw new Error("destroyed") } return JSON.stringify(s) },
 }));
 
 (window as any).store = new Proxy(store, {

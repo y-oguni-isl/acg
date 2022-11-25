@@ -569,7 +569,6 @@ __metadata:
     preact: "npm:^10.11.2"
     sass: "npm:^1.56.1"
     stats.js: "npm:^0.17.0"
-    superjson: "npm:^1.11.0"
     tailwindcss: "npm:^3.2.2"
     three: "npm:^0.146.0"
     typed-query-selector: "npm:^2.8.0"
@@ -925,15 +924,6 @@ __metadata:
   version: 1.9.0
   resolution: "convert-source-map@npm:1.9.0"
   checksum: 7c665ec75a792623eff22413a59fb6646770063eb871efe7550cfba4f17177137ea300f964c2763db69355384398de491126fbe064fa83b25e3023b87711b6e4
-  languageName: node
-  linkType: hard
-
-"copy-anything@npm:^3.0.2":
-  version: 3.0.2
-  resolution: "copy-anything@npm:3.0.2"
-  dependencies:
-    is-what: "npm:^4.1.6"
-  checksum: 5cf2b3f2524430a300e99f715030ed17f76659e1b4b17913630bb44ac9de1714b1ba94b349dc1f61cf22ad3162029ccc65080aa1de8c8d2073079e2e1e783b2a
   languageName: node
   linkType: hard
 
@@ -1670,13 +1660,6 @@ __metadata:
   version: 7.0.0
   resolution: "is-number@npm:7.0.0"
   checksum: 748df55ae14cc960b090a7611932940df9fa703b7e0fb4f73943b4eb94c4b5391f27ba3881fab8f5bf7a2f097490e812db0d58d05c92154e70fdf14f93d6fa95
-  languageName: node
-  linkType: hard
-
-"is-what@npm:^4.1.6":
-  version: 4.1.7
-  resolution: "is-what@npm:4.1.7"
-  checksum: e6f55ed6999674be3b4bce6937a9202cb429ae1470c4138e581176bb1ea4b5c0ddacb6368d990d60af1465d5219fd0bcf1ee1d61006954bca303eaf1f52d6769
   languageName: node
   linkType: hard
 
@@ -2615,15 +2598,6 @@ __metadata:
   dependencies:
     ansi-regex: "npm:^5.0.1"
   checksum: 056ca08f8097351060572eee207ec66247937d7248780a3d643b5eed7d6b5ca6a0990a4f921ffd329e8e9b66427a384237892ac3cb47463adf7d040b154084ec
-  languageName: node
-  linkType: hard
-
-"superjson@npm:^1.11.0":
-  version: 1.11.0
-  resolution: "superjson@npm:1.11.0"
-  dependencies:
-    copy-anything: "npm:^3.0.2"
-  checksum: ea9e343a8c931ee71f91b3b3728cd1d1aeca0247d711bc8309c0793fbe3b0106aca9da0f55c357e5ea19d11fedd59d52846462a7f3a274edde3cf1016905a1ca
   languageName: node
   linkType: hard
 

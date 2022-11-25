@@ -6,6 +6,7 @@ import { ObjectEntries } from "../util"
 import { useRef, useLayoutEffect } from "preact/hooks"
 import shallow from "zustand/shallow"
 import { removeTooltip, setTooltip } from "./tooltip"
+import { onBeforeRender } from "../hooks"
 
 const maxUpgrades = 25
 
@@ -57,11 +58,12 @@ const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
     const ref = useRef<HTMLDivElement>(null)
 
     useLayoutEffect(() => {
-        const timer = setInterval(() => {
+        const callback = () => {
             if (!ref.current) { return }
             ref.current.style.background = buildProgressBarStyle(props.name, props.rowNumber)
-        }, 1000 / 60) // Update animation
-        return () => { clearTimeout(timer) }
+        }
+        onBeforeRender.add(callback)
+        return () => { onBeforeRender.delete(callback) }
     }, [ref])
 
     return <div

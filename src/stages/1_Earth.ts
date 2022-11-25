@@ -23,7 +23,7 @@ export default {
             .catch(console.error)
         return stage
     },
-    visible: () => getState().availableNews.has("aliensComing"),
+    visible: () => getState().availableNews.aliensComing ?? false,
     createEnemyPools: async (): Promise<EnemyPools> => {
         const pools = await PromiseAll({
             alive: webgl.createBirdPool(true).then((m) => m.onAllocate((copy): EnemyUserData => ({

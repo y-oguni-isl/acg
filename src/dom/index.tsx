@@ -6,8 +6,6 @@ import { persist } from "zustand/middleware"
 import { deleteSaveData, getState, store } from "../saveData"
 import { useEffect, useRef, useState } from "preact/hooks"
 import type { JSXInternal } from "preact/src/jsx"
-import { enableMapSet } from "immer"
-import SuperJSON from "superjson"
 import { Debugger } from "../debug"
 import Autolinker from "autolinker"
 import stages from "../stages"
@@ -16,15 +14,13 @@ import * as constants from "../constants"
 import shallow from "zustand/shallow"
 import { removeTooltip, setTooltip, Tooltip } from "./tooltip"
 
-enableMapSet()
-
 /** A mapping from tutorial names to their indices.  */
 const tutorialIndices = new Map(ObjectKeys(constants.tutorialHTML).map((name, i) => [name, i]))
 
 /** A black banner showing a tutorial message. */
 const Tutorial = () => {
     const tutorial = useStore(store, (s) =>
-        [...s.availableTutorials.difference(s.completedTutorials)]
+        [...new Set(ObjectKeys(s.availableTutorials)).difference(new Set(ObjectKeys(s.completedTutorials)))]
             .sort((a, b) => tutorialIndices.get(a)! - tutorialIndices.get(b)!)[0])
     return <div style={{ opacity: tutorial === undefined ? "0" : "1" }} class="absolute w-[90%] py-3 left-[5%] px-16 text-center top-[70%] [transition:opacity_ease_1s] whitespace-pre-wrap pointer-events-none z-10 window-popup">
         {tutorial && <><i class="ti ti-message-report absolute left-4 top-0 [font-size:250%]" /><span class="[&>b]:text-orange-300">{constants.tutorialHTML[tutorial]}</span></>}
@@ -48,17 +44,13 @@ export const domStore = create<{
     hideNews: () => { set((d) => { d.news = null }) },
 })), {
     name: "acgDOMStore",
-    version: 1,
-
-    // Allow saving Map, Set, etc.
-    serialize: (s) => { return SuperJSON.stringify(s) },
-    deserialize: (s) => SuperJSON.parse(s) as any,
+    version: 2,
 }))
 
 // Loading messages should not be persisted
 type EnemyStatus = { hp: number, name: string, money: number, items: { readonly [k in constants.ItemName]?: number } }
 export const ephemeralDOMStore = create<{
-    loadingMessage: Map<string, string>
+    loadingMessage: Record<string, string>
     enemyStatus: EnemyStatus | null
     powerSaveMode: boolean
     setLoadingMessage: (key: string, message: string) => void,
@@ -66,11 +58,11 @@ export const ephemeralDOMStore = create<{
     setEnemyStatus: (status: EnemyStatus) => void
     updatePowerSaveModeState: () => void
 }>()(immer((set, get) => ({
-    loadingMessage: new Map(),
+    loadingMessage: {},
     enemyStatus: null as (EnemyStatus | null),
     powerSaveMode: false,
-    setLoadingMessage: (key, message) => { set((d) => { d.loadingMessage.set(key, message) }) },
-    removeLoadingMessage: (key: string) => { set((d) => { d.loadingMessage.delete(key) }) },
+    setLoadingMessage: (key, message) => { set((d) => { d.loadingMessage[key] = message }) },
+    removeLoadingMessage: (key: string) => { set((d) => { delete d.loadingMessage[key] }) },
     setEnemyStatus: (status) => {
         set((d) => {
             d.enemyStatus = status
@@ -286,7 +278,7 @@ const UI = () => {
             <EnemyStats />
 
             {/* Explore */}
-            {hasVacuum && <div class="px-3 pt-1 pb-3 window mt-3 mb-1">
+            {hasVacuum && stage !== "Final" && <div class="px-3 pt-1 pb-3 window mt-3 mb-1">
                 <h2 class="mb-2 tracking-wide"><i class="ti ti-route" /> Explore: <span class="tracking-tight">Lv. {explorationLv}</span></h2>
                 {explorationLv >= 2 && <button
                     class="block w-full text-left pl-[3.3rem]"
@@ -368,7 +360,7 @@ const UI = () => {
         </dialog>
 
         {/* Loading Message */}
-        {loadingMessage.size > 0 && <div class="text-gray-100 absolute top-[35%] left-0 w-full text-center whitespace-pre">{[...loadingMessage.values()].join("\n")}</div>}
+        {Object.keys(loadingMessage).length > 0 && <div class="text-gray-100 absolute top-[35%] left-0 w-full text-center whitespace-pre">{ObjectValues(loadingMessage).join("\n")}</div>}
 
         <Tooltip />
     </>
