@@ -5,6 +5,7 @@
   "main": "index.js",
   "type": "module",
   "private": true,
+  "packageManager": "yarn@4.0.0-rc.30",
   "scripts": {
     "start": "vite",
     "build": "vite build"
