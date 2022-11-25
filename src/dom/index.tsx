@@ -77,7 +77,7 @@ document.addEventListener("visibilitychange", () => { ephemeralDOMStore.getState
 window.addEventListener("blur", () => { ephemeralDOMStore.getState().updatePowerSaveModeState() })
 window.addEventListener("focus", () => { ephemeralDOMStore.getState().updatePowerSaveModeState() })
 
-/** showModal() with an animation */
+/** dialog.showModal() with an animation */
 const showModal = (dialog: HTMLDialogElement) => {
     dialog.style.transition = "opacity ease 0.3s"
     dialog.style.opacity = "0"
@@ -87,6 +87,7 @@ const showModal = (dialog: HTMLDialogElement) => {
     dialog.classList.add("open")
 }
 
+/** dialog.close() with an animation */
 const closeModal = (dialog: HTMLDialogElement) => {
     dialog.style.opacity = "0"
     dialog.classList.remove("open")
@@ -102,6 +103,7 @@ const modalOnClickHandler = (ev: JSXInternal.TargetedMouseEvent<HTMLDialogElemen
 /** A random text to fill newspapers. */
 const randomText = Array(10000).fill(0).map(() => Array(Math.floor(Math.random() * 6) + 2).fill(0).map(() => "abcdefghijklmnopqrstuvwxyz"[Math.floor(Math.random() * 26)]).join("")).join(" ")
 
+/** The "Enemy Stats" window */
 const EnemyStats = () => {
     const enemyStatus = useStore(ephemeralDOMStore, (s) => s.enemyStatus, shallow)
     if (!enemyStatus) { return <></> }
@@ -118,6 +120,7 @@ const EnemyStats = () => {
     </div>
 }
 
+/** The "Items" window */
 const Items = () => {
     const items = useStore(store, (s) => s.items)
     return <div class="px-3 pt-1 pb-3 window mt-3 mb-1">
@@ -131,6 +134,7 @@ const Items = () => {
     </div>
 }
 
+/** The "transcend" (or "ascend") window */
 const Transcend = () => {
     const canTranscend = useStore(store, (s) => s.canTranscend)
     return <>
@@ -144,6 +148,7 @@ const Transcend = () => {
     </>
 }
 
+/** The tooltip shown when the mouse cursor is on the "Prev" button in the "Exploration" window */
 const ExplorationPrevTooltip = () => {
     const explorationLv = useStore(store, (s) => s.getExplorationLv())
     return <table>
@@ -153,6 +158,7 @@ const ExplorationPrevTooltip = () => {
     </table>
 }
 
+/** The tooltip shown when the mouse cursor is on the "Next" button in the "Exploration" window */
 const ExplorationNextTooltip = () => {
     const explorationLv = useStore(store, (s) => s.getExplorationLv())
     return <table>
@@ -162,6 +168,7 @@ const ExplorationNextTooltip = () => {
     </table>
 }
 
+/** The root component */
 const UI = () => {
     const state = useStore(domStore)
     const newsDialog = useRef<HTMLDialogElement>(null)
@@ -179,6 +186,7 @@ const UI = () => {
     const hasVacuum = useStore(store, (s) => s.upgrades.Vacuum > 0)
     const explorationLv = useStore(store, (s) => s.getExplorationLv())
 
+    // Download the credit files in parallel
     useEffect(() => {
         for (const f of [
             "./audio/credit.html",
@@ -194,6 +202,7 @@ const UI = () => {
         }
     }, [])
 
+    // Show the news dialog when a news is set to `state.news`
     useEffect(() => {
         if (state.news === null) { return }
         setTimeout(() => {
@@ -206,6 +215,7 @@ const UI = () => {
         }, 2000)
     }, [state.news])
 
+    // The "Transcending..." dialog
     if (transcending) {
         return <div class="absolute window w-full h-full">
             <div class="m-auto w-fit h-fit text-center p-[30vh]">
@@ -362,6 +372,7 @@ const UI = () => {
         {/* Loading Message */}
         {Object.keys(loadingMessage).length > 0 && <div class="text-gray-100 absolute top-[35%] left-0 w-full text-center whitespace-pre">{ObjectValues(loadingMessage).join("\n")}</div>}
 
+        {/* Tooltip */}
         <Tooltip />
     </>
 }

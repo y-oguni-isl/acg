@@ -19,8 +19,9 @@ I highly recommend using VSCode with the extensions listed in `.vscode/extension
 
 # 3D Models
 You can search models through websites such as [sketchfab](https://sketchfab.com/search?features=downloadable&licenses=322a749bcfa841b29dff1e8a1bb74b0b&licenses=7c23a1ba438d4306920229c12afcb5f9&licenses=b9ddc40b93e34cdca1fc152f39b9f375&type=models).
-- Avoid ND licenses: We should avoid using 3D models with the ND ("modified versions can not be distributed") license because we can't tweak their material to fit it to the game theme.
-- Choose smaller models: The model size should be less than 500KB if possible, and less than 5MB at maximum. On GitHub Pages, 3MB takes around 1 second to load. We don't want to make users wait for minutes before starting the game.
+There are a few things to note:
+- We should **not** use 3D models with the **ND license** ("modified versions can not be distributed") because we can't tweak their material to fit it to the game theme.
+- The model size should be less than 500KB if possible, and less than 5MB at maximum. On GitHub Pages, 3MB takes around 1 second to load. We don't want to make users wait for minutes before starting the game.
 - You can put the downloaded models in `public/models/foobar.glb` and these files can be accessed as `./models/foobar.glb` [because vite copies files in the `public/` directory to the root directory](https://vitejs.dev/guide/assets.html#the-public-directory).
 
 # Directory Structure

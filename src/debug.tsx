@@ -1,3 +1,7 @@
+/**
+ * This file defines debugging components that should be disabled in production.
+ */
+
 import * as THREE from "three"
 import { TransformControls } from "three/examples/jsm/controls/TransformControls"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"

@@ -3,7 +3,7 @@ import glob from "glob"
 import fs from "fs"
 import path from "path"
 
-/** Updates src/webgl/index.ts based on exports in the files under src/webgl/. */
+/** Updates src/<dir>/index.ts based on the exports in the files under src/<dir>/. */
 export const generate = () => {
     // src/webgl/index.ts
     {

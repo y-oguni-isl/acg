@@ -1,4 +1,7 @@
-// Object3D.onBeforeRender does't fire for THREE.Object3D or THREE.Group
+/**
+ * This file defines `Set`s in which event listeners are registered.
+ * The order or the events is described in # Main Game Loop in `CONTRIBUTING.md`.
+ */
 
 import type { ItemName } from "./constants"
 import { ReadonlyVector3 } from "./util"
@@ -6,6 +9,7 @@ import { ReadonlyVector3 } from "./util"
 /** Functions in this set will be called every time just before rendering. */
 export const onBeforeRender = new Set<(time: number, deltaTime: number) => void>()
 
+/** Functions in this set will be called after onBeforeRender. The only purpose of this hook is to address a jittering issue when postprocessing is done before moving the camera. */
 export const onPreprocess = new Set<() => void>()
 
 /** Unlike onBeforeRender, functions in this set will be called at a fixed interval even if the FPS drops, and you don't need to worry about delta timing. */
@@ -22,6 +26,8 @@ export type Collidable = {
     }
 }
 
+/** Functions in this set should reduce .hp property of `enemies` based on their position . */
 export const onCollisionDetection = new Set<(enemies: readonly Collidable[]) => void>()
 
+/** Functions in this set are called when an enemy is killed or removed by going off-screen. */
 export const onEnemyRemoved = new Set<(obj: Collidable) => void>

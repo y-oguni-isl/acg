@@ -1,6 +1,6 @@
 import { onBeforeRender } from "../hooks"
 import { enableSelectiveBloom } from "./createSelectiveBloomPass"
-import { extendMaterial } from "./extendMaterial"
+import extendMaterial from "./extendMaterial"
 import loadGLTF from "./loadGLTF"
 import ObjectPool from "./ObjectPool"
 

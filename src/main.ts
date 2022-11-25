@@ -1,3 +1,7 @@
+/**
+ * This file is the entry point of the web page.
+ */
+
 {
     // Close other browser tabs
     const broadcastChannel = new BroadcastChannel("acg")
@@ -30,7 +34,7 @@ import weapons from "./weapons"
 /** The scene object, that contains all visible Three.js objects. */
 const scene = new THREE.Scene()
 
-/** An utility function to add the `obj` to the `scene`. */
+/** The utility function to add the `obj` to the `scene`. */
 const show = <T extends Omit<THREE.Object3D, "userData">>(obj: T): T => { scene.add(obj as any as THREE.Object3D); return obj }
 
 // Airplane
@@ -85,7 +89,7 @@ subscribe((state, prev) => {
 ephemeralDOMStore.getState().setLoadingMessage("loadingModels", `Loading models...`)
 await new Promise((resolve) => setTimeout(resolve, 0)) // Let the browser to render the changes in the DOM
 
-// Download the 3D model for newspaper after every other 3D models is downloaded because it should not be prioritized.
+// Download the 3D model for newspapers after every other 3D models is downloaded because it should not be prioritized.
 show(webgl.createNewspaperAnimationPlayer())
 
 // Renderer
@@ -259,5 +263,5 @@ window.addEventListener("keyup", (ev) => {
     }
 })
 
-// Without this, code that awaits between the instantiation of an Three.js object and addEventlistener("resize",) goes wrong if the window is resized while awaiting.
+// Without this, code that awaits between the instantiation of a Three.js object and addEventlistener("resize",) goes wrong if the window is resized while awaiting.
 window.dispatchEvent(new UIEvent("resize"))

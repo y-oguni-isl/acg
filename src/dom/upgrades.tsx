@@ -8,14 +8,13 @@ import shallow from "zustand/shallow"
 import { removeTooltip, setTooltip } from "./tooltip"
 import { onBeforeRender } from "../hooks"
 
-const maxUpgrades = 25
-
+/** Constructs the css property to animate the background color of the buttons in the "Upgrades" window. */
 const buildProgressBarStyle = (name: constants.UpgradeName, rowNumber: number) => {
     const price = constants.price(name, getState())
     const count = getState().upgrades[name]
     const money = getState().money
-    const baseColor = count >= maxUpgrades ? new THREE.Vector4(255, 0, 0, 1) : money >= price ? new THREE.Vector4(0, 220, 220, 1) : new THREE.Vector4(128, 128, 128, 1)
-    const progress = count >= maxUpgrades ? 1 : money / price
+    const baseColor = count >= constants.maxUpgrades ? new THREE.Vector4(255, 0, 0, 1) : money >= price ? new THREE.Vector4(0, 220, 220, 1) : new THREE.Vector4(128, 128, 128, 1)
+    const progress = count >= constants.maxUpgrades ? 1 : money / price
 
     let style = "linear-gradient(90deg,"
     for (let i = 0; i <= 1; i += 0.05) {
@@ -48,13 +47,14 @@ const Upgrades = () => {
     </>
 }
 
+/** The button in the "Upgrades" window */
 const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
     const buyUpgrade = useStore(store, (s) => s.buyUpgrade)
     const weather = useStore(store, (s) => s.getWeather())
     const price = useStore(store, (s) => constants.price(props.name, s))
     const isUpgradeNameHidden = useStore(store, (s) => constants.isUpgradeNameHidden(props.name, s))
     const count = useStore(store, (s) => s.upgrades[props.name])
-    const disabled = useStore(store, (s) => price > s.money || count >= maxUpgrades)
+    const disabled = useStore(store, (s) => price > s.money || count >= constants.maxUpgrades)
     const ref = useRef<HTMLDivElement>(null)
 
     useLayoutEffect(() => {
@@ -94,6 +94,7 @@ const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
     </div>
 }
 
+/** Renders the contents of the tooltip that is shown when the mouse cursor is over the one of the buttons in the "Upgrades" window. */
 const TooltipContent = (props: { name: constants.UpgradeName }) => {
     const price = useStore(store, (s) => constants.price(props.name, s))
     const atk = useStore(store, (s) => constants.getAtk(s)[props.name])

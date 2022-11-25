@@ -10,7 +10,7 @@ export { default as createRainPass } from "./createRainPass"
 export { default as createSelectiveBloomPass, enableSelectiveBloom } from "./createSelectiveBloomPass"
 export { default as createStageTransitionPass } from "./createStageTransitionPass"
 export { default as createUFOPool } from "./createUFOPool"
-export { extendMaterial, overrideMaterial } from "./extendMaterial"
+export { default as extendMaterial } from "./extendMaterial"
 export { default as loadGLTF } from "./loadGLTF"
 export { default as ObjectPool } from "./ObjectPool"
 

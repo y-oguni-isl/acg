@@ -51,7 +51,7 @@ type SaveData = {
 
 const newWeatherEffectETA = (rand = Math.random()) => rand * constants.updatePerSecond * 60 * 6
 
-/** This store maintains the stage of game, and it is persisted in the localStorage by the persist() middleware. */
+/** This store maintains the game state. The values in the store is persisted in the localStorage by the persist() middleware. */
 export const store = create<SaveData>()(persist(immer((set, get) => ({
     gameSessionId: crypto.randomUUID(),
     stage: "Earth",

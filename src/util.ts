@@ -1,3 +1,7 @@
+/**
+ * This file defines small utility functions that are shared among other files.
+ */
+
 /** `Object.entries` with a strict type. */
 export const ObjectEntries = <K extends keyof any, V extends unknown>(obj: { readonly [k in K]?: V }): [K, V][] => Object.entries(obj) as any
 /** `Object.values` with a strict type. */

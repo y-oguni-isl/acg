@@ -1,7 +1,11 @@
-import type stages from "./stages"
-import { SerializableSet } from "./util"
+/**
+ * This file defines constants that don't change during game play.
+ */
 
-// The area the airplane and enemies can move exist.
+import type stages from "./stages"
+import type { SerializableSet } from "./util"
+
+// The area the airplane and enemies can exist.
 //                                                                  screen position:
 export const [xMax, xMin, yMax, yMin] = [0.5, -0.5, 0.3, -0.3]   // up, down, right, left
 
@@ -20,6 +24,9 @@ export const upgradeNames = [
 ] as const satisfies readonly string[]
 
 export type UpgradeName = (typeof upgradeNames)[number]
+
+/** The number of upgrades of a same kind the player can have at once. */
+export const maxUpgrades = 25
 
 export type StageName = keyof typeof stages
 

@@ -1,3 +1,7 @@
+/**
+ * This file defines the setTooltip() and removeTooltip() function that sets and removes a tooltip.
+ */
+
 import type { ComponentChildren } from "preact"
 import { useEffect, useState } from "preact/hooks"
 import create, { useStore } from "zustand"
@@ -14,6 +18,7 @@ export const removeTooltip = (key: string) => {
     }
 }
 
+/** This function renders the tooltip's text into the DOM, and should be used only once in index.tsx. */
 export const Tooltip = () => {
     const [mouseX, setMouseX] = useState(0)
     const [mouseY, setMouseY] = useState(0)
