@@ -14,6 +14,7 @@ import stages from "../stages"
 import { ObjectEntries, fromEntries, ObjectKeys, ObjectValues } from "../util"
 import * as constants from "../constants"
 import shallow from "zustand/shallow"
+import { removeTooltip, setTooltip, Tooltip } from "./tooltip"
 
 enableMapSet()
 
@@ -130,7 +131,10 @@ const Items = () => {
     return <div class="px-3 pt-1 pb-3 window mt-3 mb-1">
         <h2 class="mb-2 tracking-wide"><i class="ti ti-notes" /> Items</h2>
         <table class="w-full">{ObjectEntries(items).map(([k, v]) =>
-            <tr><td><i class="ti ti-meat" /> {k}</td><td class="text-right">{v}</td></tr>)}
+            <tr onMouseEnter={() => { setTooltip(`item-${k}`, constants.flavorText[k]) }}
+                onMouseLeave={() => { removeTooltip(`item-${k}`) }}>
+                <td><i class="ti ti-meat" /> {k}</td><td class="text-right">{v}</td>
+            </tr>)}
         </table>
     </div>
 }
@@ -146,6 +150,24 @@ const Transcend = () => {
             <button class="w-full" tabIndex={-1} onClick={() => { getState().transcend() }}>Show Bonus</button>
         </div>}
     </>
+}
+
+const ExplorationPrevTooltip = () => {
+    const explorationLv = useStore(store, (s) => s.getExplorationLv())
+    return <table>
+        <tr><td><i class="ti ti-heart" /></td><td>×{explorationLv} → ×{explorationLv - 1}</td></tr>
+        <tr><td><i class="ti ti-moneybag" /></td><td>×{explorationLv} → ×{explorationLv - 1}</td></tr>
+        <tr><td><i class="ti ti-notes" /></td><td>×{explorationLv} → ×{explorationLv - 1}</td></tr>
+    </table>
+}
+
+const ExplorationNextTooltip = () => {
+    const explorationLv = useStore(store, (s) => s.getExplorationLv())
+    return <table>
+        <tr><td><i class="ti ti-heart" /></td><td>×{explorationLv} → ×{explorationLv + 1}</td></tr>
+        <tr><td><i class="ti ti-moneybag" /></td><td>×{explorationLv} → ×{explorationLv + 1}</td></tr>
+        <tr><td><i class="ti ti-notes" /></td><td>×{explorationLv} → ×{explorationLv + 1}</td></tr>
+    </table>
 }
 
 const UI = () => {
@@ -266,8 +288,20 @@ const UI = () => {
             {/* Explore */}
             {hasVacuum && <div class="px-3 pt-1 pb-3 window mt-3 mb-1">
                 <h2 class="mb-2 tracking-wide"><i class="ti ti-route" /> Explore: <span class="tracking-tight">Lv. {explorationLv}</span></h2>
-                {explorationLv >= 2 && <button class="block w-full text-left pl-[3.3rem]" onClick={() => { getState().explorePrev() }}><i class="ti ti-arrow-back" /> Prev</button>}
-                <button class="block w-full text-left pl-[3.3rem]" onClick={() => { getState().exploreNext() }}><i class="ti ti-arrow-forward" /> Next<span class="[font-size:80%] tracking-tighter"><i class="ti ti-meat ml-3 mr-1" />{constants.explorationCost(explorationLv)}</span></button>
+                {explorationLv >= 2 && <button
+                    class="block w-full text-left pl-[3.3rem]"
+                    onClick={() => { getState().explorePrev() }}
+                    onMouseEnter={() => { setTooltip("explorationPrev", <ExplorationPrevTooltip />) }}
+                    onMouseLeave={() => { removeTooltip("explorationPrev") }}>
+                    <i class="ti ti-arrow-back" /> Prev
+                </button>}
+                <button
+                    class="block w-full text-left pl-[3.3rem]"
+                    onClick={() => { getState().exploreNext() }}
+                    onMouseEnter={() => { setTooltip("explorationNext", <ExplorationNextTooltip />) }}
+                    onMouseLeave={() => { removeTooltip("explorationNext") }}>
+                    <i class="ti ti-arrow-forward" /> Next<span class="[font-size:80%] tracking-tighter"><i class="ti ti-meat ml-3 mr-1" />{constants.explorationCost(explorationLv)}</span>
+                </button>
             </div>}
         </div>
 
@@ -335,6 +369,8 @@ const UI = () => {
 
         {/* Loading Message */}
         {loadingMessage.size > 0 && <div class="text-gray-100 absolute top-[35%] left-0 w-full text-center whitespace-pre">{[...loadingMessage.values()].join("\n")}</div>}
+
+        <Tooltip />
     </>
 }
 

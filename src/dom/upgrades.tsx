@@ -3,8 +3,9 @@ import { getState, store } from "../saveData"
 import * as constants from "../constants"
 import { useStore } from "zustand"
 import { ObjectEntries } from "../util"
-import { useRef, useState, useLayoutEffect } from "preact/hooks"
+import { useRef, useLayoutEffect } from "preact/hooks"
 import shallow from "zustand/shallow"
+import { removeTooltip, setTooltip } from "./tooltip"
 
 const maxUpgrades = 25
 
@@ -48,7 +49,6 @@ const Upgrades = () => {
 
 const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
     const buyUpgrade = useStore(store, (s) => s.buyUpgrade)
-    const [mouseHover, setMouseHover] = useState(false)
     const weather = useStore(store, (s) => s.getWeather())
     const price = useStore(store, (s) => constants.price(props.name, s))
     const isUpgradeNameHidden = useStore(store, (s) => constants.isUpgradeNameHidden(props.name, s))
@@ -71,10 +71,11 @@ const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
         onMouseDown={() => {
             if (disabled) { return }
             buyUpgrade(props.name)
-        }}
-        onMouseEnter={() => { setMouseHover(true) }}
-        onMouseLeave={() => { setMouseHover(false) }}>
-        <div class="px-2 hover:bg-[linear-gradient(0deg,rgba(255,255,255,1)_0%,rgba(255,255,255,0)_10%)]">
+        }}>
+        <div
+            class="px-2 hover:bg-[linear-gradient(0deg,rgba(255,255,255,1)_0%,rgba(255,255,255,0)_10%)]"
+            onMouseEnter={() => { setTooltip(`upgrade-${props.name}`, <TooltipContent name={props.name} />) }}
+            onMouseLeave={() => { removeTooltip(`upgrade-${props.name}`) }}>
             <span class="inline-block w-28 tracking-wider">{isUpgradeNameHidden ? "???" : <><i class={"mr-1 ti " + ({
                 Laser: "ti-flare",
                 Autopilot: "ti-plane",
@@ -88,27 +89,24 @@ const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
             } satisfies Record<constants.UpgradeName, string>)[props.name]} />{props.name}</>}</span>
             <span class="float-right tracking-tight">{count}{props.name === "Autopilot" && weather?.enabled && <b class="text-red-400"> (-5)</b>}</span>
         </div>
-        {mouseHover && <Tooltip name={props.name} />}
     </div>
 }
 
-const Tooltip = (props: { name: constants.UpgradeName }) => {
+const TooltipContent = (props: { name: constants.UpgradeName }) => {
     const price = useStore(store, (s) => constants.price(props.name, s))
     const atk = useStore(store, (s) => constants.getAtk(s)[props.name])
     const interval = useStore(store, (s) => constants.getInterval(s)[props.name])
     const money = useStore(store, (s) => s.money)
     const isUpgradeNameHidden = useStore(store, (s) => constants.isUpgradeNameHidden(props.name, s))
 
-    return <div class="absolute left-full top-0 ml-7 px-6 py-1 backdrop-blur-3xl bg-[linear-gradient(240deg,rgba(31,37,46,0.4)_0%,rgba(30,36,44,0.4)_100%)] whitespace-nowrap pointer-events-none rounded-sm [font-size:80%] [-webkit-text-stroke:5px_rgba(255,255,255,0.15)]">
-        <table>
-            <tr><td class="font-bold tracking-wider pr-2 text-right">Price</td><td><i class="ti ti-moneybag" /> {money} / {price}</td></tr>
-            {!isUpgradeNameHidden && <>
-                {atk && <tr><td class="tracking-wider text-right pr-2">Damage</td><td><i class="ti ti-swords" /> {atk}</td></tr>}
-                {interval && <tr><td class="tracking-wider text-right pr-2">Interval</td><td><i class="ti ti-hourglass" /> {interval}</td></tr>}
-                {props.name === "Missile" && <tr><td class="tracking-wider text-right pr-2">Ammo</td><td><i class="ti ti-settings" /> 10 / sec</td></tr>}
-            </>}
-        </table>
-    </div>
+    return <table>
+        <tr><td class="font-bold tracking-wider pr-2 text-right">Price</td><td><i class="ti ti-moneybag" /> {money} / {price}</td></tr>
+        {!isUpgradeNameHidden && <>
+            {atk && <tr><td class="tracking-wider text-right pr-2">Damage</td><td><i class="ti ti-swords" /> {atk}</td></tr>}
+            {interval && <tr><td class="tracking-wider text-right pr-2">Interval</td><td><i class="ti ti-hourglass" /> {interval}</td></tr>}
+            {props.name === "Missile" && <tr><td class="tracking-wider text-right pr-2">Ammo</td><td><i class="ti ti-settings" /> 1000 / sec</td></tr>}
+        </>}
+    </table>
 }
 
 export default Upgrades

@@ -24,6 +24,11 @@ export type StageName = keyof typeof stages
 
 export type ItemName = "Food" | "Scrap"
 
+export const flavorText = {
+    Food: "On the trail, it's good to have a hearty meal ready to go. The right foods will give you the energy you need to explore new territory.",
+    Scrap: "With a little ingenuity and a lot of scrap, we can make some missiles to take down our enemies."
+} satisfies Record<ItemName, string>
+
 export type WeatherEffect = "Rain"
 
 export const basePrice = {
