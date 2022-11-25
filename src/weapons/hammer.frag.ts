@@ -1,14 +1,12 @@
 export default /* glsl */`
-uniform float daytime;
+uniform bool daytime;
 
 void main() {
     super();
-    if (daytime > 0.5) {
-        gl_FragColor.rgb *= vec3(4.0);
-        gl_FragColor.b += 0.8;
+    if (daytime) {
+        gl_FragColor.rgb = vec3(0.2, 0.2, 0.6);
     } else {
-        gl_FragColor.rgb *= vec3(16.0);
-        gl_FragColor.b += 0.5;
+        gl_FragColor.rgb = vec3(0.2, 0.2, 0.3);
     }
 }
 `
