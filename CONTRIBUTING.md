@@ -13,6 +13,9 @@
    ```
 
 I highly recommend using VSCode with the extensions listed in `.vscode/extensions.json` for development.
+- `"boyswan.glsl-literal"` highlights the `/* glsl */` syntax in `.frag.ts` and `.vert.ts` files.
+- `"bradlc.vscode-tailwindcss"` adds auto-completions and hovers to tailwind classes.
+- `"ms-vscode.vscode-typescript-next"` allows us to use the `satisfies` syntax in TypeScript 4.9 before its release.
 
 # 3D Models
 You can search models through websites such as [sketchfab](https://sketchfab.com/search?features=downloadable&licenses=322a749bcfa841b29dff1e8a1bb74b0b&licenses=7c23a1ba438d4306920229c12afcb5f9&licenses=b9ddc40b93e34cdca1fc152f39b9f375&type=models).
