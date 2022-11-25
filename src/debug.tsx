@@ -6,46 +6,40 @@ import * as THREE from "three"
 import { TransformControls } from "three/examples/jsm/controls/TransformControls"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import create, { useStore } from "zustand"
-import { ObjectEntries, ObjectKeys } from "./util"
+import { defineActions, ObjectEntries, ObjectKeys } from "./util"
 import { persist } from "zustand/middleware"
-import { immer } from "zustand/middleware/immer"
 
-const modelDebuggerStore = create<{
+const modelDebuggerStore = defineActions(create<{
     paused: boolean
     object: THREE.Object3D | null
     version: number,
     objectPools: Record<string, number>
-    setObject: (obj: THREE.Object3D) => void
-    stop: () => void
-    resume: () => void
-    refreshDebugger: () => void
-    setObjectPoolSize: (name: string, count: number) => void
-}>()((set, get) => ({
+}>()(() => ({
     paused: false as boolean,
     object: null as THREE.Object3D | null,
     version: 0,
     objectPools: {},
-    setObject: (obj) => { set({ object: obj }) },
-    stop: () => { set({ paused: true }) },
-    resume: () => { set({ paused: false }) },
-    refreshDebugger: () => { set({ version: get().version + 1 }) },
-    setObjectPoolSize: (name: string, count: number) => { set({ objectPools: { ...get().objectPools, [name]: count } }) }
+})), (set, get) => ({
+    setObject: (obj: THREE.Object3D) => set({ object: obj }),
+    stop: () => set({ paused: true }),
+    resume: () => set({ paused: false }),
+    refreshDebugger: () => set({ version: get().version + 1 }),
+    setObjectPoolSize: (name: string, count: number) => set({ objectPools: { ...get().objectPools, [name]: count } }),
 }))
 
-const renderingOptionsStore = create<{
+const renderingOptionsStore = defineActions(create<{
     renderingOptions: Record<string, boolean>
-    getRenderingOption: (name: string, defaultValue?: boolean) => boolean
-    setRenderingOption: (name: string, value: boolean) => void
-}>()(persist(immer((set, get) => ({
+}>()(persist(() => ({
     renderingOptions: {},
-    getRenderingOption: (name, defaultValue = true) => {
-        if (!(name in get().renderingOptions)) { set((d) => { d.renderingOptions[name] = defaultValue }) }
-        return get().renderingOptions[name]!
-    },
-    setRenderingOption: (name, value) => { set((d) => { d.renderingOptions[name] = value }) },
-})), {
+}), {
     name: "acgRenderingOptions",
     version: 2,
+})), (set, get) => ({
+    getRenderingOption: (name: string, defaultValue: boolean = true) => {
+        set((s) => name in s.renderingOptions ? {} : { renderingOptions: { ...s.renderingOptions, [name]: defaultValue } })
+        return get().renderingOptions[name]!
+    },
+    setRenderingOption: (name: string, value: boolean) => set((s) => ({ renderingOptions: { ...s.renderingOptions, [name]: value } })),
 }))
 
 /** Returns a boolean indicating whether the component should be rendered or not, which can be controlled in the rendering options window. */

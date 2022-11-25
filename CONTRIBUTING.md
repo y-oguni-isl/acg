@@ -59,7 +59,7 @@ All state is managed in the [zustand](https://github.com/pmndrs/zustand) store. 
 const store = create<{
     foo: number,
     bar: number,
-    setFoo: (value: number) => void,
+    setFoo: (value: number) => void, // NOTE: We have a utility function `defineActions` to eliminate the need to write this line in util.ts
 }>()(persist(immer((set) => ({
     foo: 1,
     bar: 2,

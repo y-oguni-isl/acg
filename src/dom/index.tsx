@@ -9,7 +9,7 @@ import type { JSXInternal } from "preact/src/jsx"
 import { Debugger } from "../debug"
 import Autolinker from "autolinker"
 import stages from "../stages"
-import { ObjectEntries, fromEntries, ObjectKeys, ObjectValues } from "../util"
+import { ObjectEntries, fromEntries, ObjectKeys, ObjectValues, defineActions } from "../util"
 import * as constants from "../constants"
 import shallow from "zustand/shallow"
 import { removeTooltip, setTooltip, Tooltip } from "./tooltip"
@@ -28,49 +28,45 @@ const Tutorial = () => {
 }
 
 /** The current state of the DOM (HTML). */
-export const domStore = create<{
+export const domStore = defineActions(create<{
     news: readonly [headline: string, text: string] | null
     usePowerSaveMode: boolean
     sfxVolume: number
     bgmVolume: number
-    showNews: (news: readonly [headline: string, text: string]) => void
-    hideNews: () => void
 }>()(persist(immer((set, get) => ({
     news: null as readonly [headline: string, text: string] | null,
     usePowerSaveMode: true,
     sfxVolume: 1,
     bgmVolume: 1,
-    showNews: (news) => { set((d) => { d.news = [...news] }) },
-    hideNews: () => { set((d) => { d.news = null }) },
 })), {
     name: "acgDOMStore",
     version: 2,
+})), (set, get, setProduce) => ({
+    showNews: (news: readonly [headline: string, text: string]) => { setProduce((d) => { d.news = [...news] }) },
+    hideNews: () => { setProduce((d) => { d.news = null }) },
 }))
 
 // Loading messages should not be persisted
 type EnemyStatus = { hp: number, name: string, money: number, items: { readonly [k in constants.ItemName]?: number } }
-export const ephemeralDOMStore = create<{
+export const ephemeralDOMStore = defineActions(create<{
     loadingMessage: Record<string, string>
     enemyStatus: EnemyStatus | null
     powerSaveMode: boolean
-    setLoadingMessage: (key: string, message: string) => void,
-    removeLoadingMessage: (key: string) => void,
-    setEnemyStatus: (status: EnemyStatus) => void
-    updatePowerSaveModeState: () => void
 }>()(immer((set, get) => ({
     loadingMessage: {},
     enemyStatus: null as (EnemyStatus | null),
     powerSaveMode: false,
-    setLoadingMessage: (key, message) => { set((d) => { d.loadingMessage[key] = message }) },
-    removeLoadingMessage: (key: string) => { set((d) => { delete d.loadingMessage[key] }) },
-    setEnemyStatus: (status) => {
-        set((d) => {
+}))), (set, get, setProduce) => ({
+    setLoadingMessage: (key: string, message: string) => { setProduce((d) => { d.loadingMessage[key] = message }) },
+    removeLoadingMessage: (key: string) => { setProduce((d) => { delete d.loadingMessage[key] }) },
+    setEnemyStatus: (status: EnemyStatus) => {
+        setProduce((d) => {
             d.enemyStatus = status
             d.enemyStatus.hp = Math.max(0, Math.round(d.enemyStatus.hp))
         })
     },
-    updatePowerSaveModeState: () => { set((d) => { d.powerSaveMode = domStore.getState().usePowerSaveMode && (document.visibilityState === "hidden" || !document.hasFocus()) }) }
-})))
+    updatePowerSaveModeState: () => { setProduce((d) => { d.powerSaveMode = domStore.getState().usePowerSaveMode && (document.visibilityState === "hidden" || !document.hasFocus()) }) },
+}))
 
 ephemeralDOMStore.getState().updatePowerSaveModeState()
 document.addEventListener("visibilitychange", () => { ephemeralDOMStore.getState().updatePowerSaveModeState() })

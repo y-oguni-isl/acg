@@ -2,6 +2,9 @@
  * This file defines small utility functions that are shared among other files.
  */
 
+import produce, { Draft } from "immer"
+import type { UseBoundStore, StoreApi } from "zustand"
+
 /** `Object.entries` with a strict type. */
 export const ObjectEntries = <K extends keyof any, V extends unknown>(obj: { readonly [k in K]?: V }): [K, V][] => Object.entries(obj) as any
 /** `Object.values` with a strict type. */
@@ -36,7 +39,7 @@ type RewriteMethodsToProperties<T> = {
  * obj.position.set([1, 2, 3])
  * obj.rotateX(1)
  * 
- * // can be written as
+ * // is the same as
  * call(obj, { position: { set: [1, 2, 3] }, rotateX: 1 })
  * ```
  */
@@ -57,3 +60,39 @@ export type ReadonlyVector3 = Readonly<Pick<THREE.Vector3, "x" | "y" | "z" | "is
 
 // NOTE: We've tried https://github.com/blitz-js/superjson bt it was too slow for us. This game need to stringify save data several times per frame, and superjson took up half of the overall execution time.
 export type SerializableSet<T extends keyof any> = Partial<Record<T, true>>
+
+/**
+ * This function allows you to write the following code:
+ * ```typescript
+ * create<{
+ *     foo: number
+ *     addFoo: (x: number) => void
+ * }>()((set, get) => ({
+ *     foo: 0,
+ *     addFoo: (x) => { set({ foo: get().foo + 1 }) }
+ * }))
+ * ```
+ * as:
+ * ```
+ * defineActions(create<{
+ *     foo: number
+ * }>()(() => ({
+ *     foo: 0
+ * })), (set, get, setProduce) => ({
+ *     addFoo: (x: number) => { set({ foo: get().foo + 1 }) },  // or setProduce((d) => { d.foo++ })
+ * }))
+ * ```
+ * 
+ * NOTE: The immer middleware is not supported, but `setProduce` argument provides the same functionality.
+ */
+export const defineActions = <T, U extends Record<string, unknown>>(
+    store: UseBoundStore<StoreApi<T>>,
+    actions: (
+        set: UseBoundStore<StoreApi<T>>["setState"],
+        get: UseBoundStore<StoreApi<T>>["getState"],
+        setProduce: (f: (draft: Draft<T>) => void) => void,  // set(produce(f))
+    ) => U,
+): UseBoundStore<StoreApi<T & U>> => {
+    store.setState(actions(store.setState, store.getState, (f) => { store.setState(produce(f) as any) }) as any)
+    return store as any
+}

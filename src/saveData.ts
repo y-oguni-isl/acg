@@ -1,8 +1,7 @@
 import create from "zustand"
 import { persist } from "zustand/middleware"
-import { immer } from "zustand/middleware/immer"
 import * as constants from "./constants"
-import { ObjectEntries, SerializableSet } from "./util"
+import { defineActions, ObjectEntries, SerializableSet } from "./util"
 
 const localStorageKey = "acgSaveData"
 let destroyed = false
@@ -26,33 +25,10 @@ type SaveData = {
     transcendence: number
     killCount: Record<`${constants.StageName}_${string}`, number>
     cheated: boolean
-
-    addMoney: (delta: number) => void
-    addItems: (delta: Partial<Record<constants.ItemName, number>>) => void
-    buyUpgrade: (name: constants.UpgradeName) => void
-    completeTutorial: (name: constants.TutorialName) => void
-    addNews: (name: constants.NewsName) => void
-    addTutorial: (name: constants.TutorialName) => void
-    setStageTransitingTo: (stage: constants.StageName) => void
-    completeStageTransition: () => void
-    countdown: () => void
-    getWeather: () => ({ name: constants.WeatherEffect, enabled: boolean } | null)
-    stopWeatherEffect: () => void
-    defeatedFinalBoss: () => void
-    transcend: () => void
-    cancelTranscending: () => void
-    confirmTranscending: () => void
-    incrementKillCount: (name: string) => void
-    cheat: () => void
-    exploreNext: () => void
-    explorePrev: () => void
-    getExplorationLv: () => number
 }
 
-const newWeatherEffectETA = (rand = Math.random()) => rand * constants.updatePerSecond * 60 * 6
-
 /** This store maintains the game state. The values in the store is persisted in the localStorage by the persist() middleware. */
-export const store = create<SaveData>()(persist(immer((set, get) => ({
+export const store = defineActions(create<SaveData>()(persist(() => ({
     gameSessionId: crypto.randomUUID(),
     stage: "Earth",
     stageTransitingTo: null,
@@ -70,125 +46,134 @@ export const store = create<SaveData>()(persist(immer((set, get) => ({
     transcendence: 0,
     killCount: {},
     cheated: false,
-
-    addMoney: (delta) => {
+} as SaveData), {
+    name: localStorageKey,
+    version: 8,
+    serialize: (s) => { if (destroyed) { throw new Error("destroyed") } return JSON.stringify(s) },
+})), (set, get, setProduce) => {
+    const addTutorial = (name: constants.TutorialName) => { setProduce((d) => { d.availableTutorials[name] = true }) }
+    const addNews = (name: constants.NewsName) => {
+        if (get().availableNews[name]) { return }
+        setProduce((d) => { d.availableNews[name] = true })
+    }
+    const addMoney = (delta: number) => {
         set({ money: Math.floor(get().money + delta) })
         document.title = `ACG Final Project $${get().money}`
-        if (get().money >= constants.price(constants.upgradeNames[0]!, get())) { get().addTutorial("upgrade") }
-        if (!constants.isUpgradeNameHidden("Hammer", get())) { get().addNews("hammer") }
-    },
-    addItems: (delta) => {
-        const items = { ...get().items }
-        for (const [k, v] of ObjectEntries(delta)) { items[k] = Math.floor((items[k] ?? 0) + v) }  // a lot faster than immer
-        set({ items })
-    },
-    buyUpgrade: (name) => {
-        set((d) => { d.money -= constants.price(name, get()); d.upgrades[name]++ })
-        document.title = `ACG Final Project $${get().money}`
-        if (get().upgrades.Autopilot > 0) {
-            get().addNews("aliensComing")
-        }
-        get().completeTutorial("upgrade")
-    },
-    completeTutorial: (name) => {
-        set((d) => {
+        if (get().money >= constants.price(constants.upgradeNames[0]!, get())) { addTutorial("upgrade") }
+        if (!constants.isUpgradeNameHidden("Hammer", get())) { addNews("hammer") }
+    }
+    const completeTutorial = (name: constants.TutorialName) => {
+        setProduce((d) => {
             d.completedTutorials[name] = true
             if (name === "nextStage") {
                 d.availableTutorials.backToPreviousStage = true
             }
         })
-    },
-    addNews: (name) => {
-        if (get().availableNews[name]) { return }
-        set((d) => { d.availableNews[name] = true })
-    },
-    addTutorial: (name) => { set((d) => { d.availableTutorials[name] = true }) },
-    setStageTransitingTo: (stage) => {
-        if (get().stage === stage) { return }
-        set((d) => { d.stageTransitingTo = stage })
-    },
-    completeStageTransition: () => {
-        set((d) => {
-            if (d.stageTransitingTo === null) { return }
-            d.stage = d.stageTransitingTo
-            d.stageTransitingTo = null
-        })
-        if (get().stage === "Earth") {
-            get().completeTutorial("backToPreviousStage")
-        } else if (get().stage === "Universe") {
-            get().completeTutorial("nextStage")
-        }
-    },
-    countdown: () => {
-        if (!constants.isWeatherSystemUnlocked(get())) { return }
-        const s = get()
-        set({
-            weatherEffectWillBeEnabledIn: {
-                ...s.weatherEffectWillBeEnabledIn,
-                [s.stage]: (s.weatherEffectWillBeEnabledIn[s.stage] ?? newWeatherEffectETA()) - 1,
-            },
-            weatherEffectWillBeEnabledInLessThan: {
-                ...s.weatherEffectWillBeEnabledInLessThan,
-                [s.stage]: (s.weatherEffectWillBeEnabledInLessThan[s.stage] ?? newWeatherEffectETA(1)) - 1,
-            },
-        })
-        if (get().getWeather()?.enabled) {
-            get().addTutorial("weatherEffect")
-        }
-    },
-    getWeather: () => {
+    }
+    const getWeather = () => {
         if (!constants.isWeatherSystemUnlocked(get())) { return null }
         const enabled = (get().weatherEffectWillBeEnabledIn[get().stage] ?? Number.MAX_SAFE_INTEGER) <= 0
         if (get().stage === "Earth") { return { name: "Rain", enabled } }
         return null  // unimplemented
-    },
-    stopWeatherEffect: () => {
-        set((d) => {
-            d.weatherEffectWillBeEnabledIn[d.stage] = newWeatherEffectETA()
-            d.weatherEffectWillBeEnabledInLessThan[d.stage] = newWeatherEffectETA(1)
-        })
-    },
-    defeatedFinalBoss: () => {
-        get().addNews("ending1")
-        set((d) => { d.canTranscend = true })
-    },
-    transcend: () => { set((d) => { d.transcending = true }) },
-    cancelTranscending: () => { set((d) => { d.transcending = false }) },
-    confirmTranscending: () => {
-        set((d) => {
-            if (!d.transcending) { return }
-            d.stageTransitingTo = null
-            d.stage = "Earth"
-            d.transcending = false
-            d.transcendence++
-            d.canTranscend = false
-        })
-    },
-    incrementKillCount: (name) => {
-        set((d) => { d.killCount[`${get().stage}_${name}`] = (d.killCount[`${get().stage}_${name}`] ?? 0) + 1 })
-        if (get().killCount[`Universe_UFO`] ?? 0 > 10) {
-            getState().completeTutorial("backToPreviousStage")
-        }
-    },
-    cheat: () => { set((d) => { d.cheated = true }) },
-    exploreNext: () => {
-        const lv = get().getExplorationLv()
-        if ((get().items.Food ?? 0) < constants.explorationCost(lv)) { return }
-        set((d) => {
-            d.items.Food = (d.items.Food ?? 0) - constants.explorationCost(lv)
-            d.exploration[d.stage] = lv + 1
-        })
-    },
-    explorePrev: () => {
-        if (get().getExplorationLv() <= 1) { throw new Error() }
-        set((d) => { d.exploration[d.stage] = (d.exploration[d.stage] ?? 1) - 1 })
-    },
-    getExplorationLv: () => get().exploration[get().stage] ?? 1,
-} as SaveData)), {
-    name: localStorageKey,
-    version: 8,
-    serialize: (s) => { if (destroyed) { throw new Error("destroyed") } return JSON.stringify(s) },
-}));
+    }
+    const getExplorationLv = () => get().exploration[get().stage] ?? 1
+    return {
+        addTutorial,
+        addNews,
+        addMoney,
+        completeTutorial,
+        getWeather,
+        getExplorationLv,
+        addItems: (delta: Partial<Record<constants.ItemName, number>>) => {
+            const items = { ...get().items }
+            for (const [k, v] of ObjectEntries(delta)) { items[k] = Math.floor((items[k] ?? 0) + v) }  // a lot faster than immer
+            set({ items })
+        },
+        buyUpgrade: (name: constants.UpgradeName) => {
+            addMoney(-constants.price(name, get()))
+            set({ upgrades: { ...get().upgrades, [name]: get().upgrades[name] + 1 } })
+            document.title = `ACG Final Project $${get().money}`
+            if (get().upgrades.Autopilot > 0) {
+                addNews("aliensComing")
+            }
+            completeTutorial("upgrade")
+        },
+        setStageTransitingTo: (stage: constants.StageName) => {
+            if (get().stage === stage) { return }
+            setProduce((d) => { d.stageTransitingTo = stage })
+        },
+        completeStageTransition: () => {
+            setProduce((d) => {
+                if (d.stageTransitingTo === null) { return }
+                d.stage = d.stageTransitingTo
+                d.stageTransitingTo = null
+            })
+            if (get().stage === "Earth") {
+                completeTutorial("backToPreviousStage")
+            } else if (get().stage === "Universe") {
+                completeTutorial("nextStage")
+            }
+        },
+        countdown: () => {
+            if (!constants.isWeatherSystemUnlocked(get())) { return }
+            const s = get()
+            set({
+                weatherEffectWillBeEnabledIn: {
+                    ...s.weatherEffectWillBeEnabledIn,
+                    [s.stage]: (s.weatherEffectWillBeEnabledIn[s.stage] ?? constants.newWeatherEffectETA()) - 1,
+                },
+                weatherEffectWillBeEnabledInLessThan: {
+                    ...s.weatherEffectWillBeEnabledInLessThan,
+                    [s.stage]: (s.weatherEffectWillBeEnabledInLessThan[s.stage] ?? constants.newWeatherEffectETA(1)) - 1,
+                },
+            })
+            if (getWeather()?.enabled) {
+                addTutorial("weatherEffect")
+            }
+        },
+        stopWeatherEffect: () => {
+            setProduce((d) => {
+                d.weatherEffectWillBeEnabledIn[d.stage] = constants.newWeatherEffectETA()
+                d.weatherEffectWillBeEnabledInLessThan[d.stage] = constants.newWeatherEffectETA(1)
+            })
+        },
+        defeatedFinalBoss: () => {
+            addNews("ending1")
+            setProduce((d) => { d.canTranscend = true })
+        },
+        transcend: () => { setProduce((d) => { d.transcending = true }) },
+        cancelTranscending: () => { setProduce((d) => { d.transcending = false }) },
+        confirmTranscending: () => {
+            setProduce((d) => {
+                if (!d.transcending) { return }
+                d.stageTransitingTo = null
+                d.stage = "Earth"
+                d.transcending = false
+                d.transcendence++
+                d.canTranscend = false
+            })
+        },
+        incrementKillCount: (name: string) => {
+            setProduce((d) => { d.killCount[`${get().stage}_${name}`] = (d.killCount[`${get().stage}_${name}`] ?? 0) + 1 })
+            if (get().killCount[`Universe_UFO`] ?? 0 > 10) {
+                getState().completeTutorial("backToPreviousStage")
+            }
+        },
+        cheat: () => { setProduce((d) => { d.cheated = true }) },
+        exploreNext: () => {
+            const lv = getExplorationLv()
+            if ((get().items.Food ?? 0) < constants.explorationCost(lv)) { return }
+            setProduce((d) => {
+                d.items.Food = (d.items.Food ?? 0) - constants.explorationCost(lv)
+                d.exploration[d.stage] = lv + 1
+            })
+        },
+        explorePrev: () => {
+            if (getExplorationLv() <= 1) { throw new Error() }
+            setProduce((d) => { d.exploration[d.stage] = (d.exploration[d.stage] ?? 1) - 1 })
+        },
+    }
+});
 
 (window as any).store = new Proxy(store, {
     get(target, p, receiver) {

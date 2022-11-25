@@ -82,6 +82,8 @@ export const isUpgradeNameHidden = (name: UpgradeName, state: { readonly upgrade
 export const isWeatherSystemUnlocked = (state: { completedTutorials: SerializableSet<TutorialName> }) => state.completedTutorials.nextStage ?? false
 export const isVerticalMoveUnlocked = () => false
 
+export const newWeatherEffectETA = (rand = Math.random()) => rand * updatePerSecond * 60 * 6
+
 export const price = (name: UpgradeName, { upgrades }: { upgrades: Record<UpgradeName, number> }) => basePrice[name] * 2 ** upgrades[name]
 
 export const explorationCost = (lv: number) => +(500 * 1.25 ** (lv - 1)).toPrecision(2)
