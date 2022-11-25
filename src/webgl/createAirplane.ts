@@ -4,7 +4,7 @@ import { xMax, xMin, yMax, yMin } from "../constants"
 import { onBeforeRender, onUpdate } from "../hooks"
 import { getState } from "../saveData"
 import * as constants from "../constants"
-import loadGLTF from "./loadGLTF"
+import { loadGLTF } from "./webglUtil"
 
 export default async () => {
     const airplane = (await loadGLTF("models/low-poly_airplane.glb", 0.05)) as Omit<THREE.Object3D, "userData"> & {

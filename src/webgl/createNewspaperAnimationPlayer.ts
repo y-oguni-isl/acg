@@ -1,6 +1,5 @@
 import * as THREE from "three"
-import loadGLTF from "./loadGLTF"
-import ObjectPool from "./ObjectPool"
+import { loadGLTF, ObjectPool } from "./webglUtil"
 import { onBeforeRender } from "../hooks"
 import { subscribe } from "../saveData"
 import { domStore } from "../dom"

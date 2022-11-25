@@ -1,7 +1,9 @@
 import * as THREE from "three"
-import { onBeforeRender } from "../hooks"
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils"
-import { logObjectPoolSize } from "../debug"
+import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
+import { onBeforeRender } from "../hooks"
+import { logObjectPoolSize, getRenderingOption } from "../debug"
+import { ephemeralDOMStore } from "../dom"
 
 type Instance<T extends THREE.Object3D> = T & {
     free: () => void
@@ -21,7 +23,7 @@ const counter: Record<string, number> = new Proxy({}, { get: (target, p, receive
  * copy.free() // free() detaches the copy from `pool` and gives the object back to the `pool.pool`.
  * ```
  */
-export default class ObjectPool<T extends THREE.Object3D> extends THREE.Object3D<Instance<T>>  {
+export class ObjectPool<T extends THREE.Object3D> extends THREE.Object3D<Instance<T>>  {
     declare children: Instance<T>[]
 
     readonly mesh
@@ -87,4 +89,58 @@ export default class ObjectPool<T extends THREE.Object3D> extends THREE.Object3D
         this.add(copy)
         return copy
     }
+}
+
+/** Downloads and parses a .gltf (text) or .glb (binary) file. The model will be resized if the `height` argument is a number. */
+export const loadGLTF = async (filepath: string, height: number | null): Promise<THREE.Object3D> => {
+    if (!getRenderingOption(filepath)) { return new THREE.Object3D() }
+    const obj = (await new Promise<GLTF>((resolve, reject) => new GLTFLoader().load(filepath, resolve, (xhr) => { ephemeralDOMStore.getState().setLoadingMessage(filepath, `Loading ${filepath} (${xhr.loaded}/${xhr.total})`) }, reject)))
+        .scene.children[0]!.children[0]!
+    ephemeralDOMStore.getState().removeLoadingMessage(filepath)
+    if (height !== null) {
+        obj.scale.multiplyScalar(height / new THREE.Box3().setFromObject(obj).getSize(new THREE.Vector3()).y)
+    }
+    return obj
+}
+
+/**
+ * This function extends a model's materials' shader.
+ * 
+ * @example
+ * ```
+ * const uniforms = { time: { value: 0 } }
+ * onBeforeRender.add((time) => { uniforms.time.value = time })
+ * extendMaterial(model, {
+ *     uniforms,
+ *     fragmentShader: `
+ * uniform float time;
+ * 
+ * void main() {
+ *     super();
+ *     gl_FragColor.rgb *= 1.0 + (sin(time * 0.006) + 1.0) / 2.0 * 10.0;
+ * }
+ * `,
+ * })
+ * ```
+ * 
+ * inputs:
+ * - vertex shader:
+ *   - modelMatrix * vec4(position, 1.0): the world position
+ * - fragment shader:
+ *   - vViewPosition: the screen position
+ */
+export const extendMaterial = (obj: THREE.Object3D, program: { uniforms?: Record<string, { value: unknown }>, vertexShader?: string, fragmentShader?: string }) => {
+    obj.traverse((obj) => {
+        if (!(obj instanceof THREE.Mesh)) { return }
+        (obj.material as THREE.Material).onBeforeCompile = (shader) => {
+            Object.assign(shader.uniforms, program.uniforms ?? {})
+            obj.userData.shader = shader
+            if (program.vertexShader?.trim()) {
+                shader.vertexShader = shader.vertexShader.replace(/void\s*main\s*\(\s*\)/, "void super()") + program.vertexShader
+            }
+            if (program.fragmentShader?.trim()) {
+                shader.fragmentShader = shader.fragmentShader.replace(/void\s*main\s*\(\s*\)/, "void super()") + program.fragmentShader
+            }
+        }
+    })
 }

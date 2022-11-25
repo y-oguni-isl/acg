@@ -1,8 +1,6 @@
 import { onBeforeRender } from "../hooks"
 import { call } from "../util"
-import extendMaterial from "./extendMaterial"
-import loadGLTF from "./loadGLTF"
-import ObjectPool from "./ObjectPool"
+import { extendMaterial, loadGLTF, ObjectPool } from "./webglUtil"
 import ufoFrag from "./createUFOPool.frag"
 import ufoVert from "./createUFOPool.vert"
 

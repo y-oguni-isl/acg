@@ -63,7 +63,7 @@ const store = create<{
 }>()(persist(immer((set) => ({
     foo: 1,
     bar: 2,
-    setFoo: (value) => { set((d) => { d.foo += 10 }) },  // NOTE: set((d) => { d.foo += 10 }) is ~4x slower than set({ foo: get().foo + 10 }). Use the latter if it will be run frequently.
+    setFoo: (value) => { set((d) => { d.foo += 10 }) }, 
 })), {
     name: "sample-store",  // the name of the store, that is used as a key for the localStorage
 }))

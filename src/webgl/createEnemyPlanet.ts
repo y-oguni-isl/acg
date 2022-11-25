@@ -1,8 +1,6 @@
 import { onBeforeRender } from "../hooks"
 import { enableSelectiveBloom } from "./createSelectiveBloomPass"
-import extendMaterial from "./extendMaterial"
-import loadGLTF from "./loadGLTF"
-import ObjectPool from "./ObjectPool"
+import { extendMaterial, loadGLTF, ObjectPool } from "./webglUtil"
 
 export default async () => {
     const m = await loadGLTF("models/planet_megatropolis.glb", 2)

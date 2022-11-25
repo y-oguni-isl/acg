@@ -1,7 +1,6 @@
 import { render } from "preact"
 import Upgrades from "./upgrades"
 import create, { useStore } from "zustand"
-import { immer } from "zustand/middleware/immer"
 import { persist } from "zustand/middleware"
 import { deleteSaveData, getState, store } from "../saveData"
 import { useEffect, useRef, useState } from "preact/hooks"
@@ -27,18 +26,20 @@ const Tutorial = () => {
     </div>
 }
 
-/** The current state of the DOM (HTML). */
-export const domStore = defineActions(create<{
+type DomStoreState = {
     news: readonly [headline: string, text: string] | null
     usePowerSaveMode: boolean
     sfxVolume: number
     bgmVolume: number
-}>()(persist(immer((set, get) => ({
+}
+
+/** The current state of the DOM (HTML). */
+export const domStore = defineActions(create<DomStoreState>()(persist(() => ({
     news: null as readonly [headline: string, text: string] | null,
     usePowerSaveMode: true,
     sfxVolume: 1,
     bgmVolume: 1,
-})), {
+} as DomStoreState), {
     name: "acgDOMStore",
     version: 2,
 })), (set, get, setProduce) => ({
@@ -52,11 +53,11 @@ export const ephemeralDOMStore = defineActions(create<{
     loadingMessage: Record<string, string>
     enemyStatus: EnemyStatus | null
     powerSaveMode: boolean
-}>()(immer((set, get) => ({
+}>()(() => ({
     loadingMessage: {},
     enemyStatus: null as (EnemyStatus | null),
     powerSaveMode: false,
-}))), (set, get, setProduce) => ({
+})), (set, get, setProduce) => ({
     setLoadingMessage: (key: string, message: string) => { setProduce((d) => { d.loadingMessage[key] = message }) },
     removeLoadingMessage: (key: string) => { setProduce((d) => { delete d.loadingMessage[key] }) },
     setEnemyStatus: (status: EnemyStatus) => {

@@ -23,7 +23,7 @@ export const generate = () => {
             }
 
             // List named exported identifiers
-            for (const m of content.matchAll(/^export const (\w+)/mg)) {
+            for (const m of content.matchAll(/^export (?:const|class) (\w+)/mg)) {
                 names.push(m[1])
             }
 
@@ -91,4 +91,4 @@ ${names.map((name) => `    ${name.split(".").at(0)},`).join("\n")}
     }
 }
 
-if ((process.argv.at(-1) ?? "").endsWith("/codegen.js")) { generate() }  // when this file is run with `node codegen.js`
+if ((process.argv.at(-1) ?? "").endsWith("/codegen.js")) { generate() }  // if this file is run with `node codegen.js`
