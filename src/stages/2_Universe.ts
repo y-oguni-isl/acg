@@ -16,12 +16,13 @@ export default {
         window.addEventListener("resize", () => { uniforms.u_resolution.value.set(window.innerWidth, window.innerHeight) })
 
         return new THREE.Object3D().add(
-            new THREE.Mesh(new THREE.BoxGeometry(4, 4, 4), new ShaderMaterial({
+            new THREE.Mesh(new THREE.BoxGeometry(6, 6, 6), new ShaderMaterial({
                 uniforms,
                 side: THREE.BackSide,
                 vertexShader: createSkyboxVert,
                 fragmentShader: createSkyboxFrag,
             })),
+            webgl.enableSelectiveBloom(call(webgl.createEarth(), { position: { set: [0.5, -2, 0] }, scale: { multiplyScalar: 2 } })),
             webgl.enableSelectiveBloom(new THREE.AmbientLight(0xaaaaff, 0.2)),
             call(webgl.enableSelectiveBloom(new THREE.DirectionalLight(0xf5eeba, 0.4)), { position: { set: [0.3, 1, -1] } }),
         )

@@ -7,6 +7,7 @@ THREE.ShaderChunk["snoise"] = snoise
 export { default as createAirplane } from "./createAirplane"
 export { default as createBirdPool } from "./createBirdPool"
 export { default as createContrail } from "./createContrail"
+export { default as createEarth } from "./createEarth"
 export { default as createEnemyPlanet } from "./createEnemyPlanet"
 export { default as createFog } from "./createFog"
 export { default as createNewspaperAnimationPlayer } from "./createNewspaperAnimationPlayer"
