@@ -57,6 +57,14 @@ export default defineConfig({
                 })
             }
         },
+        {
+            name: 'glsl-loader',
+            transform(code, id) {
+                if (id.endsWith(".frag") || id.endsWith(".vert") || id.endsWith(".glsl")) {
+                    return { code: `export default ${JSON.stringify(code)}` }
+                }
+            }
+        }
     ],
     base: "",
     build: {

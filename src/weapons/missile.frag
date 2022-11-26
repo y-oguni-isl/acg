@@ -1,4 +1,3 @@
-export default /* glsl */`
 uniform bool daytime;
 
 void main() {
@@ -9,4 +8,3 @@ void main() {
         gl_FragColor.rgb *= vec3(2.0);
     }
 }
-`

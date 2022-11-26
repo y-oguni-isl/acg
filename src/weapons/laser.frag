@@ -1,4 +1,3 @@
-export default /* glsl */`
 in vec2 pos;
 uniform float time;
 uniform float count;
@@ -21,4 +20,3 @@ void main() {
         gl_FragColor += opacityX2 * vec4(1.0, 1.0, 1.0, opacityY);
     }
 }
-`

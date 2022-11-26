@@ -1,4 +1,3 @@
-export default /* glsl */`
 #include <snoise>
 
 uniform sampler2D tDiffuse;
@@ -116,4 +115,3 @@ void main() {
         gl_FragColor = mix(texture2D(tDiffuse, vUv), gl_FragColor, opacity);
     }
 }
-`

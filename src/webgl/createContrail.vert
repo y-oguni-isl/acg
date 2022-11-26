@@ -1,8 +1,6 @@
-export default /* glsl */`
-out vec2 pos;
+out vec2 vUv;
 
 void main() {
     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    pos = position.xy;
+    vUv = uv;
 }
-`

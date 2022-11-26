@@ -35,7 +35,11 @@ export const generate = () => {
 
         fs.writeFileSync(path.join(dir, "index.ts"), `\
 // This file is auto-generated with \`node codegen.js\`.
-import "./lib.glsl"
+
+import * as THREE from "three"
+import snoise from "./snoise.glsl"
+THREE.ShaderChunk["snoise"] = snoise
+
 ${reexports}
 `)
     }

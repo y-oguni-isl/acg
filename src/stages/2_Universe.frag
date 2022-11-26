@@ -1,4 +1,3 @@
-export default /* glsl */`
 #include <snoise>
 
 uniform vec2 u_resolution;
@@ -18,4 +17,3 @@ void main() {
 
     gl_FragColor = vec4(color * 1.5, 1.0);
 }
-`

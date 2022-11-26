@@ -1,9 +1,6 @@
-import * as THREE from "three"
-
 // Properties of THREE.ShaderChunk can be included in glsl files with `#include <>`
 // https://github.com/mrdoob/three.js/blob/c965d3b5dcab2575d6a73aec583c29fa44c0c60d/src/renderers/webgl/WebGLProgram.js#L216
 
-THREE.ShaderChunk["snoise"] = /* glsl */`
 //
 // Description : Array and textureless GLSL 2D/3D/4D simplex 
 //               noise functions.
@@ -164,4 +161,3 @@ float snoise(vec2 v)
   g.yz = a0.yz * x12.xz + h.yz * x12.yw;
   return 130.0 * dot(m, g);
 }
-`
