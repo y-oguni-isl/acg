@@ -1,15 +1,14 @@
 import { defineConfig } from "vite"
 import preact from "@preact/preset-vite"
-import * as licenseChecker from "license-checker"
-import * as fs from "fs"
+import licenseChecker from "license-checker"
+import fs from "fs"
 import assert from "assert/strict"
 import { generate } from "./codegen"
 import path from "path"
 
-const escape = (t) => t.replaceAll("&", "&amp").replaceAll("<", "&lt").replaceAll(">", "&gt;").replaceAll("'", "&#39;").replaceAll('"', "&quot;")
+const escape = (t: string) => t.replaceAll("&", "&amp").replaceAll("<", "&lt").replaceAll(">", "&gt;").replaceAll("'", "&#39;").replaceAll('"', "&quot;")
 
-/** @type {fs.FSWatcher | undefined} */
-let watcher
+let watcher: fs.FSWatcher | undefined
 
 export default defineConfig({
     plugins: [
@@ -26,7 +25,7 @@ export default defineConfig({
                 })
             },
             buildEnd: () => {
-                watcher.close()
+                watcher!.close()
             },
         },
         {
@@ -38,7 +37,7 @@ export default defineConfig({
                     excludePrivatePackages: true,
                     start: ".",
                 }, (err, result) => {
-                    if (err) { console.err(err); process.exit(1) }
+                    if (err) { console.error(err); process.exit(1) }
                     let html = ""
                     for (const [libraryName, info] of Object.entries(result)) {
                         assert(info.licenseFile)

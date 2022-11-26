@@ -27,6 +27,7 @@
   "devDependencies": {
     "@babel/core": "^7.20.2",
     "@preact/preset-vite": "^2.4.0",
+    "@types/glob": "^8.0.0",
     "@types/license-checker": "^25.0.3",
     "@types/node": "^18.11.9",
     "@types/stats.js": "^0.17.0",

@@ -1,4 +1,3 @@
-// @ts-check
 import glob from "glob"
 import fs from "fs"
 import path from "path"

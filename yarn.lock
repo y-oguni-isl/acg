@@ -503,6 +503,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/glob@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "@types/glob@npm:8.0.0"
+  dependencies:
+    "@types/minimatch": "npm:*"
+    "@types/node": "npm:*"
+  checksum: 545d231c07e174f3d37d9133f666e6e8695bb4d4f215cd09975e5fd9eb993356cb34f3669b4cda666cd6ba1e13452aa783e95c62cdcc0e30d628428b0eb94fc4
+  languageName: node
+  linkType: hard
+
 "@types/license-checker@npm:^25.0.3":
   version: 25.0.3
   resolution: "@types/license-checker@npm:25.0.3"
@@ -510,7 +520,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:^18.11.9":
+"@types/minimatch@npm:*":
+  version: 5.1.2
+  resolution: "@types/minimatch@npm:5.1.2"
+  checksum: 698855336a92f768d02526d019efcf80e32d65ea5d044a5a0a909a923a9cfccc55e61284fd2c5dc71a51e9b5f0b4dc651cb187683f811582815a5206f534d04b
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:*, @types/node@npm:^18.11.9":
   version: 18.11.9
   resolution: "@types/node@npm:18.11.9"
   checksum: 7b7d90894dd1ae9b6836e49ace5bdea55cc08806a508e38851e333f1ad77ec81ea6dca58e6a2444ad0471fee965b9908cc1ef06028eebca9c20d54729df98bab
@@ -554,6 +571,7 @@ __metadata:
     "@babel/core": "npm:^7.20.2"
     "@preact/preset-vite": "npm:^2.4.0"
     "@tabler/icons": "npm:^1.112.0"
+    "@types/glob": "npm:^8.0.0"
     "@types/license-checker": "npm:^25.0.3"
     "@types/node": "npm:^18.11.9"
     "@types/stats.js": "npm:^0.17.0"
