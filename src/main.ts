@@ -16,7 +16,7 @@
 import "typed-query-selector"
 import "core-js/proposals/map-upsert-stage-2"
 import "core-js/proposals/set-methods"
-import * as Stats from "stats.js"
+import Stats from "stats.js"
 import * as THREE from "three"
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js"
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
