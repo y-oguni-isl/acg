@@ -24,7 +24,7 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { onBeforeRender, onCollisionDetection, onEnemyRemoved, onPreprocess, onUpdate } from "./hooks"
 import { getState, subscribe } from "./saveData"
 import { ephemeralDOMStore } from "./dom"
-import { call, ObjectEntries, fromEntries, PromiseAll, ObjectValues } from "./util"
+import { call, ObjectEntries, fromEntries, PromiseAll, ObjectValues, ObjectKeys } from "./util"
 import * as webgl from "./webgl"
 import { getRenderingOption, init3DModelDebugger } from "./debug"
 import stages from "./stages"
@@ -115,13 +115,17 @@ const stageTransitionPass = webgl.createStageTransitionPass()
 
 // Stage transition animation
 onUpdate.add(() => {
-    if (getState().stageTransitingTo === null) { return }
+    const { stageTransitingTo } = getState()
+    if (stageTransitingTo === null) { return }
 
-    // Play the animation to move to another stage
-    airplane.position.x += 0.01 + Math.max(0, airplane.position.x) * 0.08
-    scene.rotateY(0.02)
-    scene.rotateZ(-0.003)
-    if (airplane.position.x > 2) {
+    const forward = ObjectKeys(stages).indexOf(stageTransitingTo) >= ObjectKeys(stages).indexOf(getState().stage)
+    if (forward) {
+        // Play the animation to move to another stage
+        airplane.position.x += 0.01 + Math.max(0, airplane.position.x) * 0.08
+        scene.rotateY(0.02)
+        scene.rotateZ(-0.003)
+    }
+    if (airplane.position.x > 2 || !forward) {
         stageTransitionPass.play(() => {
             airplane.position.x = 0
             scene.rotation.set(0, 0, 0)
