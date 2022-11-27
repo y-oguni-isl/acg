@@ -2,8 +2,8 @@ import * as THREE from "three"
 import { Collidable, onBeforeRender, onCollisionDetection, onEnemyRemoved } from "../hooks"
 import { getState } from "../saveData"
 import { call } from "../util"
-import laserFrag from "./laser.frag"
-import laserVert from "./laser.vert"
+import fragmentShader from "./laser.frag"
+import vertexShader from "./laser.vert"
 import * as constants from "../constants"
 import { ephemeralDOMStore } from "../dom"
 import * as webgl from "../webgl"
@@ -19,8 +19,8 @@ export default async (source: THREE.Object3D) => {
         blending: THREE.AdditiveBlending,
         transparent: true,
         uniforms,
-        vertexShader: laserVert,
-        fragmentShader: laserFrag,
+        vertexShader,
+        fragmentShader,
     })), {
         rotateY: -Math.PI / 2,
         rotateX: -Math.PI / 2,

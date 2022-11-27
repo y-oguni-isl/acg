@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { onBeforeRender } from "../hooks"
-import createEarthFrag from "./createEarth.frag"
-import createEarthVert from "./createEarth.vert"
+import fragmentShader from "./createEarth.frag"
+import vertexShader from "./createEarth.vert"
 
 export default (
     opts: {
@@ -24,11 +24,7 @@ export default (
         coastline: { value: opts.coastline },
     }
 
-    const mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(0.5, 6), new THREE.ShaderMaterial({
-        uniforms,
-        vertexShader: createEarthVert,
-        fragmentShader: createEarthFrag,
-    }))
+    const mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(0.5, 6), new THREE.ShaderMaterial({ uniforms, vertexShader, fragmentShader }))
 
     onBeforeRender.add((t, deltaTime) => {
         uniforms.time.value = t * 0.0001

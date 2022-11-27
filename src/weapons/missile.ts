@@ -3,14 +3,14 @@ import { onCollisionDetection, onUpdate } from "../hooks"
 import { getState, subscribe } from "../saveData"
 import * as constants from "../constants"
 import * as webgl from "../webgl"
-import missileFrag from "./missile.frag"
+import fragmentShader from "./missile.frag"
 
 export default async (source: THREE.Object3D) => {
     const model = await webgl.loadGLTF("models/ballistic_missile.glb", 0.03)
     model.position.set(-0.01, 0, -0.06)  // move the center of the mass to the origin
     const uniforms = { daytime: { value: getState().stage === "Earth" } }
     subscribe((state) => { uniforms.daytime.value = state.stage === "Earth" })
-    webgl.extendMaterial(model, { uniforms, fragmentShader: missileFrag })
+    webgl.extendMaterial(model, { uniforms, fragmentShader })
     webgl.enableSelectiveBloom(model)
 
     const pool = new webgl.ObjectPool("missile", new THREE.Object3D().add(model))

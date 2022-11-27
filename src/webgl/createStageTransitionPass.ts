@@ -1,8 +1,8 @@
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass"
 import { onBeforeRender } from "../hooks"
 import { getState } from "../saveData"
-import createStageTransitionPassFrag from "./createStageTransitionPass.frag"
-import createStageTransitionPassVert from "./createStageTransitionPass.vert"
+import fragmentShader from "./createStageTransitionPass.frag"
+import vertexShader from "./createStageTransitionPass.vert"
 
 export default () => {
     let played = false
@@ -11,8 +11,8 @@ export default () => {
             tDiffuse: { value: null },
             time: { value: 0 },
         },
-        vertexShader: createStageTransitionPassVert,
-        fragmentShader: createStageTransitionPassFrag,
+        vertexShader,
+        fragmentShader,
     })
     return {
         pass,

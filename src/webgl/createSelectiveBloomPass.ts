@@ -4,8 +4,8 @@ import type { RenderPass } from "three/examples/jsm/postprocessing/RenderPass"
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass"
 import { onPreprocess } from "../hooks"
-import selective_bloomFrag from "./createSelectiveBloomPass.frag"
-import selective_bloomVert from "./createSelectiveBloomPass.vert"
+import fragmentShader from "./createSelectiveBloomPass.frag"
+import vertexShader from "./createSelectiveBloomPass.vert"
 
 const bloomLayer = 1
 const bloomOnlyLayer = 2
@@ -43,8 +43,8 @@ export default (renderer: THREE.WebGLRenderer, camera: THREE.Camera, renderPass:
                 texture1: { value: null },
                 texture2: { value: effectComposer.renderTarget2.texture }
             },
-            vertexShader: selective_bloomVert,
-            fragmentShader: selective_bloomFrag,
+            vertexShader,
+            fragmentShader,
             defines: {},
         }),
         "texture1",

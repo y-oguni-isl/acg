@@ -2,8 +2,8 @@ import * as THREE from "three"
 import { toTrianglesDrawMode } from "three/examples/jsm/utils/BufferGeometryUtils"
 import { onUpdate } from "../hooks"
 import { subscribe } from "../saveData"
-import createContrailFrag from "./createContrail.frag"
-import createContrailVert from "./createContrail.vert"
+import fragmentShader from "./createContrail.frag"
+import vertexShader from "./createContrail.vert"
 import { enableSelectiveBloom } from "./createSelectiveBloomPass"
 
 const airplaneSpeedAgainstGround = 0.005
@@ -17,11 +17,7 @@ export default (source: THREE.Object3D) => {
                 .flatMap(() => [
                     new THREE.Vector3(source.position.x, 0, source.position.z + 0.1),
                     new THREE.Vector3(source.position.x, 0, source.position.z - 0.1)])), THREE.TriangleStripDrawMode),
-        new THREE.ShaderMaterial({
-            vertexShader: createContrailVert,
-            fragmentShader: createContrailFrag,
-            transparent: true,
-        }),
+        new THREE.ShaderMaterial({ vertexShader, fragmentShader, transparent: true }),
     )
     mesh.geometry.setAttribute("uv", new THREE.BufferAttribute(new Float32Array(
         Array(segments).fill(0).flatMap((_, i) => [-1.0, i / (segments - 1), 1.0, i / (segments - 1)])), 2))

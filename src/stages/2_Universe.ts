@@ -3,8 +3,8 @@ import { ShaderMaterial } from "three"
 import { onBeforeRender } from "../hooks"
 import { getState } from "../saveData"
 import { call, PromiseAll } from "../util"
-import createSkyboxFrag from "./2_Universe.frag"
-import createSkyboxVert from "./2_Universe.vert"
+import fragmentShader from "./2_Universe.frag"
+import vertexShader from "./2_Universe.vert"
 import * as webgl from "../webgl"
 import type { EnemyPools, EnemyUserData } from "./types"
 import * as constants from "../constants"
@@ -16,12 +16,7 @@ export default {
         window.addEventListener("resize", () => { uniforms.u_resolution.value.set(window.innerWidth, window.innerHeight) })
 
         return new THREE.Object3D().add(
-            new THREE.Mesh(new THREE.BoxGeometry(6, 6, 6), new ShaderMaterial({
-                uniforms,
-                side: THREE.BackSide,
-                vertexShader: createSkyboxVert,
-                fragmentShader: createSkyboxFrag,
-            })),
+            new THREE.Mesh(new THREE.BoxGeometry(6, 6, 6), new ShaderMaterial({ uniforms, side: THREE.BackSide, vertexShader, fragmentShader })),
             webgl.enableSelectiveBloom(call(webgl.createEarth(), { position: { set: [0.5, -2, 0] }, scale: { multiplyScalar: 2 } })),
             webgl.enableSelectiveBloom(new THREE.AmbientLight(0xaaaaff, 0.2)),
             call(webgl.enableSelectiveBloom(new THREE.DirectionalLight(0xf5eeba, 0.4)), { position: { set: [0.3, 1, -1] } }),

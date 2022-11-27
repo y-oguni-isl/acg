@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { onBeforeRender, onCollisionDetection, onUpdate } from "../hooks"
 import { getState, subscribe } from "../saveData"
-import hammerFrag from "./hammer.frag"
+import fragmentShader from "./hammer.frag"
 import * as constants from "../constants"
 import * as webgl from "../webgl"
 
@@ -10,7 +10,7 @@ export default async (source: THREE.Object3D) => {
     model.position.set(-0.01, 0, -0.06)  // move the center of the mass to the origin
     const uniforms = { daytime: { value: getState().stage === "Earth" } }
     subscribe((state) => { uniforms.daytime.value = state.stage === "Earth" })
-    webgl.extendMaterial(model, { uniforms, fragmentShader: hammerFrag })
+    webgl.extendMaterial(model, { uniforms, fragmentShader })
     webgl.enableSelectiveBloom(model, { noDiffusion: true })
 
     const pool = new webgl.ObjectPool("hammer", new THREE.Object3D().add(model))
