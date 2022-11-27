@@ -27,9 +27,11 @@ type SaveData = {
     cheated: boolean
 }
 
+const randomId = () => crypto.randomUUID?.() ?? `insecure-${[...Array(12)].map(() => Math.floor(Math.random() * 16).toString(16)).join('')}`
+
 /** This store maintains the game state. The values in the store is persisted in the localStorage by the persist() middleware. */
 export const store = defineActions(create<SaveData>()(persist(() => ({
-    gameSessionId: crypto.randomUUID(),
+    gameSessionId: randomId(),
     stage: "Earth",
     stageTransitingTo: null,
     exploration: {},
@@ -192,7 +194,7 @@ export const deleteSaveData = () => {
 
 // Send analytics to balance the game 
 if (import.meta.env.VITE_ANALYTICS_ADDR && location.hostname.endsWith(".github.io")) {
-    localStorage.userId ??= crypto.randomUUID()
+    localStorage.userId ??= randomId()
     const send = (event?: string) => { fetch(import.meta.env.VITE_ANALYTICS_ADDR ?? "", { method: "POST", body: JSON.stringify({ userId: localStorage.userId, event, ...store.getState() }) }) }  // beacon didn't work
     setInterval(() => send(), 1000 * 60)
     send("start")
