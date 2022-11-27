@@ -6,7 +6,7 @@ import fragmentShader from "./createRainPass.frag"
 import vertexShader from "./createRainPass.vert"
 
 /** Returns a shader pass that makes the scene look like you're looking the scene through a glass on a rainy day. */
-export default (camera: THREE.PerspectiveCamera, blur: boolean) => {
+export default (blur: boolean) => {
     const pass = new ShaderPass({
         uniforms: {
             blur: { value: blur },
@@ -51,7 +51,7 @@ export default (camera: THREE.PerspectiveCamera, blur: boolean) => {
 
     setInterval(() => { rotateMouseTrail() }, 100)
 
-    onBeforeRender.add((time) => {
+    onBeforeRender.add((time, _, camera) => {
         pass.uniforms.aspect!.value = camera.aspect
         pass.uniforms.time!.value = time;
     })

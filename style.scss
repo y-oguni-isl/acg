@@ -106,6 +106,6 @@ dialog.open::backdrop {
     background: rgba(0, 0, 0, 0.5);
 }
 
-input[type=checkbox] {
+input[type=checkbox], input[type=radio] {
     @apply accent-orange-600;
 }

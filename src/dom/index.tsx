@@ -31,6 +31,7 @@ type DomStoreState = {
     usePowerSaveMode: boolean
     sfxVolume: number
     bgmVolume: number
+    quality: "standard" | "high"
 }
 
 /** The current state of the DOM (HTML). */
@@ -39,9 +40,10 @@ export const domStore = defineActions(create<DomStoreState>()(persist(() => ({
     usePowerSaveMode: true,
     sfxVolume: 1,
     bgmVolume: 1,
+    quality: "standard",
 } as DomStoreState), {
     name: "acgDOMStore",
-    version: 2,
+    version: 3,
 })), (set, get, setProduce) => ({
     showNews: (news: readonly [headline: string, text: string]) => { setProduce((d) => { d.news = [...news] }) },
     hideNews: () => { setProduce((d) => { d.news = null }) },
@@ -338,8 +340,15 @@ const UI = () => {
                 <h1 class="text-xl mb-2 tracking-wider w-full text-center">Options</h1>
                 <table>
                     <tr>
-                        <td class="pr-4 text-right">Power Save Mode</td>
+                        <td class="pr-4 text-right" title="Power Save Mode stops rendering the game,<br />but the game still runs in the background.">Power Save Mode</td>
                         <td><label class="cursor-pointer"><input type="checkbox" checked={state.usePowerSaveMode} onChange={(ev) => { domStore.setState({ usePowerSaveMode: ev.currentTarget.checked }) }} /> enabled</label></td>
+                    </tr>
+                    <tr>
+                        <td class="pr-4 text-right">Quality</td>
+                        <td>
+                            <label><input type="radio" name="quality" value="high" checked={state.quality === "high"} onChange={(ev) => { domStore.setState({ quality: ev.currentTarget.value as "high" | "standard" }) }} /> High</label>
+                            <label><input type="radio" name="quality" value="standard" checked={state.quality === "standard"} onChange={(ev) => { domStore.setState({ quality: ev.currentTarget.value as "high" | "standard" }) }} /> Standard</label>
+                        </td>
                     </tr>
                     <tr>
                         <td class="pr-4 text-right">Sound Effect</td>

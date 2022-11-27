@@ -17,7 +17,7 @@ export default {
                     call(m, { rotateX: -Math.PI / 2, position: { setY: -0.5 } }),
                     webgl.enableSelectiveBloom(new THREE.AmbientLight(0xffffff, 0.025)),
                     call(webgl.enableSelectiveBloom(new THREE.DirectionalLight(0xf5eeba, 1.6)), { position: { set: [0.3, 1, -1] } }),
-                    !getRenderingOption("fog") ? new THREE.Object3D() : webgl.createFog(),
+                    !getRenderingOption("fog") ? new THREE.Object3D() : webgl.createCloud(),
                 )
             })
             .catch(console.error)

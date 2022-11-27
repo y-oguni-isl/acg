@@ -7,7 +7,7 @@ import type { ItemName } from "./constants"
 import { ReadonlyVector3 } from "./util"
 
 /** Functions in this set will be called every time just before rendering. */
-export const onBeforeRender = new Set<(time: number, deltaTime: number) => void>()
+export const onBeforeRender = new Set<(time: number, deltaTime: number, camera: THREE.PerspectiveCamera) => void>()
 
 /** Functions in this set will be called after onBeforeRender. The only purpose of this hook is to address a jittering issue when postprocessing is done before moving the camera. */
 export const onPreprocess = new Set<() => void>()
