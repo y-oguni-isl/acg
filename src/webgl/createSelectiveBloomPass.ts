@@ -32,7 +32,7 @@ export const enableSelectiveBloom = <T extends THREE.Object3D>(obj: T, opts: { n
  * scene.add(ball)
  * ```
  */
-export default (renderer: THREE.WebGLRenderer, camera: THREE.Camera, renderPass: RenderPass) => {
+export default (renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, renderPass: RenderPass) => {
     const effectComposer = new EffectComposer(renderer)
     effectComposer.renderToScreen = false
     effectComposer.addPass(renderPass)
@@ -50,14 +50,26 @@ export default (renderer: THREE.WebGLRenderer, camera: THREE.Camera, renderPass:
         "texture1",
     )
     additiveBlendingPass.needsSwap = true
+
+    const black = new THREE.MeshBasicMaterial({ color: "black" })
     onPreprocess.add(() => {
-        camera.layers.disableAll()
-        camera.layers.enable(bloomLayer)
-        camera.layers.enable(bloomOnlyLayer)
-        effectComposer.render()
+        const originalMaterials = new Map<string, THREE.Material>()
+        scene.traverse((obj) => {
+            if (obj instanceof THREE.Mesh && !(obj.layers.isEnabled(bloomLayer) || obj.layers.isEnabled(bloomOnlyLayer))) {
+                originalMaterials.set(obj.uuid, obj.material)
+                obj.material = black
+            }
+        })
         camera.layers.enableAll()
-        camera.layers.disable(bloomOnlyLayer)
+        effectComposer.render()
+        scene.traverse((obj) => {
+            if (originalMaterials.has(obj.uuid)) {
+                (obj as THREE.Mesh).material = originalMaterials.get(obj.uuid)!
+                originalMaterials.delete(obj.uuid)
+            }
+        })
     })
+
     window.addEventListener("resize", () => { effectComposer.setSize(window.innerWidth, window.innerHeight) })
     return additiveBlendingPass
 }

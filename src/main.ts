@@ -108,7 +108,7 @@ const stageTransitionPass = webgl.createStageTransitionPass()
     const renderPass = new RenderPass(scene, camera)
     effectComposer.addPass(renderPass)
     if (getRenderingOption("unrealbloom")) { effectComposer.addPass(new UnrealBloomPass(new THREE.Vector2(256, 256), 0.2, 0, 0)) }
-    if (getRenderingOption("selective unrealbloom")) { effectComposer.addPass(webgl.createSelectiveBloomPass(renderer, camera, renderPass)) }
+    if (getRenderingOption("selective unrealbloom")) { effectComposer.addPass(webgl.createSelectiveBloomPass(renderer, scene, camera, renderPass)) }
     if (getRenderingOption("rain")) { effectComposer.addPass(webgl.createRainPass(camera, getRenderingOption("rain.blur"))) }
     effectComposer.addPass(stageTransitionPass.pass)
 }
