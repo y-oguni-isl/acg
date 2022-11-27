@@ -1,7 +1,7 @@
 {
     "recommendations": [
-        "boyswan.glsl-literal",
         "bradlc.vscode-tailwindcss",
-        "ms-vscode.vscode-typescript-next"
+        "ms-vscode.vscode-typescript-next",
+        "slevesque.shader"
     ]
 }
