@@ -58,7 +58,7 @@ export const call = <T>(obj: T, props: RewriteMethodsToProperties<T>): T => {
 
 export type ReadonlyVector3 = Readonly<Pick<THREE.Vector3, "x" | "y" | "z" | "isVector3" | "getComponent" | "clone" | "dot" | "lengthSq" | "length" | "manhattanLength" | "manhattanDistanceTo" | "angleTo" | "distanceTo" | "distanceToSquared" | "equals" | "toArray">>
 
-// NOTE: We've tried https://github.com/blitz-js/superjson bt it was too slow for us. This game need to stringify save data several times per frame, and superjson took up half of the overall execution time.
+// NOTE: We've tried https://github.com/blitz-js/superjson but it was too slow for us. This game need to stringify save data several times per frame, and superjson took up half of the overall execution time.
 export type SerializableSet<T extends keyof any> = Partial<Record<T, true>>
 
 /**
