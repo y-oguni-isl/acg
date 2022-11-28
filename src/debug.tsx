@@ -3,7 +3,6 @@
  */
 
 import * as THREE from "three"
-import { TransformControls } from "three/examples/jsm/controls/TransformControls"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import create, { useStore } from "zustand"
 import { defineActions, ObjectEntries, ObjectKeys } from "./util"
@@ -95,6 +94,8 @@ export const init3DModelDebugger = (camera: THREE.Camera, renderer: THREE.Render
 
     orbit.enabled = modelDebuggerStore.getState().paused
     modelDebuggerStore.subscribe((s) => { orbit.enabled = s.paused })
+
+    scene.add(new THREE.AxesHelper())
 
     return () => modelDebuggerStore.getState().paused
 }
