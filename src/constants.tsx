@@ -90,7 +90,7 @@ export const explorationCost = (lv: number) => +(500 * 1.25 ** (lv - 1)).toPreci
 
 /** The list of tutorials and their texts. */
 export const tutorialHTML = {
-    wasd: <>You have become a <b>fighter</b> pilot that shoots <b>laser</b> beams. This world is peaceful, so your first mission is to protect farmers from harmful <b>birds</b>.<br />The controls are simple, <b><i class="ti ti-keyboard"></i> WASD to move</b> and aim your targets.</>,
+    wasd: <>You have become a <b>fighter</b> pilot that shoots <b>laser</b> beams. This world is peaceful, so your first mission is to protect farmers from harmful <b>birds</b>.<br />The controls are simple, <b><i class="ti ti-keyboard"></i> WASD</b> or <b><i class="ti ti-hand-click"></i> press</b> the edge of the screen to move and aim your targets.</>,
     upgrade: <>You can now buy <b><i class="ti ti-chevrons-up"></i> upgrades</b> for your aircraft! To do so, <b>click</b> on the button in the <b>top left</b> corner of the screen.</>,
     nextStage: <>You can now move on to the <b><i class="ti ti-map-2"></i> next stage</b>! To do so, <b>click</b> the button in the <b>top right</b> corner of the screen.</>,
     backToPreviousStage: <>If you're finding this stage too <b>difficult</b>, go back to the previous stage and <b>try again</b> after you get more upgrades.</>,

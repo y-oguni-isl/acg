@@ -6,7 +6,7 @@ import { getState } from "../saveData"
 import * as constants from "../constants"
 import { loadGLTF } from "./webglUtil"
 
-export default async () => {
+export default async (canvas: HTMLCanvasElement) => {
     const airplane = (await loadGLTF("models/low-poly_airplane.glb", 0.05)) as Omit<THREE.Object3D, "userData"> & {
         userData: {
             velocity: THREE.Vector2
@@ -31,17 +31,28 @@ export default async () => {
     window.addEventListener("keydown", (ev) => { pressedKeys.add(ev.code) })
     window.addEventListener("keyup", (ev) => { pressedKeys.delete(ev.code) })
     window.addEventListener("blur", () => { pressedKeys.clear() })
+    let mousedown: readonly [number, number] | undefined = undefined
+    canvas.addEventListener("mousedown", (ev) => { mousedown = [ev.clientX, ev.clientY] })
+    canvas.addEventListener("touchstart", (ev) => { mousedown = [ev.touches[0]!.clientX, ev.touches[0]!.clientY] })
+    window.addEventListener("mouseup", () => { mousedown = undefined })
+    window.addEventListener("touchend", () => { mousedown = undefined })
+    window.addEventListener("touchcancel", () => { mousedown = undefined })
+
+    let wasdTutorialCount = 0
     onUpdate.add(() => {
         if (getState().stageTransitingTo !== null) { return }
 
         // Move the airplane by WASD keys (velocity += force)
-        if (pressedKeys.has("KeyD") && !pressedKeys.has("KeyA")) { airplane.userData.velocity.x = Math.min(1, Math.max(-0.2, airplane.userData.velocity.x) + 0.05) }
-        if (pressedKeys.has("KeyA") && !pressedKeys.has("KeyD")) { airplane.userData.velocity.x = Math.max(-1, Math.min(0.2, airplane.userData.velocity.x) - 0.05) }
-        if (pressedKeys.has("KeyW") && !pressedKeys.has("KeyS")) { airplane.userData.velocity.y = Math.min(1, Math.max(-0.2, airplane.userData.velocity.y) + 0.05) }
-        if (pressedKeys.has("KeyS") && !pressedKeys.has("KeyW")) { airplane.userData.velocity.y = Math.max(-1, Math.min(0.2, airplane.userData.velocity.y) - 0.05) }
+        if (pressedKeys.has("KeyD") && !pressedKeys.has("KeyA") || mousedown && mousedown[0] > window.innerWidth * 0.6) { airplane.userData.velocity.x = Math.min(1, Math.max(-0.2, airplane.userData.velocity.x) + 0.05); wasdTutorialCount++ }
+        if (pressedKeys.has("KeyA") && !pressedKeys.has("KeyD") || mousedown && mousedown[0] <= window.innerWidth * 0.4) { airplane.userData.velocity.x = Math.max(-1, Math.min(0.2, airplane.userData.velocity.x) - 0.05); wasdTutorialCount++ }
+        if (pressedKeys.has("KeyW") && !pressedKeys.has("KeyS") || mousedown && mousedown[1] <= window.innerHeight * 0.25) { airplane.userData.velocity.y = Math.min(1, Math.max(-0.2, airplane.userData.velocity.y) + 0.05); wasdTutorialCount++ }
+        if (pressedKeys.has("KeyS") && !pressedKeys.has("KeyW") || mousedown && mousedown[1] > window.innerHeight * 0.75) { airplane.userData.velocity.y = Math.max(-1, Math.min(0.2, airplane.userData.velocity.y) - 0.05); wasdTutorialCount++ }
+        if (wasdTutorialCount > 15 && getState().availableTutorials.wasd) {
+            getState().completeTutorial("wasd")
+        }
 
         // Friction (velocity *= 0.8)
-        if (pressedKeys.size === 0 ||
+        if (pressedKeys.size === 0 && !mousedown ||
             pressedKeys.has("KeyA") && pressedKeys.has("KeyD") ||
             pressedKeys.has("KeyW") && pressedKeys.has("KeyS")) {
             airplane.userData.velocity.multiplyScalar(0.8)
@@ -61,7 +72,7 @@ export default async () => {
 
         // Autopilot
         if ((getState().getWeather()?.enabled ? getState().upgrades.Autopilot - 5 : getState().upgrades.Autopilot) > 0 &&
-            pressedKeys.size === 0 &&
+            pressedKeys.size === 0 && !mousedown &&
             airplane.userData.autopilotTarget) { // TODO: add a switch to disable the autopilot
             const autopilotSpeed = 0.1 * getState().upgrades.Autopilot
             if (Math.abs(airplane.userData.autopilotTarget.position.z - airplane.position.z) > 0.02) {

@@ -113,7 +113,7 @@ const EnemyStats = () => {
                 <tr><td class="pr-1"><i class="ti ti-float-none" /></td><td>{enemyStatus.name}</td></tr>
                 <tr><td class="pr-1"><i class="ti ti-heart" /></td><td>{enemyStatus.hp}</td></tr>
                 <tr><td class="pr-1"><i class="ti ti-moneybag" /></td><td>{enemyStatus.money}</td></tr>
-                <tr><td class="pr-1"><i class="ti ti-notes" /></td><td>{ObjectEntries(enemyStatus.items).map(([k, v]) => <>{k} {v}</>)}</td></tr>
+                <tr><td class="pr-1"><i class="ti ti-notes" /></td><td>{ObjectKeys(enemyStatus.items).length === 0 ? "-" : ObjectEntries(enemyStatus.items).map(([k, v]) => <>{k} {v}</>)}</td></tr>
             </table>
         </div>
     </div>
@@ -239,7 +239,7 @@ const UI = () => {
 
     return <>
         {/* Top-Left Pane */}
-        <div class="absolute left-[-4px] top-[-2px] w-72">
+        <div class="absolute left-[-4px] top-[-2px] w-44 sm:w-72">
             <Upgrades />
             {hasVacuum && <Items />}
             <Transcend />
@@ -257,7 +257,7 @@ const UI = () => {
         </div>}
 
         {/* Top-Right pane */}
-        <div class="absolute right-[-4px] top-[-2px] min-w-[13rem]">
+        <div class="absolute right-[-4px] top-[-2px] min-w-[7rem] sm:min-w-[13rem]">
             {/* Stages */}
             {ObjectValues(areStageNamesVisible).some((v) => v) && <div class="px-3 pt-1 pb-3 mt-3 window">
                 <h2 class="mb-2 tracking-wide"><i class="ti ti-map-2" /> Stages</h2>
@@ -290,14 +290,14 @@ const UI = () => {
             {hasVacuum && stage !== "Final" && <div class="px-3 pt-1 pb-3 window mt-3 mb-1">
                 <h2 class="mb-2 tracking-wide"><i class="ti ti-route" /> Explore: <span class="tracking-tight">Lv. {explorationLv}</span></h2>
                 <button
-                    class="block w-full text-left pl-[3.3rem]"
+                    class="block w-full text-left pl-[2rem] sm:pl-[3.3rem]"
                     onClick={() => { getState().exploreNext() }}
                     onMouseEnter={() => { setTooltip("explorationNext", <ExplorationNextTooltip />) }}
                     onMouseLeave={() => { removeTooltip("explorationNext") }}>
                     <i class="ti ti-arrow-forward" /> Next<span class="[font-size:80%] tracking-tighter"><i class="ti ti-meat ml-3 mr-1" />{constants.explorationCost(explorationLv)}</span>
                 </button>
                 {explorationLv >= 2 && <button
-                    class="block w-full text-left pl-[3.3rem] mt-1"
+                    class="block w-full text-left pl-[2rem] sm:pl-[3.3rem] mt-1"
                     onClick={() => { getState().explorePrev() }}
                     onMouseEnter={() => { setTooltip("explorationPrev", <ExplorationPrevTooltip />) }}
                     onMouseLeave={() => { removeTooltip("explorationPrev") }}>
@@ -367,12 +367,13 @@ const UI = () => {
         </dialog>
 
         {/* Newspaper Dialog */}
-        <dialog ref={newsDialog} class="bg-gray-100 w-[400px] h-[620px] p-5 box-border shadow-2xl select-none [font-family:KottaOne] [-webkit-text-stroke:3px_rgba(0,0,0,0.05)]" onClick={modalOnClickHandler}>
-            {state.news && <div class="[line-height:1.2] [font-size:12px] text-justify overflow-y-hidden h-full">
+        <dialog ref={newsDialog} class="bg-gray-100 w-[400px] h-[620px] p-5 box-border shadow-2xl select-none" onClick={modalOnClickHandler}>
+            {state.news && <div class="[line-height:1.2] [font-size:12px] text-justify overflow-y-hidden h-full [font-family:KottaOne] [-webkit-text-stroke:3px_rgba(0,0,0,0.05)]">
                 <h2 class="text-lg tracking-wide font-bold mb-4 [border-bottom:3px_solid_rgb(130,130,130)] text-center">{state.news[0]}</h2>
                 <span>{state.news[1]}</span>
                 <span class="text-gray-500"> {randomText}</span>
             </div>}
+            <button class="sm:hidden absolute right-2 bottom-2 px-4" onClick={() => { closeModal(newsDialog.current!) }}>Close</button>
         </dialog>
 
         {/* Loading Message */}

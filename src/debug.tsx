@@ -8,10 +8,10 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import create, { useStore } from "zustand"
 import { defineActions, ObjectEntries, ObjectKeys } from "./util"
 import { persist } from "zustand/middleware"
+import { useEffect, useState } from "preact/hooks"
 
 const modelDebuggerStore = defineActions(create<{
     paused: boolean
-    object: THREE.Object3D | null
     version: number,
     objectPools: Record<string, number>
 }>()(() => ({
@@ -20,7 +20,6 @@ const modelDebuggerStore = defineActions(create<{
     version: 0,
     objectPools: {},
 })), (set, get) => ({
-    setObject: (obj: THREE.Object3D) => set({ object: obj }),
     stop: () => set({ paused: true }),
     resume: () => set({ paused: false }),
     refreshDebugger: () => set({ version: get().version + 1 }),
@@ -48,8 +47,11 @@ export const logObjectPoolSize = modelDebuggerStore.getState().setObjectPoolSize
 
 export const Debugger = () => {
     if (import.meta.env.PROD) { return <></> }
-    const { object, resume, stop, paused, refreshDebugger, objectPools } = useStore(modelDebuggerStore)
+    const { resume, stop, paused, objectPools } = useStore(modelDebuggerStore)
     const { renderingOptions, setRenderingOption } = useStore(renderingOptionsStore)
+    const [innerWidth, setInnerWidth] = useState(() => window.innerWidth)
+    useEffect(() => { window.addEventListener("resize", () => { setInnerWidth(window.innerWidth) }) }, [])
+    if (innerWidth < 680) { return <></> }
     return <div class="absolute right-56 bottom-1 [font-size:50%]">
         {/* DEBUG: Rendering options */}
         <div class="px-3 pt-1 pb-3 window mb-1">
@@ -68,27 +70,11 @@ export const Debugger = () => {
         {/* DEBUG: 3D model debugger */}
         <div class="px-3 pt-1 pb-3 window">
             <h2>[Debug] 3D Models</h2>
+            You can move the camera by dragging the screen while the game is paused.
             <div>
-                {!paused && <button class="px-2" onClick={() => { stop() }}>🛑 Stop</button>}
+                {!paused && <button class="px-2" onClick={() => { stop() }}>🛑 Pause</button>}
                 {paused && <button class="px-2 ml-1" onClick={() => { resume() }}>▶️ Resume</button>}
             </div>
-            {paused && (object === null ? <>Double click on objects.</> : <>
-                <h3>{object.name}</h3>
-                <table>
-                    <tr>
-                        <td>pos</td>
-                        <td><input class="w-10 mr-1" value={object.position.x} onBlur={(ev) => { if (!object) { return } object.position.x = +ev.currentTarget.value; refreshDebugger() }} /></td>
-                        <td><input class="w-10 mr-1" value={object.position.y} onBlur={(ev) => { if (!object) { return } object.position.y = +ev.currentTarget.value; refreshDebugger() }} /></td>
-                        <td><input class="w-10 mr-1" value={object.position.z} onBlur={(ev) => { if (!object) { return } object.position.z = +ev.currentTarget.value; refreshDebugger() }} /></td>
-                    </tr>
-                    <tr>
-                        <td>rot°</td>
-                        <td><input class="w-10 mr-1" value={object.rotation.x / Math.PI * 180} onBlur={(ev) => { if (!object) { return } object.rotation.x = +ev.currentTarget.value / 180 * Math.PI; refreshDebugger() }} /></td>
-                        <td><input class="w-10 mr-1" value={object.rotation.y / Math.PI * 180} onBlur={(ev) => { if (!object) { return } object.rotation.y = +ev.currentTarget.value / 180 * Math.PI; refreshDebugger() }} /></td>
-                        <td><input class="w-10 mr-1" value={object.rotation.z / Math.PI * 180} onBlur={(ev) => { if (!object) { return } object.rotation.z = +ev.currentTarget.value / 180 * Math.PI; refreshDebugger() }} /></td>
-                    </tr>
-                </table>
-            </>)}
         </div>
         <div class="px-3 pt-1 pb-3 window">
             <h2>[Debug] Object Pools</h2>
@@ -107,23 +93,8 @@ export const init3DModelDebugger = (camera: THREE.Camera, renderer: THREE.Render
     const orbit = new OrbitControls(camera, renderer.domElement)
     orbit.listenToKeyEvents(window)
 
-    const transformControls = new TransformControls(camera, renderer.domElement)
-    scene.add(new THREE.AxesHelper(), transformControls)
-    transformControls.addEventListener("dragging-changed", (ev) => {
-        orbit.enabled = !ev.value
-    })
-    transformControls.addEventListener("objectChange", () => { modelDebuggerStore.getState().refreshDebugger() })
-    renderer.domElement.addEventListener("dblclick", (ev) => {
-        transformControls.detach()
-        const raycaster = new THREE.Raycaster()
-        raycaster.setFromCamera({ x: ev.clientX / window.innerWidth * 2 - 1, y: -ev.clientY / window.innerHeight * 2 + 1 }, camera)
-        const interactiveObjects: THREE.Object3D[] = []
-        scene.traverseVisible((obj) => { if (obj.name) { interactiveObjects.push(obj) } })
-        const intersections = raycaster.intersectObjects(interactiveObjects, true)
-        if (intersections[0]?.object === undefined) { return }
-        transformControls.attach(intersections[0].object)
-        modelDebuggerStore.getState().setObject(intersections[0].object)
-    })
+    orbit.enabled = modelDebuggerStore.getState().paused
+    modelDebuggerStore.subscribe((s) => { orbit.enabled = s.paused })
 
     return () => modelDebuggerStore.getState().paused
 }

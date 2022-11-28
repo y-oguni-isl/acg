@@ -32,10 +32,6 @@ $button2-hover-primary: rgba(160, 194, 249, 0.7);
 
 input:not([type]),input[type=text] { @apply text-gray-700 pl-1; }
 
-body {
-    font-family: Turpis, serif;
-}
-
 @font-face {
     font-family: Turpis;
     src: url("../font/turpls-font/Turpis-GOgVm.ttf") format("truetype");

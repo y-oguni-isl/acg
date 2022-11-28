@@ -37,11 +37,17 @@ setAutoFreeze(false) // Disable auto freeze because it'll make immer 2.7x faster
 /** The scene object, that contains all visible Three.js objects. */
 const scene = new THREE.Scene()
 
+// Renderer
+const renderer = new THREE.WebGLRenderer({ antialias: true })
+renderer.outputEncoding = THREE.sRGBEncoding
+renderer.setSize(window.innerWidth, window.innerHeight)
+document.body.appendChild(renderer.domElement)
+
 /** The utility function to add the `obj` to the `scene`. */
 const show = <T extends Omit<THREE.Object3D, "userData">>(obj: T): T => { scene.add(obj as any as THREE.Object3D); return obj }
 
 // Airplane
-const airplane = show(await webgl.createAirplane())
+const airplane = show(await webgl.createAirplane(renderer.domElement))
 
 // Contrail
 scene.add(webgl.createContrail(airplane))
@@ -94,12 +100,6 @@ await new Promise((resolve) => setTimeout(resolve, 0)) // Let the browser to ren
 
 // Download the 3D model for newspapers after every other 3D models is downloaded because it should not be prioritized.
 show(webgl.createNewspaperAnimationPlayer())
-
-// Renderer
-const renderer = new THREE.WebGLRenderer({ antialias: true })
-renderer.outputEncoding = THREE.sRGBEncoding
-renderer.setSize(window.innerWidth, window.innerHeight)
-document.body.appendChild(renderer.domElement)
 
 // Post processing
 const effectComposer = new EffectComposer(renderer)
@@ -264,12 +264,6 @@ ephemeralDOMStore.getState().removeLoadingMessage("loadingModels")
 
 // The first tutorial message
 getState().addTutorial("wasd")
-window.addEventListener("keyup", (ev) => {
-    if (["KeyW", "KeyS", "KeyA", "KeyD"].includes(ev.code) &&
-        getState().availableTutorials.wasd) {
-        getState().completeTutorial("wasd")
-    }
-})
 
 // Without this, code that awaits between the instantiation of a Three.js object and addEventlistener("resize",) goes wrong if the window is resized while awaiting.
 window.dispatchEvent(new UIEvent("resize"))
