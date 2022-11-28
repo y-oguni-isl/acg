@@ -60,7 +60,8 @@ for (const [name, stage] of ObjectEntries(stages)) {
 }
 
 // Camera
-const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10), { position: { set: [-0.5, 0.6, 0] } })
+const cameraInitialPosition = [-0.5, 0.6, 0] as const
+const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10), { position: { set: cameraInitialPosition } })
 
 // Parallel download
 const { enemies } = await PromiseAll({
@@ -122,13 +123,14 @@ onUpdate.add(() => {
     if (forward) {
         // Play the animation to move to another stage
         airplane.position.x += 0.01 + Math.max(0, airplane.position.x) * 0.08
-        scene.rotateY(0.02)
-        scene.rotateZ(-0.003)
+        camera.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), -0.02)
+        camera.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), 0.003)
+        camera.position.z -= 0.01
     }
     if (airplane.position.x > 2 || !forward) {
         stageTransitionPass.play(() => {
             airplane.position.x = 0
-            scene.rotation.set(0, 0, 0)
+            camera.position.set(...cameraInitialPosition)
         })
     }
 })
@@ -160,14 +162,15 @@ if (stats) {
     let updateCount = 0
     let renderCount = 0
     renderer.setAnimationLoop((time: number): void => {
-        const render = !ephemeralDOMStore.getState().powerSaveMode // || renderCount % 120 === 0
+        const update = !getState().transcending && !isPaused()
+        const render = !getState().transcending && !ephemeralDOMStore.getState().powerSaveMode // || renderCount % 120 === 0
         renderCount++
 
         // FPS monitor
         stats?.update()
 
-        if (isPaused() || getState().transcending) {  // if the game is paused
-            prevTime.update = prevTime.render = Date.now()  // do nothing and update the prevTimes
+        if (!update) {
+            prevTime.update = Date.now()
         } else {
             // Update
             const numUpdates = Math.floor((time - prevTime.update) / (1000 / updatePerSecond))
@@ -224,14 +227,20 @@ if (stats) {
 
                 updateCount++
             }
+        }
 
+        if (!render) {
+            prevTime.render = Date.now()
+        } else {
             // Fire the onBeforeRender hook
             const deltaTime = time - prevTime.render
             prevTime.render = time
             if (render) { onBeforeRender.forEach((f) => f(time, deltaTime, camera)) }
+        }
 
+        if (update && render) {
             // Move and rotate the camera
-            if (render) {
+            if (getState().stageTransitingTo === null) {
                 camera.position.z = airplane.position.z
                 camera.lookAt(getState().stage === "Final" ? new THREE.Vector3(0.5, 0, airplane.position.z) : new THREE.Vector3(0, 0, airplane.position.z))
                 camera.rotation.x += airplane.userData.velocity.x * 0.05
