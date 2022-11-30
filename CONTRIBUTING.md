@@ -14,7 +14,7 @@
 
 # Development Environment
 I highly recommend using VSCode with the extensions listed in `.vscode/extensions.json` for development.
-- `"boyswan.glsl-literal"` highlights the `/* glsl */` syntax in `.frag.ts` and `.vert.ts` files.
+- `"slevesque.shader"` highlights `.frag`, `.vert` and `.glsl` files.
 - `"bradlc.vscode-tailwindcss"` adds auto-completions and hovers to tailwind classes.
 - `"ms-vscode.vscode-typescript-next"` allows us to use the `satisfies` syntax in TypeScript 4.9 before its release.
 
