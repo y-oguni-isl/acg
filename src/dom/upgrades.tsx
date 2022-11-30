@@ -40,9 +40,11 @@ const Upgrades = () => {
         .filter((_, i, arr) => i < 2 || arr[i - 1]![1] > 0 || arr[i - 2]![1] > 0)
         .map(([k]) => k), shallow)
     return <>
-        <div class="px-3 pt-1 pb-3 mt-3 window">
+        <div class="px-3 pt-1 pb-3 window">
             <h2 class="mb-2 tracking-wide"><i class="ti ti-chevrons-up" /> Upgrades</h2>
-            {upgrades.map((name, i) => <Row key={name} name={name} rowNumber={i} />)}
+            <div class="[&>*:not(:last-child)]:mb-1">
+                {upgrades.map((name, i) => <Row key={name} name={name} rowNumber={i} />)}
+            </div>
         </div>
     </>
 }
@@ -68,7 +70,7 @@ const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
 
     return <div
         ref={ref}
-        class="relative block hover:cursor-pointer mb-1 backdrop-blur-3xl drop-shadow-md select-none border-opacity-40 border-[1px] rounded-lg border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600"
+        class="relative block hover:cursor-pointer backdrop-blur-3xl drop-shadow-md select-none border-opacity-40 border-[1px] rounded-lg border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600"
         disabled={disabled}
         onMouseDown={() => {
             if (disabled) { return }

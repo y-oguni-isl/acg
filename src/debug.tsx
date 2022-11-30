@@ -53,7 +53,7 @@ export const Debugger = () => {
     if (innerWidth < 680) { return <></> }
     return <div class="absolute right-56 bottom-1 [font-size:50%]">
         {/* DEBUG: Rendering options */}
-        <div class="px-3 pt-1 pb-3 window mb-1">
+        <div class="px-3 pt-1 pb-3 window">
             <h2>[Debug] Rendering</h2>
             <div>
                 {ObjectEntries(renderingOptions).map(([name, checked]) => <label class="block">

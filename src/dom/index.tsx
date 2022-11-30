@@ -106,7 +106,7 @@ const randomText = Array(10000).fill(0).map(() => Array(Math.floor(Math.random()
 const EnemyStats = () => {
     const enemyStatus = useStore(ephemeralDOMStore, (s) => s.enemyStatus, shallow)
     if (!enemyStatus) { return <></> }
-    return <div class="px-3 pt-1 pb-3 window mt-3 mb-1">
+    return <div class="px-3 pt-1 pb-3 window">
         <h2 class="mb-2 tracking-wide"><i class="ti ti-chart-line" /> Enemy Stats</h2>
         <div>
             <table class="tracking-wide">
@@ -122,7 +122,7 @@ const EnemyStats = () => {
 /** The "Items" window */
 const Items = () => {
     const items = useStore(store, (s) => s.items)
-    return <div class="px-3 pt-1 pb-3 window mt-3 mb-1">
+    return <div class="px-3 pt-1 pb-3 window">
         <h2 class="mb-2 tracking-wide"><i class="ti ti-notes" /> Items</h2>
         <table class="w-full">{ObjectEntries(items).map(([k, v]) =>
             <tr onMouseEnter={() => { setTooltip(`item-${k}`, constants.flavorText[k]) }}
@@ -137,7 +137,7 @@ const Items = () => {
 const Transcend = () => {
     const canTranscend = useStore(store, (s) => s.canTranscend)
     return <>
-        {canTranscend && <div class="px-3 pt-1 pb-3 window gold mt-3">
+        {canTranscend && <div class="px-3 pt-1 pb-3 window gold">
             <p class="text-xs mb-2">
                 You have reached the point of singularity and can transcended to a higher plane of existence.
             </p>
@@ -239,7 +239,7 @@ const UI = () => {
 
     return <>
         {/* Top-Left Pane */}
-        <div class="absolute left-[-4px] top-[-2px] w-44 sm:w-72">
+        <div class="absolute left-[-4px] top-[-2px] w-44 sm:w-72 [&>*]:mt-3">
             <Upgrades />
             {hasVacuum && <Items />}
             <Transcend />
@@ -257,14 +257,14 @@ const UI = () => {
         </div>}
 
         {/* Top-Right pane */}
-        <div class="absolute right-[-4px] top-[-2px] min-w-[7rem] sm:min-w-[13rem]">
+        <div class="absolute right-[-4px] top-[-2px] min-w-[7rem] sm:min-w-[13rem] [&>*]:mt-3">
             {/* Stages */}
-            {ObjectValues(areStageNamesVisible).some((v) => v) && <div class="px-3 pt-1 pb-3 mt-3 window">
+            {ObjectValues(areStageNamesVisible).some((v) => v) && <div class="px-3 pt-1 pb-3 window">
                 <h2 class="mb-2 tracking-wide"><i class="ti ti-map-2" /> Stages</h2>
-                <div>{ObjectKeys(stages).map((name) =>
+                <div class="[&>*:not(:last-child)]:mb-1">{ObjectKeys(stages).map((name) =>
                     <button
                         tabIndex={-1}
-                        class={"w-full mb-1" + (stage === name ? " button-primary" : "")}
+                        class={"w-full" + (stage === name ? " button-primary" : "")}
                         onClick={() => { getState().setStageTransitingTo(name) }}
                         disabled={!areStageNamesVisible[name] || stage === name}>
                         {areStageNamesVisible[name] ? name : "???"}
@@ -273,7 +273,7 @@ const UI = () => {
             </div>}
 
             {/* Weather */}
-            {weather !== null && <div class="px-3 pt-1 pb-3 window mt-3 mb-1">
+            {weather !== null && <div class="px-3 pt-1 pb-3 window">
                 <h2 class="mb-2 tracking-wide"><i class="ti ti-sun" /> Weather</h2>
                 <div>
                     <table>
@@ -287,7 +287,7 @@ const UI = () => {
             <EnemyStats />
 
             {/* Explore */}
-            {hasVacuum && stage !== "Final" && <div class="px-3 pt-1 pb-3 window mt-3 mb-1">
+            {hasVacuum && stage !== "Final" && <div class="px-3 pt-1 pb-3 window">
                 <h2 class="mb-2 tracking-wide"><i class="ti ti-route" /> Explore: <span class="tracking-tight">Lv. {explorationLv}</span></h2>
                 <button
                     class="block w-full text-left pl-[2rem] sm:pl-[3.3rem]"
@@ -321,9 +321,9 @@ const UI = () => {
         </dialog>
 
         {/* Bottom-Left Pane */}
-        <div class="absolute left-[-4px] bottom-[-2px] px-5 pb-1 window tracking-wide">
+        <div class="absolute left-[-4px] bottom-[-2px] px-5 pb-1 window tracking-wide [&>*:not(:first-child)]:ml-5">
             <span class="cursor-pointer hover:text-white" onClick={() => { showModal(creditDialog.current!) }}><i class="ti ti-license" /> Credits</span>
-            <span class="cursor-pointer hover:text-white ml-5" onClick={() => { showModal(optionsDialog.current!) }}><i class="ti ti-tool" /> Options</span>
+            <span class="cursor-pointer hover:text-white" onClick={() => { showModal(optionsDialog.current!) }}><i class="ti ti-tool" /> Options</span>
         </div>
 
         {/* Credits Dialog */}
