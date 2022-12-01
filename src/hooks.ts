@@ -1,6 +1,6 @@
 /**
- * This file defines `Set`s in which event listeners are registered.
- * The order or the events is described in # Main Game Loop in `CONTRIBUTING.md`.
+ * This file defines sets in which event listeners are registered.
+ * The order of the events is described in # Main Game Loop in `CONTRIBUTING.md`.
  */
 
 import type { ItemName } from "./constants"

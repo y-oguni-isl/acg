@@ -34,7 +34,7 @@ import { setAutoFreeze } from "immer"
 
 setAutoFreeze(false) // Disable auto freeze because it'll make immer 2.7x faster https://immerjs.github.io/immer/performance/#pre-freeze-data
 
-/** The scene object, that contains all visible Three.js objects. */
+/** The scene object, which contains all visible Three.js objects. */
 const scene = new THREE.Scene()
 
 // Renderer
@@ -274,5 +274,5 @@ ephemeralDOMStore.getState().removeLoadingMessage("loadingModels")
 // The first tutorial message
 getState().addTutorial("wasd")
 
-// Without this, code that awaits between the instantiation of a Three.js object and addEventlistener("resize",) goes wrong if the window is resized while awaiting.
+// Without this, the code that awaits between the instantiation of a Three.js object and addEventlistener("resize",) goes wrong if the window is resized while awaiting.
 window.dispatchEvent(new UIEvent("resize"))

@@ -1,5 +1,5 @@
 /**
- * This file defines the setTooltip() and removeTooltip() function that sets and removes a tooltip.
+ * This file defines setTooltip() and removeTooltip(), which set and remove a tooltip, respectively.
  */
 
 import type { ComponentChildren } from "preact"

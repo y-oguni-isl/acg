@@ -1,5 +1,5 @@
 /**
- * This file defines debugging components that should be disabled in production.
+ * This file defines debugging components, which should be disabled in production.
  */
 
 import * as THREE from "three"

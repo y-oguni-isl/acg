@@ -1,5 +1,5 @@
 /**
- * This file defines constants that don't change during game play.
+ * This file defines constants for the game.
  */
 
 import type stages from "./stages"
