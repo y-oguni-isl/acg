@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "private": true,
-  "packageManager": "yarn@4.0.0-rc.30",
+  "packageManager": "yarn@4.0.0-rc.32",
   "scripts": {
     "start": "vite",
     "build": "vite build"
@@ -14,31 +14,31 @@
   "author": "",
   "license": "",
   "dependencies": {
-    "@tabler/icons": "^1.112.0",
+    "@tabler/icons": "^1.114.0",
     "autolinker": "^4.0.0",
     "core-js": "^3.26.1",
     "glob": "^8.0.3",
     "immer": "^9.0.16",
-    "preact": "^10.11.2",
+    "preact": "^10.11.3",
     "stats.js": "^0.17.0",
-    "three": "^0.146.0",
+    "three": "^0.147.0",
     "zustand": "^4.1.4"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.2",
+    "@babel/core": "^7.20.5",
     "@preact/preset-vite": "^2.4.0",
     "@types/glob": "^8.0.0",
     "@types/license-checker": "^25.0.3",
-    "@types/node": "^18.11.9",
+    "@types/node": "^18.11.10",
     "@types/stats.js": "^0.17.0",
-    "@types/three": "^0.144.0",
+    "@types/three": "^0.146.0",
     "autoprefixer": "^10.4.13",
     "core-dts": "^0.0.3",
     "license-checker": "^25.0.1",
-    "postcss": "^8.4.18",
+    "postcss": "^8.4.19",
     "sass": "^1.56.1",
-    "tailwindcss": "^3.2.2",
+    "tailwindcss": "^3.2.4",
     "typed-query-selector": "^2.8.0",
-    "vite": "^3.2.3"
+    "vite": "^3.2.4"
   }
 }

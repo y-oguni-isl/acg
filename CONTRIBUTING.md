@@ -3,12 +3,11 @@
 1. [Install Node.js](https://nodejs.org/en/download/)
 2. ```shell
    corepack enable
-   corepack prepare yarn@4.0.0-rc.30 --activate  # This command installs yarn@4 globally. If you don't like that, use `corepack yarn` instead of `yarn` in later commands.
-   yarn
+   corepack yarn
 
-   yarn start
+   corepack yarn start
    # or
-   yarn build
+   corepack yarn build
    python3 -m http.server --bind localhost --directory dist
    ```
 
