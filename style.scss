@@ -105,3 +105,14 @@ dialog.open::backdrop {
 input[type=checkbox], input[type=radio] {
     @apply accent-orange-600;
 }
+
+body,
+button:disabled {
+    cursor: url('./cursor.png') 10 4, default;
+}
+
+.pointer,
+button,
+label {
+    cursor: url('./cursor-pointer.png') 10 4, pointer;
+}

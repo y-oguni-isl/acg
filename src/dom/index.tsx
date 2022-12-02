@@ -322,8 +322,8 @@ const UI = () => {
 
         {/* Bottom-Left Pane */}
         <div class="absolute left-[-4px] bottom-[-2px] px-5 pb-1 window tracking-wide [&>*:not(:first-child)]:ml-5">
-            <span class="cursor-pointer hover:text-white" onClick={() => { showModal(creditDialog.current!) }}><i class="ti ti-license" /> Credits</span>
-            <span class="cursor-pointer hover:text-white" onClick={() => { showModal(optionsDialog.current!) }}><i class="ti ti-tool" /> Options</span>
+            <span class="pointer hover:text-white" onClick={() => { showModal(creditDialog.current!) }}><i class="ti ti-license" /> Credits</span>
+            <span class="pointer hover:text-white" onClick={() => { showModal(optionsDialog.current!) }}><i class="ti ti-tool" /> Options</span>
         </div>
 
         {/* Credits Dialog */}
@@ -341,7 +341,7 @@ const UI = () => {
                 <table>
                     <tr>
                         <td class="pr-4 text-right" title="Power Save Mode stops rendering the game,<br />but the game still runs in the background.">Power Save Mode</td>
-                        <td><label class="cursor-pointer"><input type="checkbox" checked={state.usePowerSaveMode} onChange={(ev) => { domStore.setState({ usePowerSaveMode: ev.currentTarget.checked }) }} /> enabled</label></td>
+                        <td><label class="pointer"><input type="checkbox" checked={state.usePowerSaveMode} onChange={(ev) => { domStore.setState({ usePowerSaveMode: ev.currentTarget.checked }) }} /> enabled</label></td>
                     </tr>
                     <tr>
                         <td class="pr-4 text-right">Quality</td>
@@ -359,7 +359,7 @@ const UI = () => {
                         <td><input type="range" class="w-32 align-middle" value={state.bgmVolume} min={0} max={1} step={0.05} onChange={(ev) => { domStore.setState({ bgmVolume: +ev.currentTarget.value }) }} /></td>
                     </tr>
                 </table>
-                <div class="cursor-pointer text-orange-300 hover:text-orange-400 mt-4" onClick={() => {
+                <div class="pointer text-orange-300 hover:text-orange-400 mt-4" onClick={() => {
                     if (!resetProgressDialog.current) { return }
                     showModal(resetProgressDialog.current)
                 }}><i class="ti ti-eraser" /> Reset Progress</div>

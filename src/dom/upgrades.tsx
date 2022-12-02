@@ -70,7 +70,7 @@ const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
 
     return <div
         ref={ref}
-        class="relative block hover:cursor-pointer backdrop-blur-3xl drop-shadow-md select-none border-opacity-40 border-[1px] rounded-lg border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600"
+        class="relative block pointer backdrop-blur-3xl drop-shadow-md select-none border-opacity-40 border-[1px] rounded-lg border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600"
         disabled={disabled}
         onMouseDown={() => {
             if (disabled) { return }
