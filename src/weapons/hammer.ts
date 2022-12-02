@@ -16,7 +16,7 @@ export default async (source: THREE.Object3D) => {
     const pool = new webgl.ObjectPool("hammer", new THREE.Object3D().add(model))
         .onClone((copy) => {
             onBeforeRender.add((time) => {
-                copy.rotation.x += Math.random() * 0.03
+                copy.rotation.x += Math.random() * 0.03 // FIXME: deltaTime
                 copy.rotation.y = time * 0.01
                 copy.rotation.z = Math.PI / 2
             })

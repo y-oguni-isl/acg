@@ -1,6 +1,6 @@
 import * as THREE from "three"
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass"
-import { onBeforeRender } from "../hooks"
+import { onBeforeRender, onUpdate } from "../hooks"
 import { getState, subscribe } from "../saveData"
 import fragmentShader from "./createRainPass.frag"
 import vertexShader from "./createRainPass.vert"
@@ -49,7 +49,7 @@ export default (blur: boolean) => {
         }
     })
 
-    setInterval(() => { rotateMouseTrail() }, 100)
+    onUpdate.add((t) => { if (t % 6 === 0) { rotateMouseTrail() } })
 
     onBeforeRender.add((time, _, camera) => {
         pass.uniforms.aspect!.value = camera.aspect
