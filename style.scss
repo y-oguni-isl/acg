@@ -113,6 +113,9 @@ button:disabled {
 
 .pointer,
 button,
-label {
+label,
+dialog::backdrop,
+a,
+input {
     cursor: url('./cursor-pointer.png') 10 4, pointer;
 }
