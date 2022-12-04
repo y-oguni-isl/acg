@@ -624,6 +624,40 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/prop-types@npm:*":
+  version: 15.7.5
+  resolution: "@types/prop-types@npm:15.7.5"
+  checksum: a6e04a01e1f632cc3fa5fffd79779f2f83a8fec1293cdf29b5a02aa4e1a1b38a124e824205a40de4e66532a0fa33c4f60337b55cec635080ea2571e55910460f
+  languageName: node
+  linkType: hard
+
+"@types/react-modal@npm:^3":
+  version: 3.13.1
+  resolution: "@types/react-modal@npm:3.13.1"
+  dependencies:
+    "@types/react": "npm:*"
+  checksum: d8f60249782027e3ae52f7494b2cafabc41eef19e55bd7e01c1410603354efa606e64028d2e8c554455f65ed8a0a6b6b3a7ae2e32be89efb1175658904f8fb87
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:*":
+  version: 18.0.26
+  resolution: "@types/react@npm:18.0.26"
+  dependencies:
+    "@types/prop-types": "npm:*"
+    "@types/scheduler": "npm:*"
+    csstype: "npm:^3.0.2"
+  checksum: b2520e54786585b9fdb6fa3cbb92cbd05a0f0951ec3480ed71f320dbd41e0d663d6582fe34bf0e590047917f51b9205a33b40a1986340d002501ffef58f5fbe4
+  languageName: node
+  linkType: hard
+
+"@types/scheduler@npm:*":
+  version: 0.16.2
+  resolution: "@types/scheduler@npm:0.16.2"
+  checksum: 223d9b12d1eff3fe857e7eb967d640707c2a76ba1126633bae88dce7693301ea8edcce83586a17134a1822f01265f715809860085547b01db8de6a90f5165706
+  languageName: node
+  linkType: hard
+
 "@types/stats.js@npm:^0.17.0":
   version: 0.17.0
   resolution: "@types/stats.js@npm:0.17.0"
@@ -664,6 +698,7 @@ __metadata:
     "@types/glob": "npm:^8.0.0"
     "@types/license-checker": "npm:^25.0.3"
     "@types/node": "npm:^18.11.10"
+    "@types/react-modal": "npm:^3"
     "@types/stats.js": "npm:^0.17.0"
     "@types/three": "npm:^0.146.0"
     autolinker: "npm:^4.0.0"
@@ -675,6 +710,7 @@ __metadata:
     license-checker: "npm:^25.0.1"
     postcss: "npm:^8.4.19"
     preact: "npm:^10.11.3"
+    react-modal: "npm:^3.16.1"
     sass: "npm:^1.56.1"
     stats.js: "npm:^0.17.0"
     tailwindcss: "npm:^3.2.4"
@@ -1058,6 +1094,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"csstype@npm:^3.0.2":
+  version: 3.1.1
+  resolution: "csstype@npm:3.1.1"
+  checksum: 39c4533f337cad38b9574a24b4b94bb203f091882295b6b4fb27e9e2b17148b188847f5fb728796af60bd0b80c502d510f89fe7ada3b661eaa6bca758c902036
+  languageName: node
+  linkType: hard
+
 "debug@npm:4, debug@npm:^4.1.0, debug@npm:^4.3.1, debug@npm:^4.3.3":
   version: 4.3.4
   resolution: "debug@npm:4.3.4"
@@ -1416,6 +1459,13 @@ __metadata:
   version: 2.0.2
   resolution: "estree-walker@npm:2.0.2"
   checksum: 6fd7656e20b3c8f1fa74cd3d922e09d2cc9815ba5ea2d4cc0d5f16870b00e4c40d9aaae5efeb26299ea684a89b8e64868f42ecdddd45e8d18283f47098c9943a
+  languageName: node
+  linkType: hard
+
+"exenv@npm:^1.2.0":
+  version: 1.2.2
+  resolution: "exenv@npm:1.2.2"
+  checksum: 057e775ee2c53a675c691ac5e05547b13b9127bc8701cbcbf3edb5cf0d82a01389527b7efc04af70b89bcf6a155b2f15f5386d4976f41ee921d84289e4b04ba5
   languageName: node
   linkType: hard
 
@@ -1778,7 +1828,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-tokens@npm:^4.0.0":
+"js-tokens@npm:^3.0.0 || ^4.0.0, js-tokens@npm:^4.0.0":
   version: 4.0.0
   resolution: "js-tokens@npm:4.0.0"
   checksum: 47d1c18dc6b9eed4baf1db3d81b36feb95b463201c82ffce0d7a4d65ede596ba97d6ac2468974199705db9ef8a3433606af41fc7bbe7cb25c1dd601785413d9b
@@ -1841,6 +1891,17 @@ __metadata:
   version: 2.0.6
   resolution: "lilconfig@npm:2.0.6"
   checksum: 12b2f81da97b0f00a06d13a0a86d40c00ce46cc24fcb46b70b374af9593adf4e8a013047101535611c98b5edd10fdeb30942823cb237361c01d033049725a8aa
+  languageName: node
+  linkType: hard
+
+"loose-envify@npm:^1.0.0, loose-envify@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "loose-envify@npm:1.4.0"
+  dependencies:
+    js-tokens: "npm:^3.0.0 || ^4.0.0"
+  bin:
+    loose-envify: cli.js
+  checksum: 39c5fc44c6a8f7f8a92cccf174554fbb307477ef493760407920fdd4ed5f6cc1aec5b6a5ab3c3767ef79547b3e1aea09d8ca08d773232c662d910cfe473a0590
   languageName: node
   linkType: hard
 
@@ -2141,6 +2202,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"object-assign@npm:^4.1.1":
+  version: 4.1.1
+  resolution: "object-assign@npm:4.1.1"
+  checksum: f5cd1f2f1e82e12207e4f2377d9d7d90fbc0d9822a6afa717a6dcab6930d8925e1ebbbb25df770c31ff11335ee423459ba65ffa2e53999926c328b806b4d73d6
+  languageName: node
+  linkType: hard
+
 "object-hash@npm:^3.0.0":
   version: 3.0.0
   resolution: "object-hash@npm:3.0.0"
@@ -2330,6 +2398,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"prop-types@npm:^15.7.2":
+  version: 15.8.1
+  resolution: "prop-types@npm:15.8.1"
+  dependencies:
+    loose-envify: "npm:^1.4.0"
+    object-assign: "npm:^4.1.1"
+    react-is: "npm:^16.13.1"
+  checksum: 196295f119e0f38ec64b43c1121a7e3bdbfcf66b86a01d50df22a247eb22b644033097b53a3b0961ce64d540c7a2c505c844ff245cb548b4f6eda59bbac6fbf0
+  languageName: node
+  linkType: hard
+
 "queue-microtask@npm:^1.2.2":
   version: 1.2.3
   resolution: "queue-microtask@npm:1.2.3"
@@ -2341,6 +2420,35 @@ __metadata:
   version: 5.1.1
   resolution: "quick-lru@npm:5.1.1"
   checksum: fefb921f96c5cdf650d25d80b709072122e7a24c374aa08b35c4347f319b7614f331002c1107d337651107fadea4a2b8a66774070645a179f6fc6b21edc2085a
+  languageName: node
+  linkType: hard
+
+"react-is@npm:^16.13.1":
+  version: 16.13.1
+  resolution: "react-is@npm:16.13.1"
+  checksum: 0c9adc5d984db733fb1dd298f3e94cdec66bc328d27fb11df65971d2cc9a299008bc64baab8fe8e79943df85b445a1008b2cc9e270825d0fd056e5a0d2df8de6
+  languageName: node
+  linkType: hard
+
+"react-lifecycles-compat@npm:^3.0.0":
+  version: 3.0.4
+  resolution: "react-lifecycles-compat@npm:3.0.4"
+  checksum: 9bdce04e47ec2c2a063640f7acf073ddbf2fee84f0ebdff3bfe78d3936b03a23c50a72b0e80bba62861763a4994dcdfcd9bfa91ff6f787bcf59d388bfdd1f4a8
+  languageName: node
+  linkType: hard
+
+"react-modal@npm:^3.16.1":
+  version: 3.16.1
+  resolution: "react-modal@npm:3.16.1"
+  dependencies:
+    exenv: "npm:^1.2.0"
+    prop-types: "npm:^15.7.2"
+    react-lifecycles-compat: "npm:^3.0.0"
+    warning: "npm:^4.0.3"
+  peerDependencies:
+    react: ^0.14.0 || ^15.0.0 || ^16 || ^17 || ^18
+    react-dom: ^0.14.0 || ^15.0.0 || ^16 || ^17 || ^18
+  checksum: 0b5d2e2292fee26876d05ad01df953465c472dd8f2cd346644a7f2b552e266b26d9e629026ab0b0fd14c96e3c38d36290ddd97c30b0a0682a88f92404ce1027b
   languageName: node
   linkType: hard
 
@@ -2919,6 +3027,15 @@ __metadata:
   bin:
     vite: bin/vite.js
   checksum: 7d3d67837a0400cb9c79c7ce0ffe26eb65d5668437b47e3a34c231c5ffb96e02d2d592867b0c1f863d9b8bf5ff6f3ea3b602e086ca6f48687ee00105f1b5516e
+  languageName: node
+  linkType: hard
+
+"warning@npm:^4.0.3":
+  version: 4.0.3
+  resolution: "warning@npm:4.0.3"
+  dependencies:
+    loose-envify: "npm:^1.0.0"
+  checksum: a8a2ebdd8fb207ea69d9db8f5e02e2b74399cd3b6df3b0cc8c536ea3b8bd4d1c6da6605ea30eee25f5cd1acb44ceecf9b0a1eb7f1d3537e20212f4b3f218d688
   languageName: node
   linkType: hard
 

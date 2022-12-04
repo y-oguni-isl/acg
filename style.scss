@@ -93,14 +93,13 @@ button {
     }
 }
 
-dialog::backdrop {
-    background-color: rgba(0, 0, 0, 0.0);
-    transition: background-color ease 0.3s; // doesn't work in firefox 107
+.ReactModal__Overlay {
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    background-color: rgba(0, 0, 0, 0.5) !important;
 }
-
-dialog.open::backdrop {
-    background: rgba(0, 0, 0, 0.5);
-}
+.ReactModal__Overlay--after-open { opacity: 1; }
+.ReactModal__Overlay--before-close { opacity: 0; }
 
 input[type=checkbox], input[type=radio] {
     @apply accent-orange-600;

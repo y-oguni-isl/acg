@@ -4,7 +4,6 @@ import create, { useStore } from "zustand"
 import { persist } from "zustand/middleware"
 import { deleteSaveData, getState, store } from "../saveData"
 import { useEffect, useRef, useState } from "preact/hooks"
-import type { JSXInternal } from "preact/src/jsx"
 import { Debugger } from "../debug"
 import Autolinker from "autolinker"
 import stages from "../stages"
@@ -14,6 +13,8 @@ import shallow from "zustand/shallow"
 import { removeTooltip, setTooltip, Tooltip } from "./tooltip"
 import cursorDefault from "../../cursor.png"
 import cursorPointer from "../../cursor-pointer.png"
+import Dialog, { DialogRef } from "./dialog"
+import Modal from "react-modal"
 
 /** A mapping from tutorial names to their indices.  */
 const tutorialIndices = new Map(ObjectKeys(constants.tutorialHTML).map((name, i) => [name, i]))
@@ -77,29 +78,6 @@ ephemeralDOMStore.getState().updatePowerSaveModeState()
 document.addEventListener("visibilitychange", () => { ephemeralDOMStore.getState().updatePowerSaveModeState() })
 window.addEventListener("blur", () => { ephemeralDOMStore.getState().updatePowerSaveModeState() })
 window.addEventListener("focus", () => { ephemeralDOMStore.getState().updatePowerSaveModeState() })
-
-/** dialog.showModal() with an animation */
-const showModal = (dialog: HTMLDialogElement) => {
-    dialog.style.transition = "opacity ease 0.3s"
-    dialog.style.opacity = "0"
-    dialog.classList.remove("open")
-    dialog.showModal()
-    dialog.style.opacity = "1"
-    dialog.classList.add("open")
-}
-
-/** dialog.close() with an animation */
-const closeModal = (dialog: HTMLDialogElement) => {
-    dialog.style.opacity = "0"
-    dialog.classList.remove("open")
-    setTimeout(() => { dialog.close() }, 300)
-}
-
-/** Close the dialog when the user clicks outside the dialog */
-const modalOnClickHandler = (ev: JSXInternal.TargetedMouseEvent<HTMLDialogElement>) => {
-    if (ev.target !== ev.currentTarget) { return }
-    closeModal(ev.currentTarget as HTMLDialogElement)
-}
 
 /** A random text to fill newspapers. */
 const randomText = Array(10000).fill(0).map(() => Array(Math.floor(Math.random() * 6) + 2).fill(0).map(() => "abcdefghijklmnopqrstuvwxyz"[Math.floor(Math.random() * 26)]).join("")).join(" ")
@@ -200,10 +178,10 @@ const Cursor = () => {
 /** The root component */
 const UI = () => {
     const state = useStore(domStore)
-    const newsDialog = useRef<HTMLDialogElement>(null)
-    const creditDialog = useRef<HTMLDialogElement>(null)
-    const resetProgressDialog = useRef<HTMLDialogElement>(null)
-    const optionsDialog = useRef<HTMLDialogElement>(null)
+    const newsDialog = useRef<DialogRef>(null)
+    const creditDialog = useRef<DialogRef>(null)
+    const resetProgressDialog = useRef<DialogRef>(null)
+    const optionsDialog = useRef<DialogRef>(null)
     const [creditHTML, setCreditHTML] = useState<string>("")
     const areStageNamesVisible = useStore(store, () => fromEntries(ObjectEntries(stages).map(([k, v]) => [k, v.visible()])), shallow)
     const loadingMessage = useStore(ephemeralDOMStore, (s) => s.loadingMessage)
@@ -236,11 +214,7 @@ const UI = () => {
         if (state.news === null) { return }
         setTimeout(() => {
             if (!newsDialog.current) { return }
-            showModal(newsDialog.current)
-            newsDialog.current.addEventListener("close", () => {
-                domStore.getState().hideNews()
-                getState().addTutorial("nextStage")
-            }, { once: true })
+            newsDialog.current.showModal()
         }, 2000)
     }, [state.news])
 
@@ -340,72 +314,71 @@ const UI = () => {
         <Debugger />
 
         {/* "Reset Progress" Dialog */}
-        <dialog class="window" ref={resetProgressDialog} onClick={modalOnClickHandler}>
+        <Dialog class="window p-5" ref_={resetProgressDialog}>
             <p>Are you sure you want to reset your save data?</p>
             <div class="float-right mt-4">
                 <button class="px-4 button-primary" onClick={() => {
                     deleteSaveData()
                     location.reload()
                 }}>Reset</button>
-                <button class="px-4 ml-2" onClick={() => { closeModal(resetProgressDialog.current!) }}>Cancel</button>
+                <button class="px-4 ml-2" onClick={() => { resetProgressDialog.current!.close() }}>Cancel</button>
             </div>
-        </dialog>
+        </Dialog>
 
         {/* Bottom-Left Pane */}
         <div class="absolute left-[-4px] bottom-[-2px] px-5 pb-1 window tracking-wide [&>*:not(:first-child)]:ml-5">
-            <span class="pointer hover:text-white" onClick={() => { showModal(creditDialog.current!) }}><i class="ti ti-license" /> Credits</span>
-            <span class="pointer hover:text-white" onClick={() => { showModal(optionsDialog.current!) }}><i class="ti ti-tool" /> Options</span>
+            <span class="pointer hover:text-white" onClick={() => { creditDialog.current!.showModal() }}><i class="ti ti-license" /> Credits</span>
+            <span class="pointer hover:text-white" onClick={() => { optionsDialog.current!.showModal() }}><i class="ti ti-tool" /> Options</span>
         </div>
 
         {/* Credits Dialog */}
-        <dialog ref={creditDialog} class="window p-2" onClick={modalOnClickHandler}>
-            <div class="p-5">
-                <h1 class="text-xl mb-2 tracking-wider w-full text-center">Credits</h1>
-                <ul dangerouslySetInnerHTML={{ __html: creditHTML ?? "" }} class="w-full h-full block [&_li]:mb-2 [&_h2]:font-bold [&_a]:text-violet-300 select-text list-disc ml-5"></ul>
-            </div>
-        </dialog>
+        <Dialog ref_={creditDialog} class="window p-5">
+            <h1 class="text-xl mb-2 tracking-wider w-full text-center">Credits</h1>
+            <ul dangerouslySetInnerHTML={{ __html: creditHTML ?? "" }} class="w-full h-full block [&_li]:mb-2 [&_h2]:font-bold [&_a]:text-violet-300 select-text list-disc ml-5"></ul>
+        </Dialog>
 
         {/* Options Dialog */}
-        <dialog ref={optionsDialog} class="window p-2" onClick={modalOnClickHandler}>
-            <div class="py-2 px-8">
-                <h1 class="text-xl mb-2 tracking-wider w-full text-center">Options</h1>
-                <table>
-                    <tr>
-                        <td class="pr-4 text-right" title="Power Save Mode stops rendering the game,<br />but the game still runs in the background.">Power Save Mode</td>
-                        <td><label class="pointer"><input type="checkbox" checked={state.usePowerSaveMode} onChange={(ev) => { domStore.setState({ usePowerSaveMode: ev.currentTarget.checked }) }} /> enabled</label></td>
-                    </tr>
-                    <tr>
-                        <td class="pr-4 text-right">Quality</td>
-                        <td>
-                            <label><input type="radio" name="quality" value="high" checked={state.quality === "high"} onChange={(ev) => { domStore.setState({ quality: ev.currentTarget.value as "high" | "standard" }) }} /> High</label>
-                            <label><input type="radio" name="quality" value="standard" checked={state.quality === "standard"} onChange={(ev) => { domStore.setState({ quality: ev.currentTarget.value as "high" | "standard" }) }} /> Standard</label>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="pr-4 text-right">Sound Effect</td>
-                        <td><input type="range" class="w-32 align-middle" value={state.sfxVolume} min={0} max={1} step={0.05} onChange={(ev) => { domStore.setState({ sfxVolume: +ev.currentTarget.value }) }} /></td>
-                    </tr>
-                    <tr>
-                        <td class="pr-4 text-right">Background Music</td>
-                        <td><input type="range" class="w-32 align-middle" value={state.bgmVolume} min={0} max={1} step={0.05} onChange={(ev) => { domStore.setState({ bgmVolume: +ev.currentTarget.value }) }} /></td>
-                    </tr>
-                </table>
-                <div class="pointer text-orange-300 hover:text-orange-400 mt-4" onClick={() => {
-                    if (!resetProgressDialog.current) { return }
-                    showModal(resetProgressDialog.current)
-                }}><i class="ti ti-eraser" /> Reset Progress</div>
-            </div>
-        </dialog>
+        <Dialog ref_={optionsDialog} class="window py-4 px-10">
+            <h1 class="text-xl mb-2 tracking-wider w-full text-center">Options</h1>
+            <table>
+                <tr>
+                    <td class="pr-4 text-right" title="Power Save Mode stops rendering the game,<br />but the game still runs in the background.">Power Save Mode</td>
+                    <td><label class="pointer"><input type="checkbox" checked={state.usePowerSaveMode} onChange={(ev) => { domStore.setState({ usePowerSaveMode: ev.currentTarget.checked }) }} /> enabled</label></td>
+                </tr>
+                <tr>
+                    <td class="pr-4 text-right">Quality</td>
+                    <td class="[&>*:not(:first-child)]:ml-2">
+                        <label><input type="radio" name="quality" value="high" checked={state.quality === "high"} onChange={(ev) => { domStore.setState({ quality: ev.currentTarget.value as "high" | "standard" }) }} /> High</label>
+                        <label><input type="radio" name="quality" value="standard" checked={state.quality === "standard"} onChange={(ev) => { domStore.setState({ quality: ev.currentTarget.value as "high" | "standard" }) }} /> Standard</label>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="pr-4 text-right">Sound Effect</td>
+                    <td><input type="range" class="w-32 align-middle" value={state.sfxVolume} min={0} max={1} step={0.05} onChange={(ev) => { domStore.setState({ sfxVolume: +ev.currentTarget.value }) }} /></td>
+                </tr>
+                <tr>
+                    <td class="pr-4 text-right">Background Music</td>
+                    <td><input type="range" class="w-32 align-middle" value={state.bgmVolume} min={0} max={1} step={0.05} onChange={(ev) => { domStore.setState({ bgmVolume: +ev.currentTarget.value }) }} /></td>
+                </tr>
+            </table>
+            <div class="pointer text-orange-300 hover:text-orange-400 mt-4" onClick={() => {
+                optionsDialog.current?.close()
+                resetProgressDialog.current?.showModal()
+            }}><i class="ti ti-eraser" /> Reset Progress</div>
+        </Dialog>
 
         {/* Newspaper Dialog */}
-        <dialog ref={newsDialog} class="bg-gray-100 w-[400px] h-[620px] p-5 box-border shadow-2xl select-none" onClick={modalOnClickHandler}>
+        <Dialog ref_={newsDialog} class="bg-gray-100 w-[400px] h-[620px] p-5 box-border shadow-2xl select-none" onClose={() => {
+            domStore.getState().hideNews()
+            getState().addTutorial("nextStage")
+        }}>
             {state.news && <div class="[line-height:1.2] [font-size:12px] text-justify overflow-y-hidden h-full [font-family:KottaOne] [-webkit-text-stroke:3px_rgba(0,0,0,0.05)]">
                 <h2 class="text-lg tracking-wide font-bold mb-4 [border-bottom:3px_solid_rgb(130,130,130)] text-center">{state.news[0]}</h2>
                 <span>{state.news[1]}</span>
                 <span class="text-gray-500"> {randomText}</span>
             </div>}
-            <button class="sm:hidden absolute right-2 bottom-2 px-4" onClick={() => { closeModal(newsDialog.current!) }}>Close</button>
-        </dialog>
+            <button class="sm:hidden absolute right-2 bottom-2 px-4" onClick={() => { newsDialog.current!.close() }}>Close</button>
+        </Dialog>
 
         {/* Loading Message */}
         {Object.keys(loadingMessage).length > 0 && <div class="text-gray-100 absolute top-[35%] left-0 w-full text-center whitespace-pre">{ObjectValues(loadingMessage).join("\n")}</div>}
@@ -418,4 +391,5 @@ const UI = () => {
     </>
 }
 
+Modal.setAppElement(document.body)
 render(<UI />, document.body)
