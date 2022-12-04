@@ -107,15 +107,12 @@ input[type=checkbox], input[type=radio] {
 }
 
 body,
-button:disabled {
-    cursor: url('./cursor.png') 10 4, default;
-}
-
-.pointer,
 button,
+button:disabled,
 label,
-dialog::backdrop,
 a,
-input {
-    cursor: url('./cursor-pointer.png') 10 4, pointer;
+input,
+dialog::backdrop,
+img {
+    cursor: none;
 }

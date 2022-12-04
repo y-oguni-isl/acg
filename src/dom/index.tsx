@@ -12,6 +12,8 @@ import { ObjectEntries, fromEntries, ObjectKeys, ObjectValues, defineActions } f
 import * as constants from "../constants"
 import shallow from "zustand/shallow"
 import { removeTooltip, setTooltip, Tooltip } from "./tooltip"
+import cursorDefault from "../../cursor.png"
+import cursorPointer from "../../cursor-pointer.png"
 
 /** A mapping from tutorial names to their indices.  */
 const tutorialIndices = new Map(ObjectKeys(constants.tutorialHTML).map((name, i) => [name, i]))
@@ -167,6 +169,34 @@ const ExplorationNextTooltip = () => {
     </table>
 }
 
+/**
+ * We're using a div with `position: absolute` instead of the `cursor: url(...)` CSS property because cursors displayed by `cursor: url(...)` are resized according to the operating system's cursor size setting, and it can reduce the resolution of the cursor images.
+ */
+const Cursor = () => {
+    const [position, setPosition] = useState<[number, number] | null>(null)
+    const [style, setStyle] = useState<"default" | "pointer">("default")
+    useEffect(() => {
+        const onMouseMove = (ev: MouseEvent) => {
+            setPosition([ev.clientX, ev.clientY])
+            const element = document.elementFromPoint(ev.clientX, ev.clientY)
+            setStyle(element?.matches(".pointer,.pointer *,button,a,input,dialog") ? "pointer" : "default")
+        }
+        const onMouseLeave = () => { setPosition(null) }
+        window.addEventListener("mousemove", onMouseMove)
+        document.body.addEventListener("mouseleave", onMouseLeave)
+        window.addEventListener("blur", onMouseLeave)
+        return () => {
+            window.removeEventListener("mousemove", onMouseMove)
+            document.body.removeEventListener("mouseleave", onMouseLeave)
+            window.removeEventListener("blur", onMouseLeave)
+        }
+    }, [])
+    return position ? <img
+        src={style === "default" ? cursorDefault : cursorPointer}
+        style={{ left: position[0] - 10, top: position[1] - 4 }}
+        class="absolute z-20 pointer-events-none"></img> : <></>
+}
+
 /** The root component */
 const UI = () => {
     const state = useStore(domStore)
@@ -234,6 +264,7 @@ const UI = () => {
                     <button class="px-8 ml-2" onClick={() => { getState().cancelTranscending() }}>Cancel</button>
                 </div>
             </div>
+            <Cursor />
         </div>
     }
 
@@ -381,6 +412,9 @@ const UI = () => {
 
         {/* Tooltip */}
         <Tooltip />
+
+        {/* Cursor */}
+        <Cursor />
     </>
 }
 
