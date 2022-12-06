@@ -4,6 +4,8 @@
 
 import produce, { Draft } from "immer"
 import type { UseBoundStore, StoreApi } from "zustand"
+import create from "zustand"
+import { persist } from "zustand/middleware"
 
 /** `Object.entries` with a strict type. */
 export const ObjectEntries = <K extends keyof any, V extends unknown>(obj: { readonly [k in K]?: V }): [K, V][] => Object.entries(obj) as any
@@ -62,37 +64,39 @@ export type ReadonlyVector3 = Readonly<Pick<THREE.Vector3, "x" | "y" | "z" | "is
 export type SerializableSet<T extends keyof any> = Partial<Record<T, true>>
 
 /**
- * This function allows you to write the following code:
+ * Works the same as the following code, but includes a fix for having to specify the types twice.
  * ```typescript
- * create<{
- *     foo: number
- *     addFoo: (x: number) => void
- * }>()((set, get) => ({
- *     foo: 0,
- *     addFoo: (x) => { set({ foo: get().foo + 1 }) }
- * }))
+ * create<S & A>()((get, set) => ({ ...initialState, ...actions } as S & A))
  * ```
- * as:
- * ```
- * defineActions(create<{
- *     foo: number
- * }>()(() => ({
- *     foo: 0
- * })), (set, get, setProduce) => ({
- *     addFoo: (x: number) => { set({ foo: get().foo + 1 }) },  // or setProduce((d) => { d.foo++ })
- * }))
- * ```
- * 
- * NOTE: The immer middleware is not supported, but `setProduce` argument provides the same functionality.
  */
-export const defineActions = <T, U extends Record<string, unknown>>(
-    store: UseBoundStore<StoreApi<T>>,
-    actions: (
-        set: UseBoundStore<StoreApi<T>>["setState"],
-        get: UseBoundStore<StoreApi<T>>["getState"],
-        setProduce: (f: (draft: Draft<T>) => void) => void,  // set(produce(f))
-    ) => U,
-): UseBoundStore<StoreApi<T & U>> => {
-    store.setState(actions(store.setState, store.getState, (f) => { store.setState(produce(f) as any) }) as any)
-    return store as any
+export const createStore = <S, A>(initialState: S, actions: (
+    set: UseBoundStore<StoreApi<S>>["setState"],
+    get: UseBoundStore<StoreApi<S>>["getState"],
+    setProduce: (f: (draft: Draft<S>) => void) => void,  // set(produce(f))
+) => A) => create<S & A>()((set, get) => ({ ...initialState, ...actions(set, get, (f) => { set(produce(f) as any) }) }))
+
+/**
+ * Works the same as the following code, but includes a fix for a problem where localStorage[name] can be changed after destroy(), and a fix for having to specify the types twice.
+ * ```typescript
+ * create<S & A>()(persist((get, set) => ({ ...initialState, ...actions } as S & A), { name, version }))
+ * ```
+ */
+export const createPersistingStore = <S, A>(name: string, version: number, initialState: S, actions: (
+    set: UseBoundStore<StoreApi<S>>["setState"],
+    get: UseBoundStore<StoreApi<S>>["getState"],
+    setProduce: (f: (draft: Draft<S>) => void) => void,  // set(produce(f))
+) => A) => {
+    let destroyed = false
+    const store = create<S & A>()(persist((set, get) => ({ ...initialState, ...actions(set, get, (f) => { set(produce(f) as any) }) }), {
+        name,
+        version,
+        serialize: (s) => { if (destroyed) { throw new Error("destroyed") } return JSON.stringify(s) },
+    }))
+
+    const destroy = store.destroy.bind(store)
+    store.destroy = () => {
+        destroyed = true
+        destroy()
+    }
+    return store
 }

@@ -1,13 +1,12 @@
 import { render } from "preact"
 import Upgrades from "./upgrades"
-import create, { useStore } from "zustand"
-import { persist } from "zustand/middleware"
+import { useStore } from "zustand"
 import { deleteSaveData, getState, store } from "../saveData"
 import { useEffect, useRef, useState } from "preact/hooks"
 import { Debugger } from "../debug"
 import Autolinker from "autolinker"
 import stages from "../stages"
-import { ObjectEntries, fromEntries, ObjectKeys, ObjectValues, defineActions } from "../util"
+import { ObjectEntries, fromEntries, ObjectKeys, ObjectValues, createPersistingStore, createStore } from "../util"
 import * as constants from "../constants"
 import shallow from "zustand/shallow"
 import { removeTooltip, setTooltip, Tooltip } from "./tooltip"
@@ -29,40 +28,25 @@ const Tutorial = () => {
     </div>
 }
 
-type DomStoreState = {
-    news: readonly [headline: string, text: string] | null
-    usePowerSaveMode: boolean
-    sfxVolume: number
-    bgmVolume: number
-    quality: "standard" | "high"
-}
-
 /** The current state of the DOM (HTML). */
-export const domStore = defineActions(create<DomStoreState>()(persist(() => ({
+export const domStore = createPersistingStore("acgDOMStore", 3, {
     news: null as readonly [headline: string, text: string] | null,
     usePowerSaveMode: true,
     sfxVolume: 1,
     bgmVolume: 1,
-    quality: "standard",
-} as DomStoreState), {
-    name: "acgDOMStore",
-    version: 3,
-})), (set, get, setProduce) => ({
+    quality: "standard" as "standard" | "high",
+}, (set, get, setProduce) => ({
     showNews: (news: readonly [headline: string, text: string]) => { setProduce((d) => { d.news = [...news] }) },
     hideNews: () => { setProduce((d) => { d.news = null }) },
 }))
 
 // Loading messages should not be persisted
 type EnemyStatus = { hp: number, name: string, money: number, items: { readonly [k in constants.ItemName]?: number } }
-export const ephemeralDOMStore = defineActions(create<{
-    loadingMessage: Record<string, string>
-    enemyStatus: EnemyStatus | null
-    powerSaveMode: boolean
-}>()(() => ({
-    loadingMessage: {},
+export const ephemeralDOMStore = createStore({
+    loadingMessage: {} as Record<string, string>,
     enemyStatus: null as (EnemyStatus | null),
     powerSaveMode: false,
-})), (set, get, setProduce) => ({
+}, (set, get, setProduce) => ({
     setLoadingMessage: (key: string, message: string) => { setProduce((d) => { d.loadingMessage[key] = message }) },
     removeLoadingMessage: (key: string) => { setProduce((d) => { delete d.loadingMessage[key] }) },
     setEnemyStatus: (status: EnemyStatus) => {

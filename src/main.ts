@@ -13,6 +13,9 @@
     broadcastChannel.postMessage("hello")
 }
 
+import { setAutoFreeze } from "immer"
+setAutoFreeze(false) // Disable auto freezing because it'll make immer 2.7x faster https://immerjs.github.io/immer/performance/#pre-freeze-data
+
 import "typed-query-selector"
 import "core-js/proposals/map-upsert-stage-2"
 import "core-js/proposals/set-methods"
@@ -30,7 +33,6 @@ import { getRenderingOption, init3DModelDebugger } from "./debug"
 import stages from "./stages"
 import { updatePerSecond } from "./constants"
 import weapons from "./weapons"
-import { setAutoFreeze } from "immer"
 
 setAutoFreeze(false) // Disable auto freeze because it'll make immer 2.7x faster https://immerjs.github.io/immer/performance/#pre-freeze-data
 
@@ -258,7 +260,6 @@ if (stats) {
     })
 }
 
-TODO: Audio
 const playAudio = () => {
     const audio = document.querySelector("audio#rainAudio")!
     audio.loop = true

@@ -4,35 +4,24 @@
 
 import * as THREE from "three"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
-import create, { useStore } from "zustand"
-import { defineActions, ObjectEntries, ObjectKeys } from "./util"
-import { persist } from "zustand/middleware"
+import { useStore } from "zustand"
+import { createPersistingStore, createStore, ObjectEntries, ObjectKeys } from "./util"
 import { useEffect, useState } from "preact/hooks"
 
-const modelDebuggerStore = defineActions(create<{
-    paused: boolean
-    version: number,
-    objectPools: Record<string, number>
-}>()(() => ({
-    paused: false as boolean,
-    object: null as THREE.Object3D | null,
+const modelDebuggerStore = createStore({
+    paused: false,
     version: 0,
-    objectPools: {},
-})), (set, get) => ({
+    objectPools: {} as Record<string, number>,
+}, (set, get) => ({
     stop: () => set({ paused: true }),
     resume: () => set({ paused: false }),
     refreshDebugger: () => set({ version: get().version + 1 }),
     setObjectPoolSize: (name: string, count: number) => set({ objectPools: { ...get().objectPools, [name]: count } }),
 }))
 
-const renderingOptionsStore = defineActions(create<{
-    renderingOptions: Record<string, boolean>
-}>()(persist(() => ({
-    renderingOptions: {},
-}), {
-    name: "acgRenderingOptions",
-    version: 2,
-})), (set, get) => ({
+const renderingOptionsStore = createPersistingStore("acgRenderingOptions", 2, {
+    renderingOptions: {} as Record<string, boolean>
+}, (set, get) => ({
     getRenderingOption: (name: string, defaultValue: boolean = true) => {
         set((s) => name in s.renderingOptions ? {} : { renderingOptions: { ...s.renderingOptions, [name]: defaultValue } })
         return get().renderingOptions[name]!

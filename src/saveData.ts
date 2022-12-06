@@ -1,58 +1,30 @@
-import create from "zustand"
-import { persist } from "zustand/middleware"
 import * as constants from "./constants"
-import { defineActions, ObjectEntries, SerializableSet } from "./util"
+import { createPersistingStore, ObjectEntries, SerializableSet } from "./util"
 
 const localStorageKey = "acgSaveData"
-let destroyed = false
-
-type SaveData = {
-    gameSessionId: string
-    stage: constants.StageName
-    stageTransitingTo: constants.StageName | null
-    exploration: Partial<Record<constants.StageName, number>>
-    money: number
-    items: Partial<Record<constants.ItemName, number>>
-    /** The number of upgrades purchased by the player. */
-    upgrades: Record<constants.UpgradeName, number>
-    completedTutorials: SerializableSet<constants.TutorialName>
-    availableNews: SerializableSet<constants.NewsName>
-    availableTutorials: SerializableSet<constants.TutorialName>
-    weatherEffectWillBeEnabledIn: Partial<Record<constants.StageName, number>>  // the weather effect is enabled if countdown <= 0
-    weatherEffectWillBeEnabledInLessThan: Partial<Record<constants.StageName, number>>
-    canTranscend: boolean
-    transcending: boolean
-    transcendence: number
-    killCount: Record<`${constants.StageName}_${string}`, number>
-    cheated: boolean
-}
 
 const randomId = () => crypto.randomUUID?.() ?? `insecure-${[...Array(12)].map(() => Math.floor(Math.random() * 16).toString(16)).join('')}`
 
 /** This store maintains the game state. The values in the store is persisted in the localStorage by the persist() middleware. */
-export const store = defineActions(create<SaveData>()(persist(() => ({
-    gameSessionId: randomId(),
-    stage: "Earth",
-    stageTransitingTo: null,
-    exploration: {},
+export const store = createPersistingStore(localStorageKey, 8, {
+    gameSessionId: randomId() as string,
+    stage: "Earth" as constants.StageName,
+    stageTransitingTo: null as constants.StageName | null,
+    exploration: {} as Partial<Record<constants.StageName, number>>,
     money: 0,
-    items: {},
+    items: {} as Partial<Record<constants.ItemName, number>>,
     upgrades: Object.fromEntries(constants.upgradeNames.map((name) => [name, 0])) as Record<constants.UpgradeName, number>,
-    completedTutorials: {},
-    availableNews: {},
-    availableTutorials: {},
-    weatherEffectWillBeEnabledIn: {},
-    weatherEffectWillBeEnabledInLessThan: {},
+    completedTutorials: {} as SerializableSet<constants.TutorialName>,
+    availableNews: {} as SerializableSet<constants.NewsName>,
+    availableTutorials: {} as SerializableSet<constants.TutorialName>,
+    weatherEffectWillBeEnabledIn: {} as Partial<Record<constants.StageName, number>>,  // the weather effect is enabled if countdown <= 0,
+    weatherEffectWillBeEnabledInLessThan: {} as Partial<Record<constants.StageName, number>>,
     canTranscend: false,
     transcending: false,
     transcendence: 0,
-    killCount: {},
+    killCount: {} as Record<`${constants.StageName}_${string}`, number>,
     cheated: false,
-} as SaveData), {
-    name: localStorageKey,
-    version: 8,
-    serialize: (s) => { if (destroyed) { throw new Error("destroyed") } return JSON.stringify(s) },
-})), (set, get, setProduce) => {
+}, (set, get, setProduce) => {
     const addTutorial = (name: constants.TutorialName) => { setProduce((d) => { d.availableTutorials[name] = true }) }
     const addNews = (name: constants.NewsName) => {
         if (get().availableNews[name]) { return }
@@ -188,7 +160,6 @@ export const getState = store.getState
 export const subscribe = store.subscribe
 export const deleteSaveData = () => {
     store.destroy()
-    destroyed = true
     localStorage.removeItem(localStorageKey)
 }
 

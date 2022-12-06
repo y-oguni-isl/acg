@@ -4,12 +4,13 @@
 
 import type { ComponentChildren } from "preact"
 import { useEffect, useState } from "preact/hooks"
-import create, { useStore } from "zustand"
+import { useStore } from "zustand"
+import { createStore } from "../util"
 
-const store = create<{ key: string, content: ComponentChildren }>()((get) => ({
+const store = createStore({
     key: "",
-    content: null,
-}))
+    content: null as ComponentChildren,
+}, () => { })
 
 export const setTooltip = (key: string, content: ComponentChildren) => { store.setState({ key, content }) }
 export const removeTooltip = (key: string) => {
