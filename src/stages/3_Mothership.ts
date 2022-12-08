@@ -5,9 +5,9 @@ import { call, PromiseAll } from "../util"
 import * as webgl from "../webgl"
 import fragmentShader from "./3_Mothership.frag"
 import vertexShader from "./3_Mothership.vert"
-import type { EnemyPools, EnemyUserData } from "./types"
+import type { EnemyPools, EnemyUserData, StageDefinition } from "./types"
 
-export default {
+const Mothership: StageDefinition = {
     createModel: () => {
         const uniforms = { u_resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }, time: { value: 0 } }
         onBeforeRender.add((time) => { uniforms.time.value = time })
@@ -45,3 +45,5 @@ export default {
         return pools
     }
 }
+
+export default Mothership

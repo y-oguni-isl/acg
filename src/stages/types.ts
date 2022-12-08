@@ -1,6 +1,15 @@
 import type { ItemName } from "../constants"
 import type { ObjectPool } from "../webgl"
 
+export type StageDefinition = {
+    /** Creates an {@link THREE.Object3D} containing all 3d objects rendered in the stage in its children.  */
+    createModel(): THREE.Object3D
+    /** Whether the stage name is listed in the Stages window, and the player can move to the stage. */
+    visible(): boolean
+    /** Creates object pools for enemies in the stage, one for alive and one for dead. */
+    createEnemyPools(): Promise<EnemyPools>
+}
+
 export type EnemyUserData = {
     name: string
     time: number

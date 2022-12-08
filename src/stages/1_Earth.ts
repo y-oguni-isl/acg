@@ -4,10 +4,10 @@ import { onBeforeRender } from "../hooks"
 import { getState } from "../saveData"
 import { PromiseAll, call } from "../util"
 import * as webgl from "../webgl"
-import type { EnemyPools, EnemyUserData } from "./types"
+import type { EnemyPools, EnemyUserData, StageDefinition } from "./types"
 import * as constants from "../constants"
 
-export default {
+const Earth: StageDefinition = {
     createModel: () => {
         const stage = new THREE.Object3D()
         webgl.loadGLTF("models/sky_pano_-_grand_canyon_yuma_point.glb", 4)
@@ -64,3 +64,5 @@ export default {
         return pools
     },
 }
+
+export default Earth

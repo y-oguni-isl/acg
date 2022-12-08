@@ -6,10 +6,10 @@ import { call, PromiseAll } from "../util"
 import fragmentShader from "./2_Universe.frag"
 import vertexShader from "./2_Universe.vert"
 import * as webgl from "../webgl"
-import type { EnemyPools, EnemyUserData } from "./types"
+import type { EnemyPools, EnemyUserData, StageDefinition } from "./types"
 import * as constants from "../constants"
 
-export default {
+const Universe: StageDefinition = {
     createModel: () => {
         const uniforms = { u_resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }, time: { value: 0 } }
         onBeforeRender.add((time) => { uniforms.time.value = time })
@@ -56,3 +56,5 @@ export default {
         return pools
     },
 }
+
+export default Universe
