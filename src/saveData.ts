@@ -7,35 +7,54 @@ const randomId = () => crypto.randomUUID?.() ?? `insecure-${[...Array(12)].map((
 
 /** This store maintains the game state. The values in the store is persisted in the localStorage by the persist() middleware. */
 export const store = createPersistingStore(localStorageKey, 8, {
-    gameSessionId: randomId() as string,
+    /** The name of the stage currently selected. */
     stage: "Earth" as constants.StageName,
+    /** When the player clicks the stage name at the top right corner, `stageTransitingTo` will be set to the stage name, the animation will be played, then the value of `stageTransitingTo` will be copied to `stage` and `stageTransitingTo` will become null. */
     stageTransitingTo: null as constants.StageName | null,
+    /** The state (or level) of the exploration system. */
     exploration: {} as Partial<Record<constants.StageName, number>>,
+    /** Money */
     money: 0,
+    /** Items obtained by the player with vacuum. */
     items: {} as Partial<Record<constants.ItemName, number>>,
+    /** The number of upgrades purchased. */
     upgrades: Object.fromEntries(constants.upgradeNames.map((name) => [name, 0])) as Record<constants.UpgradeName, number>,
+    /** The tutorial in `availableTutorials - completedTutorials` with the lowest index in {@link constants.tutorialHTML} is displayed to the player. */
     completedTutorials: {} as SerializableSet<constants.TutorialName>,
-    availableNews: {} as SerializableSet<constants.NewsName>,
+    /** The tutorial in `availableTutorials - completedTutorials` with the lowest index in {@link constants.tutorialHTML} is displayed to the player. */
     availableTutorials: {} as SerializableSet<constants.TutorialName>,
-    weatherEffectWillBeEnabledIn: {} as Partial<Record<constants.StageName, number>>,  // the weather effect is enabled if countdown <= 0,
+    /** The list of published news. */
+    availableNews: {} as SerializableSet<constants.NewsName>,
+    /** The weather effect is enabled if `weatherEffectWillBeEnabledIn[stage] <= 0`. */
+    weatherEffectWillBeEnabledIn: {} as Partial<Record<constants.StageName, number>>,
+    /** The maximum possible value of `weatherEffectWillBeEnabledIn[stage]` to show the `< in ... min` message. */
     weatherEffectWillBeEnabledInLessThan: {} as Partial<Record<constants.StageName, number>>,
+    /** True if the player can do (so-called) ascension or reincarnation. */
     canTranscend: false,
+    /** true if the ascension dialog is open. */
     transcending: false,
+    /** The number of times the player has done ascensions. */
     transcendence: 0,
+    /** The number of times each enemy is killed. */
     killCount: {} as Record<`${constants.StageName}_${string}`, number>,
+    /** True if the player has accessed `store.getState()` in dev tools. */
     cheated: false,
 }, (set, get, setProduce) => {
+    /** Add a tutorial. */
     const addTutorial = (name: constants.TutorialName) => { setProduce((d) => { d.availableTutorials[name] = true }) }
+    /** Adds an available news. */
     const addNews = (name: constants.NewsName) => {
         if (get().availableNews[name]) { return }
         setProduce((d) => { d.availableNews[name] = true })
     }
+    /** Adds (delta > 0) or subtracts (delta < 0) money. */
     const addMoney = (delta: number) => {
         set({ money: Math.floor(get().money + delta) })
         document.title = `ACG Final Project $${get().money}`
         if (get().money >= constants.price(constants.upgradeNames[0]!, get())) { addTutorial("upgrade") }
         if (!constants.isUpgradeNameHidden("Hammer", get())) { addNews("hammer") }
     }
+    /** Closes a tutorial. */
     const completeTutorial = (name: constants.TutorialName) => {
         setProduce((d) => {
             d.completedTutorials[name] = true
@@ -44,6 +63,7 @@ export const store = createPersistingStore(localStorageKey, 8, {
             }
         })
     }
+    /** Returns the current weather. */
     const getWeather = () => {
         if (!constants.isWeatherSystemUnlocked(get())) { return null }
         const enabled = (get().weatherEffectWillBeEnabledIn[get().stage] ?? Number.MAX_SAFE_INTEGER) <= 0
@@ -88,6 +108,7 @@ export const store = createPersistingStore(localStorageKey, 8, {
                 completeTutorial("nextStage")
             }
         },
+        /** Subtract 1 from `weatherEffectWillBeEnabledIn[stage]` and `weatherEffectWillBeEnabledInLessThan[stage]` */
         countdown: () => {
             if (!constants.isWeatherSystemUnlocked(get())) { return }
             const s = get()
@@ -134,6 +155,7 @@ export const store = createPersistingStore(localStorageKey, 8, {
             }
         },
         cheat: () => { setProduce((d) => { d.cheated = true }) },
+        /** Increments `exploration[stage]` by 1. */
         exploreNext: () => {
             const lv = getExplorationLv()
             if ((get().items.Food ?? 0) < constants.explorationCost(lv)) { return }
@@ -142,6 +164,7 @@ export const store = createPersistingStore(localStorageKey, 8, {
                 d.exploration[d.stage] = lv + 1
             })
         },
+        /** Decrements `exploration[stage]` by 1. */
         explorePrev: () => {
             if (getExplorationLv() <= 1) { throw new Error() }
             setProduce((d) => { d.exploration[d.stage] = (d.exploration[d.stage] ?? 1) - 1 })
