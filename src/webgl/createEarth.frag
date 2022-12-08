@@ -23,14 +23,16 @@ void main() {
 
     // Cloud
     if (hasCloud) {
-        vec3 rotatedPos1 = pos + vec3(time * 0.3, time * 0.3, time * 0.3);
-        vec3 rotatedPos2 = pos + vec3(time * 0.3, time * 0.3, -time * 0.5);
+        vec3 rotatedPos1 = pos + vec3(time * 0.3, time * 0.3, time * 0.1);
+        vec3 rotatedPos2 = pos + vec3(time * 0.3, time * 0.3, -time * 0.1);
         float cloud =
-            snoise(rotatedPos1 * 2.0) * 2.0 +
-            snoise(rotatedPos1 * 4.0) * 1.0 +
-            snoise(rotatedPos2 * 8.0) * 0.5;
-        color = mix(color, vec3(0.6), cloud);
+            smoothstep(0.0, 1.0, snoise(rotatedPos1 * 2.0)) *
+            (0.9 +
+             snoise(rotatedPos2 * 8.0) +
+             snoise(rotatedPos2 * 16.0) +
+             snoise(rotatedPos2 * 32.0));
+        color = mix(color, vec3(0.6), clamp(cloud * 0.3, 0.0, 1.0) * 0.3);
     }
 
-    gl_FragColor = vec4(color * vec3(0.2), 1.0);
+    gl_FragColor = vec4(color, 1.0);
 }

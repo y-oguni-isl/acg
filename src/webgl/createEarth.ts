@@ -10,8 +10,8 @@ export default (
         hasCloud: boolean,
         coastline: boolean,
     } = {
-            seaColor: new THREE.Vector3(73.0, 150.0, 209.0).divideScalar(255),
-            continentsColor: new THREE.Vector3(74.0, 53.0, 24.0).divideScalar(255),
+            seaColor: new THREE.Vector3(73.0, 300.0, 800.0).divideScalar(255).multiplyScalar(0.2),
+            continentsColor: new THREE.Vector3(74.0, 53.0, 24.0).divideScalar(255).multiplyScalar(0.1),
             hasCloud: true,
             coastline: true,
         },
