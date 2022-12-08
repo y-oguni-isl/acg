@@ -179,8 +179,12 @@ export const store = createPersistingStore(localStorageKey, 8, {
     },
 })
 
+/** Returns the game state. Do not modify the values returned by getState(). Instead, use the methods returned by getState(), e.g. `use store.getState().addMoney(10)` instead of `store.getState().money += 10`. */
 export const getState = store.getState
+
+/** Subscribes (or listens) to every changes in the game state. */
 export const subscribe = store.subscribe
+
 export const deleteSaveData = () => {
     store.destroy()
     localStorage.removeItem(localStorageKey)
