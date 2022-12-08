@@ -50,7 +50,6 @@ export const store = createPersistingStore(localStorageKey, 8, {
     /** Adds (delta > 0) or subtracts (delta < 0) money. */
     const addMoney = (delta: number) => {
         set({ money: Math.floor(get().money + delta) })
-        document.title = `ACG Final Project $${get().money}`
         if (get().money >= constants.price(constants.upgradeNames[0]!, get())) { addTutorial("upgrade") }
         if (!constants.isUpgradeNameHidden("Hammer", get())) { addNews("hammer") }
     }
