@@ -284,12 +284,13 @@ if (stats) {
     })
 }
 
+// Play the BGM
 const playAudio = () => {
     const audio = document.querySelector("audio#rainAudio")!
     audio.loop = true
     audio.play()
 }
-window.addEventListener("click", playAudio)
+window.addEventListener("click", playAudio)  // We need this because of autoplay policy https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide
 window.addEventListener("keydown", playAudio)
 playAudio()
 
