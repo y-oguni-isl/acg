@@ -5,6 +5,7 @@ import * as constants from "../constants"
 import * as webgl from "../webgl"
 import fragmentShader from "./missile.frag"
 
+/** Creates and moves 3D models of missiles, and performs collision detections against enemies. */
 export default async (source: THREE.Object3D) => {
     const model = await webgl.loadGLTF("models/ballistic_missile.glb", 0.03)
     model.position.set(-0.01, 0, -0.06)  // move the center of the mass to the origin
@@ -21,12 +22,15 @@ export default async (source: THREE.Object3D) => {
     webgl.enableSelectiveBloom(pool)
 
     onUpdate.add((t) => {
+        // Create missiles
         const interval = constants.getInterval(getState()).Missile
         if (interval && t % interval === 0 && (getState().items.Scrap ?? 0) >= 1000) {
             getState().addItems({ Scrap: -1000 })
             const model = pool.allocate()
             model.position.copy(source.position)
         }
+
+        // Move missiles
         for (const m of pool.children) {
             m.userData.time++
             m.position.x += m.userData.velocity.x * 0.02
@@ -38,6 +42,7 @@ export default async (source: THREE.Object3D) => {
         }
     })
 
+    // Collision detection
     onCollisionDetection.add((enemies) => {
         for (const enemy of enemies) {
             for (const missile of pool.children) {

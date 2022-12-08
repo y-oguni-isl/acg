@@ -91,7 +91,7 @@ export class ObjectPool<T extends THREE.Object3D> extends THREE.Object3D<Instanc
     }
 }
 
-/** Downloads and parses a .gltf (text) or .glb (binary) file. The model will be resized if the `height` argument is a number. */
+/** Downloads and parses a .gltf (text) or .glb (binary) file. The model will be resized if the `height` argument is non-null. */
 export const loadGLTF = async (filepath: string, height: number | null): Promise<THREE.Object3D> => {
     if (!getRenderingOption(filepath)) { return new THREE.Object3D() }
     const obj = (await new Promise<GLTF>((resolve, reject) => new GLTFLoader().load(filepath, resolve, (xhr) => { ephemeralDOMStore.getState().setLoadingMessage(filepath, `Loading ${filepath} (${xhr.loaded}/${xhr.total})`) }, reject)))

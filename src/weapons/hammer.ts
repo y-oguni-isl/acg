@@ -5,6 +5,7 @@ import fragmentShader from "./hammer.frag"
 import * as constants from "../constants"
 import * as webgl from "../webgl"
 
+/** Creates and moves 3D models of hammers, and performs collision detections against enemies. */
 export default async (source: THREE.Object3D) => {
     const model = await webgl.loadGLTF("models/hammer_notexture.glb", 0.03)
     model.position.set(-0.01, 0, -0.06)  // move the center of the mass to the origin
@@ -28,11 +29,14 @@ export default async (source: THREE.Object3D) => {
     webgl.enableSelectiveBloom(pool, { noDiffusion: true })
 
     onUpdate.add((t) => {
+        // Create hammers
         const interval = constants.getInterval(getState()).Hammer
         if (interval && t % interval === 0) {
             const model = pool.allocate()
             model.position.copy(source.position)
         }
+
+        // Move hammers
         for (const m of pool.children) {
             m.userData.time++
             m.position.x += m.userData.velocity.x * 0.01
@@ -44,6 +48,7 @@ export default async (source: THREE.Object3D) => {
         }
     })
 
+    // Collision detection
     onCollisionDetection.add((enemies) => {
         for (const enemy of enemies) {
             for (const hammer of pool.children) {
