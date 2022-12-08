@@ -43,6 +43,7 @@ const scene = new THREE.Scene()
 const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.outputEncoding = THREE.sRGBEncoding
 renderer.setSize(window.innerWidth, window.innerHeight)
+renderer.setPixelRatio(window.devicePixelRatio)
 document.body.appendChild(renderer.domElement)
 
 /** The utility function to add the `obj` to the `scene`. */
@@ -144,7 +145,9 @@ window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight
     camera.updateProjectionMatrix()
     renderer.setSize(window.innerWidth, window.innerHeight)
+    renderer.setPixelRatio(window.devicePixelRatio)
     effectComposer.setSize(window.innerWidth, window.innerHeight)
+    effectComposer.setPixelRatio(window.devicePixelRatio)
 })
 
 // FPS monitor
