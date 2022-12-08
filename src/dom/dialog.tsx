@@ -23,7 +23,7 @@ const Dialog = (props: { ref_: MutableRef<DialogRef | null>, class?: string, chi
         isOpen={isOpen}
         closeTimeoutMS={300}
         onRequestClose={() => { setIsOpen(false); props.onClose?.() }}
-        className={"absolute outline-none top-1/2 left-1/2 right-auto bottom-auto mr-[-50%] [transform:translate(-50%,-50%)] [max-width:90vw] [max-height:90vh] overflow-auto " + (props.class ?? "")}>{
+        className={"absolute outline-none top-1/2 left-1/2 right-auto bottom-auto mr-[-50%] [max-width:90vw] [max-height:90vh] overflow-auto " + (props.class ?? "")}>{
             props.children as React.ReactNode
         }</Modal>
 }
