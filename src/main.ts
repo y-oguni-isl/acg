@@ -26,7 +26,7 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js"
 import { onBeforeRender, onCollisionDetection, onEnemyRemoved, onPreprocess, onUpdate } from "./hooks"
 import { getState, subscribe } from "./saveData"
-import { ephemeralDOMStore } from "./dom"
+import { domStore, ephemeralDOMStore } from "./dom"
 import { call, ObjectEntries, fromEntries, PromiseAll, ObjectValues, ObjectKeys } from "./util"
 import * as webgl from "./webgl"
 import { getRenderingOption, init3DModelDebugger } from "./debug"
@@ -43,7 +43,7 @@ const scene = new THREE.Scene()
 const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.outputEncoding = THREE.sRGBEncoding
 renderer.setSize(window.innerWidth, window.innerHeight)
-renderer.setPixelRatio(window.devicePixelRatio)
+renderer.setPixelRatio(window.devicePixelRatio * domStore.getState().resolutionMultiplier)
 document.body.appendChild(renderer.domElement)
 
 /** The utility function to add the `obj` to the `scene`. */
@@ -145,9 +145,15 @@ window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight
     camera.updateProjectionMatrix()
     renderer.setSize(window.innerWidth, window.innerHeight)
-    renderer.setPixelRatio(window.devicePixelRatio)
+    renderer.setPixelRatio(window.devicePixelRatio * domStore.getState().resolutionMultiplier)
     effectComposer.setSize(window.innerWidth, window.innerHeight)
-    effectComposer.setPixelRatio(window.devicePixelRatio)
+    effectComposer.setPixelRatio(window.devicePixelRatio * domStore.getState().resolutionMultiplier)
+})
+
+domStore.subscribe((state, prev) => {
+    if (state.resolutionMultiplier === prev.resolutionMultiplier) { return }
+    renderer.setPixelRatio(window.devicePixelRatio * state.resolutionMultiplier)
+    effectComposer.setPixelRatio(window.devicePixelRatio * state.resolutionMultiplier)
 })
 
 // FPS monitor

@@ -34,6 +34,7 @@ export const domStore = createPersistingStore("acgDOMStore", 3, {
     usePowerSaveMode: true,
     sfxVolume: 1,
     bgmVolume: 1,
+    resolutionMultiplier: 1,
     quality: "standard" as "standard" | "high",
 }, (set, get, setProduce) => ({
     showNews: (news: readonly [headline: string, text: string]) => { setProduce((d) => { d.news = [...news] }) },
@@ -330,20 +331,32 @@ const UI = () => {
                     <td><label class="pointer"><input type="checkbox" checked={state.usePowerSaveMode} onChange={(ev) => { domStore.setState({ usePowerSaveMode: ev.currentTarget.checked }) }} /> enabled</label></td>
                 </tr>
                 <tr>
+                    <td class="pr-4 text-right">Resolution</td>
+                    <td class="[&>*:not(:first-child)]:ml-2">
+                        <label><input type="radio" name="resolution" checked={state.resolutionMultiplier === 1} onChange={(ev) => { domStore.setState({ resolutionMultiplier: 1 }) }} /> x1</label>
+                        <label><input type="radio" name="resolution" checked={state.resolutionMultiplier === Math.SQRT1_2} onChange={(ev) => { domStore.setState({ resolutionMultiplier: Math.SQRT1_2 }) }} /> x0.7</label>
+                        <label><input type="radio" name="resolution" checked={state.resolutionMultiplier === Math.SQRT1_2 ** 2} onChange={(ev) => { domStore.setState({ resolutionMultiplier: Math.SQRT1_2 ** 2 }) }} /> x0.5</label>
+                        <label><input type="radio" name="resolution" checked={state.resolutionMultiplier === Math.SQRT1_2 ** 3} onChange={(ev) => { domStore.setState({ resolutionMultiplier: Math.SQRT1_2 ** 3 }) }} /> x0.35</label>
+                        <label><input type="radio" name="resolution" checked={state.resolutionMultiplier === Math.SQRT1_2 ** 4} onChange={(ev) => { domStore.setState({ resolutionMultiplier: Math.SQRT1_2 ** 4 }) }} /> x0.25</label>
+                    </td>
+                </tr>
+                <tr>
                     <td class="pr-4 text-right">Quality</td>
                     <td class="[&>*:not(:first-child)]:ml-2">
                         <label><input type="radio" name="quality" value="high" checked={state.quality === "high"} onChange={(ev) => { domStore.setState({ quality: ev.currentTarget.value as "high" | "standard" }) }} /> High</label>
                         <label><input type="radio" name="quality" value="standard" checked={state.quality === "standard"} onChange={(ev) => { domStore.setState({ quality: ev.currentTarget.value as "high" | "standard" }) }} /> Standard</label>
                     </td>
                 </tr>
-                <tr>
+
+                {/* todo */}
+                {/* <tr>
                     <td class="pr-4 text-right">Sound Effect</td>
                     <td><input type="range" class="w-32 align-middle" value={state.sfxVolume} min={0} max={1} step={0.05} onChange={(ev) => { domStore.setState({ sfxVolume: +ev.currentTarget.value }) }} /></td>
                 </tr>
                 <tr>
                     <td class="pr-4 text-right">Background Music</td>
                     <td><input type="range" class="w-32 align-middle" value={state.bgmVolume} min={0} max={1} step={0.05} onChange={(ev) => { domStore.setState({ bgmVolume: +ev.currentTarget.value }) }} /></td>
-                </tr>
+                </tr> */}
             </table>
             <div class="pointer text-orange-300 hover:text-orange-400 mt-4" onClick={() => {
                 optionsDialog.current?.close()
