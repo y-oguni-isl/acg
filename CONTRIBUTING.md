@@ -47,4 +47,4 @@ store.getState().addMoney(10000)
 ```
 
 # Game Design
-If you want to make changes to the game system, read this first: [Game Design](/docs/Game%20Design.md)
+See `docs/flowchart.svg`
