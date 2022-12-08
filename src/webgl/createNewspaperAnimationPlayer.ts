@@ -23,9 +23,14 @@ export default () => {
                 }
             })
         group.add(newspapers)
+
+        // Disable the depth test to render the newspapers over all other objects
         newspapers.mesh.material.depthTest = false
+
+        // Render the newspapers after drawing all other transparent objects
         newspapers.mesh.material.transparent = true
         newspapers.mesh.renderOrder = 3
+
         for (let i = 0; i < 30; i++) { newspapers.allocate() }
 
         const noise = new SimplexNoise()
@@ -43,6 +48,7 @@ export default () => {
 
     group.visible = false
 
+    // Play the news when a newspaper is published.
     subscribe((s, prev) => {
         if (s.availableNews === prev.availableNews) { return }
         const addedNews = [...new Set(ObjectKeys(s.availableNews)).difference(new Set(ObjectKeys(prev.availableNews)))][0]
