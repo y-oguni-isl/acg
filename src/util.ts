@@ -7,16 +7,16 @@ import type { UseBoundStore, StoreApi } from "zustand"
 import create from "zustand"
 import { persist } from "zustand/middleware"
 
-/** `Object.entries` with a strict type. */
+/** {@link Object.entries `Object.entries`} with a strict type. */
 export const ObjectEntries = <K extends keyof any, V extends unknown>(obj: { readonly [k in K]?: V }): [K, V][] => Object.entries(obj) as any
-/** `Object.values` with a strict type. */
+/** {@link Object.values `Object.values`} with a strict type. */
 export const ObjectValues = <V extends unknown>(obj: { readonly [k in keyof any]?: V }): V[] => Object.values(obj) as any
-/** `Object.keys` with a strict type. */
+/** {@link Object.keys `Object.keys`} with a strict type. */
 export const ObjectKeys = <K extends keyof any>(obj: { readonly [k in K]?: any }): K[] => Object.keys(obj) as any
-/** `Object.fromEntries` with a strict type. This function assumes that all values in K are used once. */
+/** {@link Object.fromEntries `Object.fromEntries`} with a strict type. This function assumes that all values in K are used once, i.e. if `const entries: ["a" | "b" | "c", number][] = [["a", 1], ["b", 2]]`, `typeof fromEntries(entries)` should be of type `{ a: number, b: number }` but it actually is `{ a: number, b: number, c: number }`). */
 export const fromEntries = <K extends keyof any, V>(obj: [K, V][]): { [k in K]: V } => Object.fromEntries(obj) as any
 
-/** Promise.all but accepts an object */
+/** {@link Promise.all `Promise.all`} but accepts an object */
 export const PromiseAll = async <T>(obj: T): Promise<{ [k in keyof T]: Awaited<T[k]> }> => {
     const result: Record<any, any> = {}
     for (const [k, v] of Object.entries(obj as any)) {

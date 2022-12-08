@@ -150,13 +150,14 @@ window.addEventListener("resize", () => {
     effectComposer.setPixelRatio(window.devicePixelRatio * domStore.getState().resolutionMultiplier)
 })
 
+// Update the renderer and effect composer when the screen resolution option is changed.
 domStore.subscribe((state, prev) => {
     if (state.resolutionMultiplier === prev.resolutionMultiplier) { return }
     renderer.setPixelRatio(window.devicePixelRatio * state.resolutionMultiplier)
     effectComposer.setPixelRatio(window.devicePixelRatio * state.resolutionMultiplier)
 })
 
-// FPS monitor
+// FPS monitor https://github.com/mrdoob/stats.js/
 const stats = import.meta.env.DEV ? new Stats() : null
 if (stats) {
     stats.showPanel(0)
@@ -165,7 +166,21 @@ if (stats) {
     document.body.append(stats.dom)
 }
 
-// Main game loop
+// Main game loop:
+// 1. Repeat a number of times proportional to the time elapsed since the previous frame:
+//    1. Spawn enemies
+//    2. Move enemies
+//    3. `onUpdate` event
+//    4. `onCollisionDetection` event
+//    5. Delete enemies
+//    6. Animate dead enemies
+//    7. Update the autopilot algorithm
+//    8. Tick the weather system
+// 2. if not `powerSaveMode`:
+//    1. `onBeforeRender` event
+//    2. Move camera
+//    3. `onPreprocess` event
+//    4. render()
 {
     const isPaused = init3DModelDebugger(camera, renderer, scene)
 

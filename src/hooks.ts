@@ -1,6 +1,6 @@
 /**
  * This file defines sets in which event listeners are registered.
- * The order of the events is described in # Main Game Loop in `CONTRIBUTING.md`.
+ * The order of the events is described in the comment above the main game loop in `src/main.ts`.
  */
 
 import type { ItemName } from "./constants"
