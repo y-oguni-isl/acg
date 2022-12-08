@@ -25,7 +25,7 @@ export default {
             alive: webgl.createEnemyPlanet().then((m) => m.onAllocate((copy): EnemyUserData => ({
                 name: "Planet",
                 time: 0,
-                hp: 150000 * getState().getExplorationLv() * (500 ** getState().transcendence),
+                hp: 1200000 * getState().getExplorationLv() * (500 ** getState().transcendence),
                 update: () => { /* skip */ },
                 onKilled: () => {
                     pools.dead.allocate().position.copy(copy.position)

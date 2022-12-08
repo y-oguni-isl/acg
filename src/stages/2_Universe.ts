@@ -28,7 +28,7 @@ export default {
             alive: webgl.createUFOPool().then((m) => m.onAllocate((copy): EnemyUserData => ({
                 name: "UFO",
                 time: 0,
-                hp: 300 * (1 + Math.random()) * getState().getExplorationLv() * (500 ** getState().transcendence),
+                hp: 1000 * (1 + Math.random()) * getState().getExplorationLv() * (500 ** getState().transcendence),
                 update: () => {
                     if (copy.userData.time % 80 <= 3) { // before teleportation
                         copy.scale.copy(copy.getOriginalScale().multiply(new THREE.Vector3(1, 1 - (copy.userData.time % 80) / 3, 1)))
@@ -43,7 +43,7 @@ export default {
                 },
                 onKilled: () => { pools.dead.allocate().position.copy(copy.position) },
                 radius: 0.03,
-                money: 100 * getState().getExplorationLv() * (500 ** getState().transcendence),
+                money: 500 * getState().getExplorationLv() * (500 ** getState().transcendence),
                 items: { Scrap: Math.floor(1 * constants.getVacuumGain(getState()) * getState().getExplorationLv() * (500 ** getState().transcendence)) }
             }))),
             dead: webgl.createUFOPool().then((m) => m.onAllocate(() => ({ time: 0 }))),
