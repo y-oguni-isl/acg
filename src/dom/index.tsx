@@ -70,6 +70,7 @@ const randomText = Array(10000).fill(0).map(() => Array(Math.floor(Math.random()
 /** The "Enemy Stats" window */
 const EnemyStats = () => {
     const enemyStatus = useStore(ephemeralDOMStore, (s) => s.enemyStatus, shallow)
+    const hasVacuum = useStore(store, (s) => s.upgrades.Vacuum > 0)
     if (!enemyStatus) { return <></> }
     return <div class="px-3 pt-1 pb-3 window">
         <h2 class="mb-2 tracking-wide"><i class="ti ti-chart-line" /> Enemy Stats</h2>
@@ -78,7 +79,7 @@ const EnemyStats = () => {
                 <tr><td class="pr-1"><i class="ti ti-float-none" /></td><td>{enemyStatus.name}</td></tr>
                 <tr><td class="pr-1"><i class="ti ti-heart" /></td><td>{enemyStatus.hp}</td></tr>
                 <tr><td class="pr-1"><i class="ti ti-moneybag" /></td><td>{enemyStatus.money}</td></tr>
-                <tr><td class="pr-1"><i class="ti ti-notes" /></td><td>{ObjectKeys(enemyStatus.items).length === 0 ? "-" : ObjectEntries(enemyStatus.items).map(([k, v]) => <>{k} {v}</>)}</td></tr>
+                {hasVacuum && <tr><td class="pr-1"><i class="ti ti-notes" /></td><td>{ObjectKeys(enemyStatus.items).length === 0 ? "-" : ObjectEntries(enemyStatus.items).map(([k, v]) => <>{k} {v}</>)}</td></tr>}
             </table>
         </div>
     </div>
