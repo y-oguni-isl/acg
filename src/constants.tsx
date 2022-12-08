@@ -44,7 +44,7 @@ export const basePrice = {
     Autopilot: 100,
     Hammer: 100 * 15,
     "ATK×2": 100 * 15 ** 2,
-    Vacuum: 100 * 15 ** 3,
+    Vacuum: 400 * 15 ** 3,
     Missile: 100 * 15 ** 4,
     placeholder4: 100 * 15 ** 5,
     placeholder5: 100 * 15 ** 6,
