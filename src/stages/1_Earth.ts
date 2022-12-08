@@ -40,7 +40,7 @@ export default {
             weatherAlive: webgl.createUFOPool().then((m) => m.onAllocate((copy): EnemyUserData => ({
                 name: "Weather Effect UFO",
                 time: 0,
-                hp: 1500 * getState().getExplorationLv() * (500 ** getState().transcendence),
+                hp: 1500 * getState().getExplorationLv() * getState().upgrades.Laser,
                 update: () => { /* skip*/ },
                 onKilled: () => {
                     pools.weatherDead.allocate().position.copy(copy.position)
@@ -48,7 +48,7 @@ export default {
                     getState().completeTutorial("weatherEffect")
                 },
                 radius: 0.03,
-                money: 1000 * getState().getExplorationLv() * (500 ** getState().transcendence),
+                money: 400 * getState().getExplorationLv() * getState().upgrades.Laser,
                 items: { Scrap: Math.floor(1 * constants.getVacuumGain(getState()) * getState().getExplorationLv() * (500 ** getState().transcendence)) },
             }))),
             weatherDead: webgl.createUFOPool().then((m) => m.onAllocate(() => ({ time: 0 }))),
