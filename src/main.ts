@@ -16,9 +16,9 @@
 import { setAutoFreeze } from "immer"
 setAutoFreeze(false) // Disable auto freezing because it'll make immer 2.7x faster https://immerjs.github.io/immer/performance/#pre-freeze-data
 
-import "typed-query-selector"
-import "core-js/proposals/map-upsert-stage-2"
-import "core-js/proposals/set-methods"
+import "typed-query-selector"                  // Replaces document.querySelector(All)'s type with better ones.
+import "core-js/proposals/map-upsert-stage-2"  // Adds Map.emplace() https://github.com/tc39/proposal-upsert
+import "core-js/proposals/set-methods"         // Adds Set.intersection(), Set.union(), Set.difference(), etc. https://github.com/tc39/proposal-set-methods
 import Stats from "stats.js"
 import * as THREE from "three"
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js"

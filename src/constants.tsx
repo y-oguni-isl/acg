@@ -9,8 +9,10 @@ import type { SerializableSet } from "./util"
 //                                                                  screen position:
 export const [xMax, xMin, yMax, yMin] = [0.5, -0.5, 0.3, -0.3]   // up, down, right, left
 
+/** The number of game updates per second. Note that this is not frame per second (FPS), which is automatically adjusted by the browser through requestAnimationFrame(). */
 export const updatePerSecond = 30
 
+/** the list of upgrades */
 export const upgradeNames = [
     "Laser",
     "Autopilot",
@@ -25,13 +27,14 @@ export const upgradeNames = [
 
 export type UpgradeName = (typeof upgradeNames)[number]
 
-/** The number of upgrades of a same kind the player can have at once. */
+/** The maximum number of a upgrade a player can have. */
 export const maxUpgrades = 25
 
 export type StageName = keyof typeof stages
 
 export type ItemName = "Food" | "Scrap"
 
+/** the flavor text for each item */
 export const flavorText = {
     Food: "On the trail, it's good to have a hearty meal ready to go. The right foods will give you the energy you need to explore new territory.",
     Scrap: "With a little ingenuity and a lot of scrap, we can make some missiles to take down our enemies."
@@ -39,6 +42,7 @@ export const flavorText = {
 
 export type WeatherEffect = "Rain"
 
+/** the initial price of each upgrades */
 export const basePrice = {
     Laser: 15,
     Autopilot: 100,
@@ -51,6 +55,7 @@ export const basePrice = {
     placeholder6: 100 * 15 ** 7,
 } satisfies Record<UpgradeName, number>
 
+/** Returns the damage dealt by the weapon. */
 export const getAtk = ({ upgrades }: { upgrades: Record<UpgradeName, number> }) => ({
     Laser: upgrades.Laser + 1 * (upgrades["ATK×2"] + 1),
     Autopilot: undefined,
@@ -63,6 +68,7 @@ export const getAtk = ({ upgrades }: { upgrades: Record<UpgradeName, number> }) 
     placeholder6: undefined,
 } satisfies Record<UpgradeName, number | undefined>)
 
+/** Returns the interval at which the weapon is fired. */
 export const getInterval = ({ upgrades }: { upgrades: Record<UpgradeName, number> }) => ({
     Laser: 1,
     Autopilot: undefined,
@@ -75,6 +81,7 @@ export const getInterval = ({ upgrades }: { upgrades: Record<UpgradeName, number
     placeholder6: undefined,
 } satisfies Record<UpgradeName, number | undefined>)
 
+/** Returns a multiplier for the number of items obtained from enemies. */
 export const getVacuumGain = ({ upgrades }: { upgrades: Record<UpgradeName, number> }) => 1 + 0.2 * (upgrades.Vacuum - 1)
 
 /** If true, the name of the upgrade is shown as ??? */
@@ -82,11 +89,14 @@ export const isUpgradeNameHidden = (name: UpgradeName, state: { readonly upgrade
 export const isWeatherSystemUnlocked = (state: { completedTutorials: SerializableSet<TutorialName> }) => state.completedTutorials.nextStage ?? false
 export const isVerticalMoveUnlocked = () => false
 
+/** Returns the interval to start the next weather effect. */
 export const newWeatherEffectETA = (rand = Math.random()) => rand * updatePerSecond * 60 * 6
 
+/** Returns the price of the upgrade. */
 export const price = (name: UpgradeName, { upgrades }: { upgrades: Record<UpgradeName, number> }) => basePrice[name] * 2 ** upgrades[name]
 
-export const explorationCost = (lv: number) => +(500 * 1.25 ** (lv - 1)).toPrecision(2)
+/** Returns the cost to increase the exploration level. */
+export const explorationCost = (currentLv: number) => +(500 * 1.25 ** (currentLv - 1)).toPrecision(2)
 
 /** The list of tutorials and their texts. */
 export const tutorialHTML = {

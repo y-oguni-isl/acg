@@ -3,7 +3,7 @@
  * The order of the events is described in the comment above the main game loop in `src/main.ts`.
  */
 
-import type { ItemName } from "./constants"
+import type { EnemyUserData } from "./stages/types"
 import { ReadonlyVector3 } from "./util"
 
 /** Functions in this set will be called every time just before rendering. */
@@ -15,14 +15,16 @@ export const onPreprocess = new Set<() => void>()
 /** Unlike onBeforeRender, functions in this set will be called at a fixed interval even if the FPS drops, and you don't need to worry about delta timing. */
 export const onUpdate = new Set<(updateCount: number) => void>()
 
+/** Common properties of enemies' {@link THREE.Object3D} */
 export type Collidable = {
     readonly position: ReadonlyVector3
+    /** Properties in EnemyUserData in src/stages/types.ts required for collision detections */
     readonly userData: {
-        readonly radius: number
-        readonly name: string
-        readonly money: number
-        readonly items: { readonly [k in ItemName]?: number }
-        hp: number
+        readonly radius: EnemyUserData["radius"]
+        readonly name: EnemyUserData["name"]
+        readonly money: EnemyUserData["money"]
+        readonly items: Readonly<EnemyUserData["items"]>
+        hp: EnemyUserData["hp"]
     }
 }
 
