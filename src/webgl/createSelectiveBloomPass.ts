@@ -9,6 +9,8 @@ import vertexShader from "./createSelectiveBloomPass.vert"
 
 const bloomLayer = 1
 const bloomOnlyLayer = 2
+
+/** Enables the bloom effect to the object recursively. */
 export const enableSelectiveBloom = <T extends THREE.Object3D>(obj: T, opts: { noDiffusion?: boolean } = {}): T => {
     obj.traverse((child) => {
         child.layers.set(bloomLayer)

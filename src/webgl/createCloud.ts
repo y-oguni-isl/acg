@@ -5,6 +5,7 @@ import { call } from "../util"
 import fragmentShader from "./createCloud.frag"
 import vertexShader from "./createCloud.vert"
 
+/** Creates the 3D model for clouds that is shown in stage 1. */
 export default () => {
     const uniforms = {
         time: { value: 0.0 },

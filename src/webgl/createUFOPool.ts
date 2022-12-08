@@ -5,6 +5,7 @@ import fragmentShader from "./createUFOPool.frag"
 import vertexShader from "./createUFOPool.vert"
 import { enableSelectiveBloom } from "./createSelectiveBloomPass"
 
+/** Creates a {@link ObjectPool} for UFOs. */
 export default async () => {
     const uniforms = { time: { value: 0 }, distortion: { value: 0 } }
     onBeforeRender.add((time) => { uniforms.time.value = time })

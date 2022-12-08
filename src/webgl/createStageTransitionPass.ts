@@ -4,6 +4,7 @@ import { getState } from "../saveData"
 import fragmentShader from "./createStageTransitionPass.frag"
 import vertexShader from "./createStageTransitionPass.vert"
 
+/** Creates a ShaderPass (postprocessing shader) that is applied when the player is moving to other stage. */
 export default () => {
     let played = false
     const pass = new ShaderPass({

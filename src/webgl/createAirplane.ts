@@ -6,6 +6,7 @@ import { getState } from "../saveData"
 import * as constants from "../constants"
 import { loadGLTF } from "./webglUtil"
 
+/** Creates the 3D model for the fighter (or airplane). */
 export default async (canvas: HTMLCanvasElement) => {
     const airplane = (await loadGLTF("models/low-poly_airplane.glb", 0.05)) as Omit<THREE.Object3D, "userData"> & {
         userData: {

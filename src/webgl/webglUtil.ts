@@ -91,7 +91,7 @@ export class ObjectPool<T extends THREE.Object3D> extends THREE.Object3D<Instanc
     }
 }
 
-/** Downloads and parses a .gltf (text) or .glb (binary) file. The model will be resized if the `height` argument is non-null. */
+/** Downloads and parses a .gltf (text) or .glb (binary) file. The model will be resized if the `height` argument is non-null. The `filepath` argument is relative to the public/ folder. */
 export const loadGLTF = async (filepath: string, height: number | null): Promise<THREE.Object3D> => {
     if (!getRenderingOption(filepath)) { return new THREE.Object3D() }
     const obj = (await new Promise<GLTF>((resolve, reject) => new GLTFLoader().load(filepath, resolve, (xhr) => { ephemeralDOMStore.getState().setLoadingMessage(filepath, `Loading ${filepath} (${xhr.loaded}/${xhr.total})`) }, reject)))
@@ -133,11 +133,15 @@ export const extendMaterial = (obj: THREE.Object3D, program: { uniforms?: Record
     obj.traverse((obj) => {
         if (!(obj instanceof THREE.Mesh)) { return }
         (obj.material as THREE.Material).onBeforeCompile = (shader) => {
+            // Merge uniforms
             Object.assign(shader.uniforms, program.uniforms ?? {})
-            obj.userData.shader = shader
+
+            // Replace `void main()` in the vertex shader with `void super()` and append the user code.
             if (program.vertexShader?.trim()) {
                 shader.vertexShader = shader.vertexShader.replace(/void\s*main\s*\(\s*\)/, "void super()") + program.vertexShader
             }
+
+            // Replace `void main()` in the fragment shader with `void super()` and append the user code.
             if (program.fragmentShader?.trim()) {
                 shader.fragmentShader = shader.fragmentShader.replace(/void\s*main\s*\(\s*\)/, "void super()") + program.fragmentShader
             }

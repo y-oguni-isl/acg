@@ -22,7 +22,7 @@ const Mothership: StageDefinition = {
     visible: () => (getState().availableNews.aliensComing ?? false) && getState().upgrades["ATK×2"] > 0,
     createEnemyPools: async (): Promise<EnemyPools> => {
         const pools = await PromiseAll({
-            alive: webgl.createEnemyPlanet().then((m) => m.onAllocate((copy): EnemyUserData => ({
+            alive: webgl.createMothership().then((m) => m.onAllocate((copy): EnemyUserData => ({
                 name: "Planet",
                 time: 0,
                 hp: 1200000 * getState().getExplorationLv() * (500 ** getState().transcendence),
@@ -35,7 +35,7 @@ const Mothership: StageDefinition = {
                 money: 10000 * getState().getExplorationLv() * (500 ** getState().transcendence),
                 items: {},
             }))),
-            dead: webgl.createEnemyPlanet().then((m) => m.onAllocate(() => ({ time: 0 }))),
+            dead: webgl.createMothership().then((m) => m.onAllocate(() => ({ time: 0 }))),
             spawn: (t: number) => {
                 if (pools.alive.children.length === 0 && !getState().canTranscend) {
                     pools.alive.allocate().position.set(4, 0, 0)
