@@ -111,7 +111,7 @@ export const store = createPersistingStore(localStorageKey, 8, {
                 d.weatherEffectWillBeEnabledInLessThan[d.stage] = constants.newWeatherEffectETA(1)
             })
         },
-        defeatedFinalBoss: () => {
+        defeatedMothership: () => {
             addNews("ending1")
             setProduce((d) => { d.canTranscend = true })
         },

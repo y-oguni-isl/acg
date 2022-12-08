@@ -1,10 +1,10 @@
 // This file is auto-generated with `node codegen.js`.
 import Earth from "./1_Earth"
 import Universe from "./2_Universe"
-import Final from "./3_Final"
+import Mothership from "./3_Mothership"
 
 export default {
     Earth,
     Universe,
-    Final,
+    Mothership,
 } as const

@@ -253,7 +253,7 @@ if (stats) {
             // Move and rotate the camera
             if (getState().stageTransitingTo === null) {
                 camera.position.z = airplane.position.z
-                camera.lookAt(getState().stage === "Final" ? new THREE.Vector3(0.5, 0, airplane.position.z) : new THREE.Vector3(0, 0, airplane.position.z))
+                camera.lookAt(getState().stage === "Mothership" ? new THREE.Vector3(0.5, 0, airplane.position.z) : new THREE.Vector3(0, 0, airplane.position.z))
                 camera.rotation.x += airplane.userData.velocity.x * 0.05
                 camera.rotation.y -= Math.abs(airplane.userData.velocity.y * 0.02)
             }

@@ -278,7 +278,7 @@ const UI = () => {
             <EnemyStats />
 
             {/* Explore */}
-            {hasVacuum && stage !== "Final" && <div class="px-3 pt-1 pb-3 window">
+            {hasVacuum && stage !== "Mothership" && <div class="px-3 pt-1 pb-3 window">
                 <h2 class="mb-2 tracking-wide"><i class="ti ti-route" /> Explore: <span class="tracking-tight">Lv. {explorationLv}</span></h2>
                 <button
                     class="block w-full text-left pl-[2rem] sm:pl-[3.3rem]"

@@ -3,8 +3,8 @@ import { onBeforeRender } from "../hooks"
 import { getState } from "../saveData"
 import { call, PromiseAll } from "../util"
 import * as webgl from "../webgl"
-import fragmentShader from "./3_Final.frag"
-import vertexShader from "./3_Final.vert"
+import fragmentShader from "./3_Mothership.frag"
+import vertexShader from "./3_Mothership.vert"
 import type { EnemyPools, EnemyUserData } from "./types"
 
 export default {
@@ -29,7 +29,7 @@ export default {
                 update: () => { /* skip */ },
                 onKilled: () => {
                     pools.dead.allocate().position.copy(copy.position)
-                    getState().defeatedFinalBoss()
+                    getState().defeatedMothership()
                 },
                 radius: 1,
                 money: 10000 * getState().getExplorationLv() * (500 ** getState().transcendence),
