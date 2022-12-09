@@ -68,6 +68,8 @@ const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
         return () => { onBeforeRender.delete(callback) }
     }, [ref])
 
+    const debuff = constants.weatherDebuff(props.name, weather)
+
     return <div
         ref={ref}
         class="relative block pointer backdrop-blur-3xl drop-shadow-md select-none border-opacity-40 border-[1px] rounded-lg border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600"
@@ -91,7 +93,7 @@ const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
                 placeholder5: "ti-circle-dotted",
                 placeholder6: "ti-circle-dotted",
             } satisfies Record<constants.UpgradeName, string>)[props.name]} />{props.name}</>}</span>
-            <span class="float-right tracking-tight">{count}{props.name === "Autopilot" && weather?.enabled && <b class="text-red-400"> (-5)</b>}</span>
+            <span class="float-right tracking-tight">{count}{debuff !== 0 && <b class="text-red-400"> ({debuff})</b>}</span>
         </div>
     </div>
 }

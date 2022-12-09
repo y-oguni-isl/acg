@@ -2,8 +2,8 @@
  * This file defines constants for the game.
  */
 
+import type { SaveData } from "./saveData"
 import type stages from "./stages"
-import type { SerializableSet } from "./util"
 
 // The area the airplane and enemies can exist.
 //                                                                  screen position:
@@ -43,8 +43,23 @@ export const flavorText = {
     Scrap: "With a little ingenuity and a lot of scrap, we can make some missiles to take down our enemies."
 } satisfies Record<ItemName, string>
 
+/** A mapping from a stage name to its weather effect. */
+export const weathers = {
+    Earth: "Rain",
+    Universe: "Jamming",
+    Mothership: null,
+} as const satisfies Record<StageName, string | null>
+
 /** A type that represents a valid weather name. */
-export type WeatherEffect = "Rain"
+export type WeatherEffect = typeof weathers[keyof typeof weathers]
+
+/** Returns the debuff for the given weapon caused by the current weather. */
+export const weatherDebuff = (upgrade: UpgradeName, weather: WeatherEffect) => {
+    if (upgrade === "Autopilot" && weather === "Rain") { return -5 }
+    if (upgrade === "Autopilot" && weather === "Jamming") { return -15 }
+    if (upgrade === "Hammer" && weather === "Jamming") { return -3 }
+    return 0
+}
 
 /** the initial price of each upgrades */
 export const basePrice = {
@@ -60,39 +75,39 @@ export const basePrice = {
 } satisfies Record<UpgradeName, number>
 
 /** Returns the damage dealt by the weapon. */
-export const getAtk = ({ upgrades }: { upgrades: Record<UpgradeName, number> }) => ({
-    Laser: upgrades.Laser + 1 * (upgrades["ATK×2"] + 1),
+export const getAtk = ({ getUpgrade }: Pick<SaveData, "getUpgrade">) => ({
+    Laser: (getUpgrade("Laser") + 1) * (getUpgrade("ATK×2") + 1),
     Autopilot: undefined,
-    Hammer: upgrades.Hammer === 0 ? undefined : 2000 * (upgrades["ATK×2"] + 1),
+    Hammer: getUpgrade("Hammer") <= 0 ? undefined : 2000 * (getUpgrade("ATK×2") + 1),
     "ATK×2": undefined,
     Vacuum: undefined,
-    Missile: upgrades.Hammer === 0 ? undefined : 100000 * (upgrades["ATK×2"] + 1),
+    Missile: getUpgrade("Missile") === 0 ? undefined : 100000 * (getUpgrade("ATK×2") + 1),
     placeholder4: undefined,
     placeholder5: undefined,
     placeholder6: undefined,
 } satisfies Record<UpgradeName, number | undefined>)
 
 /** Returns the interval at which the weapon is fired. */
-export const getInterval = ({ upgrades }: { upgrades: Record<UpgradeName, number> }) => ({
+export const getInterval = ({ getUpgrade }: Pick<SaveData, "getUpgrade">) => ({
     Laser: 1,
     Autopilot: undefined,
-    Hammer: upgrades.Hammer === 0 ? undefined : Math.ceil(50 / upgrades.Hammer),
+    Hammer: getUpgrade("Hammer") === 0 ? undefined : Math.ceil(50 / getUpgrade("Hammer")),
     "ATK×2": undefined,
     Vacuum: undefined,
-    Missile: upgrades.Missile === 0 ? undefined : Math.ceil(200 / upgrades.Missile),
+    Missile: getUpgrade("Missile") === 0 ? undefined : Math.ceil(200 / getUpgrade("Missile")),
     placeholder4: undefined,
     placeholder5: undefined,
     placeholder6: undefined,
 } satisfies Record<UpgradeName, number | undefined>)
 
 /** Returns a multiplier for the number of items obtained from enemies. */
-export const getVacuumGain = ({ upgrades }: { upgrades: Record<UpgradeName, number> }) => 1 + 0.2 * (upgrades.Vacuum - 1)
+export const getVacuumGain = ({ getUpgrade }: Pick<SaveData, "getUpgrade">) => 1 + 0.2 * (getUpgrade("Vacuum") - 1)
 
 /** If true, the name of the upgrade is shown as ??? */
-export const isUpgradeNameHidden = (name: UpgradeName, state: { readonly upgrades: Record<UpgradeName, number>, readonly money: number }) => state.upgrades[name] === 0 && state.money < price(name, state) * 2 / 3
+export const isUpgradeNameHidden = (name: UpgradeName, state: Pick<SaveData, "upgrades" | "money">) => state.upgrades[name] === 0 && state.money < price(name, state) * 2 / 3
 
 /** Returns a boolean value that indicates whether the weather system should be enabled (visible to the user) or not. */
-export const isWeatherSystemUnlocked = (state: { completedTutorials: SerializableSet<TutorialName> }) => state.completedTutorials.nextStage ?? false
+export const isWeatherSystemUnlocked = (state: Pick<SaveData, "completedTutorials">) => state.completedTutorials.nextStage ?? false
 
 /**
  * Returns a boolean value that indicates whether the player can fly vertically with the space key.
@@ -103,8 +118,9 @@ export const isVerticalMoveUnlocked = () => false
 /** Returns the interval to start the next weather effect. */
 export const newWeatherEffectETA = (rand = Math.random()) => rand * updatePerSecond * 60 * 6
 
+
 /** Returns the price of the upgrade. */
-export const price = (name: UpgradeName, { upgrades }: { upgrades: Record<UpgradeName, number> }) => basePrice[name] * 2 ** upgrades[name]
+export const price = (name: UpgradeName, { upgrades }: Pick<SaveData, "upgrades">) => basePrice[name] * 2 ** upgrades[name]
 
 /** Returns the cost to increase the exploration level. */
 export const explorationCost = (currentLv: number) => +(500 * 1.25 ** (currentLv - 1)).toPrecision(2)
@@ -115,7 +131,7 @@ export const tutorialHTML = {
     upgrade: <>You can now buy <b><i class="ti ti-chevrons-up"></i> upgrades</b> for your aircraft! To do so, <b>click</b> on the button in the <b>top left</b> corner of the screen.</>,
     nextStage: <>You can now move on to the <b><i class="ti ti-map-2"></i> next stage</b>! To do so, <b>click</b> the button in the <b>top right</b> corner of the screen.</>,
     backToPreviousStage: <>If you're finding this stage too <b>difficult</b>, go back to the previous stage and <b>try again</b> after you get more upgrades.</>,
-    weatherEffect: <>We need to kill a <b><i class="ti ti-ufo"></i> UFO</b> in order to stop the <b><i class="ti ti-cloud-rain"></i> rain</b>. The UFO has a device that can manipulate the weather, and the rain is interfering with the <b>autopilot</b> system.</>,
+    weatherEffect: <>We need to destroy the <b><i class="ti ti-ufo"></i> UFO</b> that has a special device. This will stop the <b><i class="ti ti-cloud-rain"></i> environmental effects</b> that are interfering with the <b>autopilot</b> system.</>,
     // ending1congratulations: "Congratulations, you have saved the world from the aliens. Thanks for playing!",
     // TODO: "As a bonus, you can fly around vertically with the space key from now on."
 }

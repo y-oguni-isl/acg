@@ -36,7 +36,7 @@ export default async (source: THREE.Object3D) => {
     // Move the laser to match the player's position
     onBeforeRender.add((time) => {
         uniforms.time.value = time
-        uniforms.count.value = getState().upgrades.Laser
+        uniforms.count.value = getState().getUpgrade("Laser")
         call(model, { position: { setX: source.position.x + 1, setY: source.position.y + 0.01, setZ: source.position.z } })
     })
 

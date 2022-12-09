@@ -173,7 +173,7 @@ const UI = () => {
     const [creditHTML, setCreditHTML] = useState<string>("")
     const areStageNamesVisible = useStore(store, () => fromEntries(ObjectEntries(stages).map(([k, v]) => [k, v.visible()])), shallow)
     const loadingMessage = useStore(ephemeralDOMStore, (s) => s.loadingMessage)
-    const weather = useStore(store, (s) => s.getWeather(), shallow)
+    const weather = useStore(store, (s) => s.getWeather())
     const weatherEffectWillBeEnabledInLessThan = useStore(store, (s) => Math.ceil((s.weatherEffectWillBeEnabledInLessThan[s.stage] ?? Number.MAX_SAFE_INTEGER) / constants.updatePerSecond / 60))
     const transcending = useStore(store, (s) => s.transcending)
     const powerSaveMode = useStore(ephemeralDOMStore, (s) => s.powerSaveMode)
@@ -266,12 +266,12 @@ const UI = () => {
             </div>}
 
             {/* Weather */}
-            {weather !== null && <div class="px-3 pt-1 pb-3 window">
+            {constants.weathers[stage] !== null && <div class="px-3 pt-1 pb-3 window">
                 <h2 class="mb-2 tracking-wide"><i class="ti ti-sun" /> Weather</h2>
                 <div>
                     <table>
-                        <tr><td class="pr-1">{!weather.enabled && ">"}</td><td class={"tracking-wider " + (!weather.enabled ? "font-bold" : "")}>Normal</td></tr>
-                        <tr><td class="pr-1">{weather.enabled && ">"}</td><td class={"tracking-wider " + (weather.enabled ? "font-bold" : "")}>{weather.name}{!weather.enabled && <span class="text-gray-300"> (in {"<" + weatherEffectWillBeEnabledInLessThan} min{weatherEffectWillBeEnabledInLessThan !== 1 && "s"})</span>}</td></tr>
+                        <tr><td class="pr-1">{!weather && ">"}</td><td class={"tracking-wider " + (!weather ? "font-bold" : "")}>Normal</td></tr>
+                        <tr><td class="pr-1">{weather && ">"}</td><td class={"tracking-wider " + (weather ? "font-bold" : "")}>{constants.weathers[stage]}{!weather && <span class="text-gray-300"> (in {"<" + weatherEffectWillBeEnabledInLessThan} min{weatherEffectWillBeEnabledInLessThan !== 1 && "s"})</span>}</td></tr>
                     </table>
                 </div>
             </div>}

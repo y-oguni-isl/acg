@@ -17,7 +17,7 @@ export const store = createPersistingStore(localStorageKey, 8, {
     money: 0,
     /** Items obtained by the player with vacuum. */
     items: {} as Partial<Record<constants.ItemName, number>>,
-    /** The number of upgrades purchased. */
+    /** The number of upgrades purchased. Use getUpgrades() to get the number of upgrades that takes the weather effect into account. */
     upgrades: Object.fromEntries(constants.upgradeNames.map((name) => [name, 0])) as Record<constants.UpgradeName, number>,
     /** The tutorial in `availableTutorials - completedTutorials` with the lowest index in {@link constants.tutorialHTML} is displayed to the player. */
     completedTutorials: {} as SerializableSet<constants.TutorialName>,
@@ -63,11 +63,10 @@ export const store = createPersistingStore(localStorageKey, 8, {
         })
     }
     /** Returns the current weather. */
-    const getWeather = () => {
+    const getWeather = (): constants.WeatherEffect | null => {
         if (!constants.isWeatherSystemUnlocked(get())) { return null }
-        const enabled = (get().weatherEffectWillBeEnabledIn[get().stage] ?? Number.MAX_SAFE_INTEGER) <= 0
-        if (get().stage === "Earth") { return { name: "Rain", enabled } }
-        return null  // unimplemented
+        if ((get().weatherEffectWillBeEnabledIn[get().stage] ?? Number.MAX_SAFE_INTEGER) > 0) { return null }
+        return constants.weathers[get().stage]
     }
     const getExplorationLv = () => get().exploration[get().stage] ?? 1
     return {
@@ -77,6 +76,8 @@ export const store = createPersistingStore(localStorageKey, 8, {
         completeTutorial,
         getWeather,
         getExplorationLv,
+        /** Returns the number of upgrades, taking the weather effect into account. */
+        getUpgrade: (name: constants.UpgradeName) => get().upgrades[name] + constants.weatherDebuff(name, getWeather()),
         addItems: (delta: Partial<Record<constants.ItemName, number>>) => {
             const items = { ...get().items }
             for (const [k, v] of ObjectEntries(delta)) { items[k] = Math.floor((items[k] ?? 0) + v) }  // a lot faster than immer
@@ -121,7 +122,7 @@ export const store = createPersistingStore(localStorageKey, 8, {
                     [s.stage]: (s.weatherEffectWillBeEnabledInLessThan[s.stage] ?? constants.newWeatherEffectETA(1)) - 1,
                 },
             })
-            if (getWeather()?.enabled) {
+            if (getWeather()) {
                 addTutorial("weatherEffect")
             }
         },
@@ -183,6 +184,8 @@ export const getState = store.getState
 
 /** Subscribes (or listens) to every changes in the game state. */
 export const subscribe = store.subscribe
+
+export type SaveData = ReturnType<typeof getState>
 
 /** Clears the {@link localStorage} to reset the game progress. */
 export const deleteSaveData = () => {

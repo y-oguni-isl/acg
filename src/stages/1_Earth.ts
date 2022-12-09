@@ -58,7 +58,7 @@ const Earth: StageDefinition = {
                 if (t % 5 === 0) {
                     pools.alive.allocate().position.set(2, 0, ((t * 0.06) % 1) * (constants.xMax - constants.xMin) + constants.xMin)
                 }
-                if (getState().getWeather()?.enabled && pools.weatherAlive.children.length === 0) {
+                if (getState().getWeather() && pools.weatherAlive.children.length === 0) {
                     pools.weatherAlive.allocate().position.set(1, 0, Math.random() * (constants.xMax - constants.xMin) + constants.xMin)
                 }
             }

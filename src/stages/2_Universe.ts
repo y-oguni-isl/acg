@@ -47,11 +47,29 @@ const Universe: StageDefinition = {
                 items: { Scrap: Math.floor(1 * constants.getVacuumGain(getState()) * getState().getExplorationLv() * (500 ** getState().transcendence)) }
             }))),
             dead: webgl.createUFOPool().then((m) => m.onAllocate(() => ({ time: 0 }))),
+            weatherAlive: webgl.createUFOPool().then((m) => m.onAllocate((copy): EnemyUserData => ({
+                name: "Weather Effect UFO",
+                time: 0,
+                hp: 1500 * getState().getExplorationLv() * getState().upgrades.Laser,
+                update: () => { /* skip*/ },
+                onKilled: () => {
+                    pools.weatherDead.allocate().position.copy(copy.position)
+                    getState().stopWeatherEffect()
+                    getState().completeTutorial("weatherEffect")
+                },
+                radius: 0.03,
+                money: 400 * getState().getExplorationLv() * getState().upgrades.Laser,
+                items: { Scrap: Math.floor(1 * constants.getVacuumGain(getState()) * getState().getExplorationLv() * (500 ** getState().transcendence)) },
+            }))),
+            weatherDead: webgl.createUFOPool().then((m) => m.onAllocate(() => ({ time: 0 }))),
         }) satisfies Omit<EnemyPools, "spawn">
         return Object.assign(new THREE.Object3D().add(...ObjectValues(pools)), pools, {
             spawn: (t: number) => {
                 if (t % 31 === 0 && (getState().availableNews.aliensComing ?? false)) {
                     pools.alive.allocate().position.set(2, 0, ((t * 0.06) % 1) * (constants.xMax - constants.xMin) + constants.xMin)
+                }
+                if (getState().getWeather() && pools.weatherAlive.children.length === 0) {
+                    pools.weatherAlive.allocate().position.set(1, 0, Math.random() * (constants.xMax - constants.xMin) + constants.xMin)
                 }
             }
         })

@@ -59,10 +59,10 @@ export default (blur: boolean) => {
         pass.uniforms.time!.value = time;
     })
 
-    pass.enabled = getState().getWeather()?.name === "Rain" && !!getState().getWeather()?.enabled
+    pass.enabled = getState().getWeather() === "Rain"
     subscribe((state, prev) => {
         if (state.weatherEffectWillBeEnabledIn === prev.weatherEffectWillBeEnabledIn) { return }
-        pass.enabled = getState().getWeather()?.name === "Rain" && !!getState().getWeather()?.enabled
+        pass.enabled = getState().getWeather() === "Rain"
     })
 
     return pass

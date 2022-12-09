@@ -72,12 +72,12 @@ export default async (canvas: HTMLCanvasElement) => {
         }
 
         // Autopilot
-        if ((getState().getWeather()?.enabled ? getState().upgrades.Autopilot - 5 : getState().upgrades.Autopilot) > 0 &&
+        const count = getState().getUpgrade("Autopilot")
+        if (count > 0 &&
             pressedKeys.size === 0 && !mousedown &&
             airplane.userData.autopilotTarget) { // TODO: add a switch to disable the autopilot
-            const autopilotSpeed = 0.1 * getState().upgrades.Autopilot
             if (Math.abs(airplane.userData.autopilotTarget.position.z - airplane.position.z) > 0.02) {
-                airplane.userData.velocity.x = Math.min(1.0, Math.max(-1.0, airplane.userData.velocity.x + Math.sign(airplane.userData.autopilotTarget.position.z - airplane.position.z) * autopilotSpeed))
+                airplane.userData.velocity.x = Math.min(1.0, Math.max(-1.0, airplane.userData.velocity.x + Math.sign(airplane.userData.autopilotTarget.position.z - airplane.position.z) * 0.1 * count))
             }
         }
     })
