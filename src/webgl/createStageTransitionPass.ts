@@ -17,20 +17,21 @@ export default () => {
     })
     return {
         pass,
+        /** This function fades in for 1 second, moves to the destination stage and calls the callback, and fades out for 1 second.  */
         play: (callback: () => void) => {
             if (played) { return }
             played = true
             let time = 0
             const loop = (_: number, deltaTime: number) => {
-                if (time < 1) {
+                if (time < 1) { // fade in
                     time = Math.min(1, time + deltaTime * 0.001)
-                } else if (time === 1) {
+                } else if (time === 1) { // move to the destination stage
                     time += deltaTime * 0.001
                     callback()
                     getState().completeStageTransition()
-                } else if (time < 2) {
+                } else if (time < 2) { // fade out
                     time = Math.min(2, time + deltaTime * 0.001)
-                } else {
+                } else { // end
                     onBeforeRender.delete(loop)
                     played = false
                 }

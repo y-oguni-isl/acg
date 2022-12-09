@@ -56,6 +56,7 @@ const airplane = show(await webgl.createAirplane(renderer.domElement))
 scene.add(webgl.createContrail(airplane))
 
 // Stages
+// NOTE: To add a stage, create a file `src/stages/[id]_[name].ts` while running `corepack yarn start`, which runs codegen.js everytime you edit the files, and fix all type errors.
 for (const [name, stage] of ObjectEntries(stages)) {
     const obj = show(stage.createModel())
     obj.visible = getState().stage === name
@@ -69,6 +70,8 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
 // Parallel download
 const { enemies } = await PromiseAll({
     enemies: PromiseAll(fromEntries(ObjectEntries(stages).map(([k, v]) => [k, v.createEnemyPools().then(show)]))),
+
+    // NOTE: To add a weapon, create a file `src/weapons/[name].ts` while running `corepack yarn start`, which runs codegen.js everytime you edit the files, and fix all type errors. You can also add an entry in `upgradeNames`, `basePrice` etc. in `constants.tsx` to add a new upgrade and reference the number of upgrades the player purchased by `getState().upgrades.[name]`.
     weapons: Promise.all(weapons.map((weapon) => weapon(airplane).then(show))),
 })
 
@@ -89,7 +92,7 @@ subscribe((state, prev) => {
 
 // Update the loading message
 ephemeralDOMStore.getState().setLoadingMessage("loadingModels", `Loading models...`)
-await new Promise((resolve) => setTimeout(resolve, 0)) // Let the browser to render the changes in the DOM
+await new Promise((resolve) => setTimeout(resolve, 0)) // Make the browser to render the changes in the DOM
 
 // Download the 3D model for newspapers after every other 3D models is downloaded because it should not be prioritized.
 show(webgl.createNewspaperAnimationPlayer())
@@ -111,15 +114,20 @@ onUpdate.add(() => {
     const { stageTransitingTo } = getState()
     if (stageTransitingTo === null) { return }
 
+    // true if going forward, false if going backward
     const forward = ObjectKeys(stages).indexOf(stageTransitingTo) >= ObjectKeys(stages).indexOf(getState().stage)
+
+    // Gradually move the airplane and rotate the camera
     if (forward) {
-        // Play the animation to move to another stage
         airplane.position.x += 0.01 + Math.max(0, airplane.position.x) * 0.08
         camera.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), -0.02)
         camera.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), 0.003)
         camera.position.z -= 0.01
     }
+
+    // When the airplane went far away or the player is going backward
     if (airplane.position.x > 2 || !forward) {
+        // Play the shader animation
         stageTransitionPass.play(() => {
             airplane.position.x = 0
             camera.position.set(...cameraInitialPosition)
@@ -149,9 +157,7 @@ domStore.subscribe((state, prev) => {
 // FPS monitor https://github.com/mrdoob/stats.js/
 const stats = import.meta.env.DEV ? new Stats() : null
 if (stats) {
-    stats.showPanel(0)
-    stats.dom.style.bottom = "50px"
-    stats.dom.style.top = ""
+    Object.assign(stats.dom.style, { bottom: "50px", top: "" })
     document.body.append(stats.dom)
 }
 
@@ -277,7 +283,7 @@ const playAudio = () => {
     audio.loop = true
     audio.play()
 }
-window.addEventListener("click", playAudio)  // We need this because of autoplay policy https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide
+window.addEventListener("click", playAudio)  // We need this because of the autoplay policy https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide
 window.addEventListener("keydown", playAudio)
 playAudio()
 
