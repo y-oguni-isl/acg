@@ -36,6 +36,8 @@ export const generate = () => {
 // This file is auto-generated with \`node codegen.js\`.
 
 import * as THREE from "three"
+
+// Replace \`#include <snoise>\` with the contents of ./snoise.glsl, which defines \`float snoise(vec2 p)\` and \`float snoise(vec3 p)\` functions.
 import snoise from "./snoise.glsl"
 THREE.ShaderChunk["snoise"] = snoise
 

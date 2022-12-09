@@ -28,7 +28,7 @@ const Tutorial = () => {
     </div>
 }
 
-/** The current state of the DOM (HTML). */
+/** The current state of the DOM (HTML), persisted in {@link localStorage}. */
 export const domStore = createPersistingStore("acgDOMStore", 3, {
     news: null as readonly [headline: string, text: string] | null,
     usePowerSaveMode: true,
@@ -43,6 +43,8 @@ export const domStore = createPersistingStore("acgDOMStore", 3, {
 
 // Loading messages should not be persisted
 type EnemyStatus = { hp: number, name: string, money: number, items: { readonly [k in constants.ItemName]?: number } }
+
+/** The current state of the DOM (HTML). Unlike {@link domStore}, this store manages data that should not be persisted in {@link localStorage}. */
 export const ephemeralDOMStore = createStore({
     loadingMessage: {} as Record<string, string>,
     enemyStatus: null as (EnemyStatus | null),

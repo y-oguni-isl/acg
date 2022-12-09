@@ -12,7 +12,10 @@ const store = createStore({
     content: null as ComponentChildren,
 }, () => { })
 
+/** Sets the tooltip text for the given key, overwriting any existing tooltip. */
 export const setTooltip = (key: string, content: ComponentChildren) => { store.setState({ key, content }) }
+
+/** Removes the tooltip text for the given key if the currently displayed tooltip's key matches the given key. */
 export const removeTooltip = (key: string) => {
     if (store.getState().key === key) {
         store.setState({ key: "", content: null })

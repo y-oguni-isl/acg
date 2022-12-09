@@ -2,6 +2,7 @@ import type { ComponentChildren } from "preact"
 import { MutableRef, useEffect, useState } from "preact/hooks"
 import Modal from "react-modal"
 
+/** A subtype of HTMLDialogElement to reference a <{@link Dialog}>. */
 export type DialogRef = Pick<HTMLDialogElement, "showModal" | "close">
 
 /**

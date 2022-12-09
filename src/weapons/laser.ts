@@ -8,7 +8,10 @@ import * as constants from "../constants"
 import { ephemeralDOMStore } from "../dom"
 import * as webgl from "../webgl"
 
-/** Creates and moves 3D models of lasers, and performs collision detections against enemies. */
+/**
+ * Creates and moves 3D models of lasers, and performs collision detections against enemies.
+ * See docs/laser for the implementation details.
+ */
 export default async (source: THREE.Object3D) => {
     const uniforms = {
         time: { value: 0.0 },

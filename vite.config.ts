@@ -6,13 +6,17 @@ import assert from "assert/strict"
 import { generate } from "./codegen"
 import path from "path"
 
+/** Escapes HTML. */
 const escape = (t: string) => t.replaceAll("&", "&amp").replaceAll("<", "&lt").replaceAll(">", "&gt;").replaceAll("'", "&#39;").replaceAll('"', "&quot;")
 
 let watcher: fs.FSWatcher | undefined
 
+/** The configurations passed to vite. */
 export default defineConfig({
     plugins: [
         preact(),
+
+        // Run codegen.js before building the project
         {
             name: "code_gen",
             buildStart: () => {
@@ -28,6 +32,8 @@ export default defineConfig({
                 watcher!.close()
             },
         },
+
+        // Generate public/lib_credit.html with license-checker
         {
             name: "pack_license",
             buildStart: () => {
@@ -56,6 +62,8 @@ export default defineConfig({
                 })
             }
         },
+
+        // Allow default importing .frag,.vert,.glsl files
         {
             name: 'glsl-loader',
             transform(code, id) {
@@ -65,10 +73,11 @@ export default defineConfig({
             }
         }
     ],
-    base: "",
+    base: "", // Use relative path to reference assets, i.e. <element src="./foo"> instead of <element src="/foo">, to make them work correctly when hosted at a non-root directory
     build: {
         target: "esnext",
         rollupOptions: {
+            // Entry points
             input: {
                 index: path.resolve(__dirname, "index.html"),
                 tab_already_open: path.resolve(__dirname, "tab_already_open.html"),

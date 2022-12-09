@@ -24,6 +24,8 @@ export const enableSelectiveBloom = <T extends THREE.Object3D>(obj: T, opts: { n
  * Based on three.js/examples/webgl_postprocessing_unreal_bloom_selective
  * https://threejs.org/examples/?q=bloom#webgl_postprocessing_unreal_bloom_selective
  * 
+ * See docs/selective_bloom.md for the implementation details.
+ * 
  * @example
  * ```
  * import { enableSelectiveBloom } from "./shader/selective_bloom"

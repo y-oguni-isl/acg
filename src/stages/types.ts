@@ -1,15 +1,17 @@
 import type { ItemName } from "../constants"
 import type { ObjectPool } from "../webgl"
 
+/** A type that represents the definition of a game stage. */
 export type StageDefinition = {
     /** Creates an {@link THREE.Object3D} containing all 3d objects rendered in the stage in its children.  */
     createModel(): THREE.Object3D
     /** Whether the stage name is listed in the Stages window, and the player can move to the stage. */
     visible(): boolean
-    /** Creates object pools for enemies in the stage, one for alive and one for dead. */
+    /** Creates object pools for enemies in the stage, one for alive and one for dead. The THREE.Object3D has all the object pools in its children. */
     createEnemyPools(): Promise<THREE.Object3D & EnemyPools>
 }
 
+/** A type that represents the state of an enemy, which is stored in the {@link THREE.Object3D.userData} property in the 3D model of the enemy. */
 export type EnemyUserData = {
     name: string
     time: number
@@ -21,6 +23,7 @@ export type EnemyUserData = {
     items: Partial<Record<ItemName, number>>
 }
 
+/** Object pools for enemies, one for alive and one for dead. If the stage has enemies that causes weather effects, it also has `weatherAlive` and `weatherDead` for its 3D models. */
 export type EnemyPools = {
     alive: ObjectPool<Omit<THREE.Object3D, "userData"> & { userData: EnemyUserData }>,
     dead: ObjectPool<Omit<THREE.Object3D, "userData"> & { userData: { time: number } }>,

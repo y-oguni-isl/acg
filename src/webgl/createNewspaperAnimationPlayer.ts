@@ -7,7 +7,10 @@ import { call, ObjectKeys } from "../util"
 import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise"
 import * as constants from "../constants"
 
-/** Create a function that plays an animation of falling newspapers. */
+/**
+ * Create a function that plays an animation of falling newspapers.
+ * See docs/newspaper.md for the implementation details.
+ */
 export default () => {
     const group = new THREE.Group()
     let startTime = Date.now();

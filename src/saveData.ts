@@ -5,7 +5,7 @@ const localStorageKey = "acgSaveData"
 
 const randomId = () => crypto.randomUUID?.() ?? `insecure-${[...Array(12)].map(() => Math.floor(Math.random() * 16).toString(16)).join('')}`
 
-/** This store maintains the game state. The values in the store is persisted in the localStorage by the persist() middleware. */
+/** This store maintains the game state. The values in the store is persisted in the {@link localStorage} by the persist() middleware. */
 export const store = createPersistingStore(localStorageKey, 8, {
     /** The name of the stage currently selected. */
     stage: "Earth" as constants.StageName,
@@ -184,6 +184,7 @@ export const getState = store.getState
 /** Subscribes (or listens) to every changes in the game state. */
 export const subscribe = store.subscribe
 
+/** Clears the {@link localStorage} to reset the game progress. */
 export const deleteSaveData = () => {
     store.destroy()
     localStorage.removeItem(localStorageKey)

@@ -3,7 +3,7 @@ import { enableSelectiveBloom } from "./createSelectiveBloomPass"
 import { extendMaterial, loadGLTF, ObjectPool } from "./webglUtil"
 import fragmentShader from "./createMothership.frag"
 
-/** Creates a {@link ObjectPool} for the enemy's mothership. */
+/** Creates an {@link ObjectPool} for the enemy's mothership. */
 export default async () => {
     const m = await loadGLTF("models/planet_megatropolis.glb", 2)
     extendMaterial(m, { fragmentShader })

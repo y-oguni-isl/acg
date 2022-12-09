@@ -3,7 +3,10 @@ import { onBeforeRender } from "../hooks"
 import fragmentShader from "./createEarth.frag"
 import vertexShader from "./createEarth.vert"
 
-/** Creates a 3D model for Earth that is shown in stage 2. */
+/**
+ * Creates a 3D model for Earth that is shown in stage 2.
+ * See docs/Earth.md for the implementation details.
+ */
 export default (
     opts: {
         seaColor: THREE.Vector3,

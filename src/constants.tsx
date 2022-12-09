@@ -12,7 +12,7 @@ export const [xMax, xMin, yMax, yMin] = [0.5, -0.5, 0.3, -0.3]   // up, down, ri
 /** The number of game updates per second. Note that this is not frame per second (FPS), which is automatically adjusted by the browser through requestAnimationFrame(). */
 export const updatePerSecond = 30
 
-/** the list of upgrades */
+/** An array of upgrade names. */
 export const upgradeNames = [
     "Laser",
     "Autopilot",
@@ -25,13 +25,16 @@ export const upgradeNames = [
     "placeholder6",
 ] as const satisfies readonly string[]
 
+/** A type that represents a valid upgrade name. */
 export type UpgradeName = (typeof upgradeNames)[number]
 
 /** The maximum number of a upgrade a player can have. */
 export const maxUpgrades = 25
 
+/** A type that represents a valid stage name. */
 export type StageName = keyof typeof stages
 
+/** A type that represents a valid item name. */
 export type ItemName = "Food" | "Scrap"
 
 /** the flavor text for each item */
@@ -40,6 +43,7 @@ export const flavorText = {
     Scrap: "With a little ingenuity and a lot of scrap, we can make some missiles to take down our enemies."
 } satisfies Record<ItemName, string>
 
+/** A type that represents a valid weather name. */
 export type WeatherEffect = "Rain"
 
 /** the initial price of each upgrades */
@@ -86,7 +90,14 @@ export const getVacuumGain = ({ upgrades }: { upgrades: Record<UpgradeName, numb
 
 /** If true, the name of the upgrade is shown as ??? */
 export const isUpgradeNameHidden = (name: UpgradeName, state: { readonly upgrades: Record<UpgradeName, number>, readonly money: number }) => state.upgrades[name] === 0 && state.money < price(name, state) * 2 / 3
+
+/** Returns a boolean value that indicates whether the weather system should be enabled (visible to the user) or not. */
 export const isWeatherSystemUnlocked = (state: { completedTutorials: SerializableSet<TutorialName> }) => state.completedTutorials.nextStage ?? false
+
+/**
+ * Returns a boolean value that indicates whether the player can fly vertically with the space key.
+ * NOTE: I'm undecided whether to introduce this feature at some point of the game.
+ */
 export const isVerticalMoveUnlocked = () => false
 
 /** Returns the interval to start the next weather effect. */
@@ -109,6 +120,7 @@ export const tutorialHTML = {
     // TODO: "As a bonus, you can fly around vertically with the space key from now on."
 }
 
+/** A type that represents a valid tutorial name. */
 export type TutorialName = keyof typeof tutorialHTML
 
 /** The list of news and their headlines and texts. */
@@ -118,4 +130,5 @@ export const newsList = {
     ending1: ["Scientists Have Found The Way To Move To A Higher World", "Scientists have finally reached the Singularity, and as a result, they have been able to move to a higher world. In this new world, there are beings that do not exist in this one. The breakthrough is the result of invading the residence of the aliens, which allowed the scientists to access their technology. The scientists were able to use this technology to move to the new world, and they are now working to take over the world. The beings in this new world are not happy about this, and they are fighting back. The scientists are using their technology to fight back, and they believe that they will eventually be able to take over the world. They are using their technology to create armies, and they are prepared to fight against the beings in this new world. The scientists are determined to take over the world, and they are prepared to do whatever it takes."],
 } as const satisfies { readonly [k: string]: readonly [title: string, text: string] }
 
+/** A type that represents a valid news name. */
 export type NewsName = keyof typeof newsList

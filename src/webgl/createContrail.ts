@@ -9,7 +9,10 @@ import { enableSelectiveBloom } from "./createSelectiveBloomPass"
 const airplaneSpeedAgainstGround = 0.005
 const samplingInterval = 2
 
-/** Creates and updates the 3D model for contrails of the fighter (or airplane). */
+/**
+ * Creates and updates the 3D model for contrails of the fighter (or airplane).
+ * See docs/contrail.md for the implementation details.
+ */
 export default (source: THREE.Object3D) => {
     const segments = 120
     const mesh = new THREE.Mesh(

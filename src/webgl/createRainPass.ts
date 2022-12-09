@@ -5,7 +5,10 @@ import { getState, subscribe } from "../saveData"
 import fragmentShader from "./createRainPass.frag"
 import vertexShader from "./createRainPass.vert"
 
-/** Returns a shader pass that makes the scene look like you're looking the scene through a glass on a rainy day. */
+/**
+ * Returns a shader pass that makes the scene look like you're looking the scene through a glass on a rainy day.
+ * See docs/rain.md for the implementation details.
+ */
 export default (blur: boolean) => {
     const pass = new ShaderPass({
         uniforms: {

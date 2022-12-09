@@ -4,7 +4,6 @@
  */
 
 import type { EnemyUserData } from "./stages/types"
-import { ReadonlyVector3 } from "./util"
 
 /** Functions in this set will be called every time just before rendering. */
 export const onBeforeRender = new Set<(time: number, deltaTime: number, camera: THREE.PerspectiveCamera) => void>()
@@ -14,6 +13,9 @@ export const onPreprocess = new Set<() => void>()
 
 /** Unlike onBeforeRender, functions in this set will be called at a fixed interval even if the FPS drops, and you don't need to worry about delta timing. */
 export const onUpdate = new Set<(updateCount: number) => void>()
+
+/** A read-only version of {@link THREE.Vector3} type. Use the `.clone()` method to cast into a {@link THREE.Vector3}. */
+type ReadonlyVector3 = Readonly<Pick<THREE.Vector3, "x" | "y" | "z" | "isVector3" | "getComponent" | "clone" | "dot" | "lengthSq" | "length" | "manhattanLength" | "manhattanDistanceTo" | "angleTo" | "distanceTo" | "distanceToSquared" | "equals" | "toArray">>
 
 /** Common properties of enemies' {@link THREE.Object3D} */
 export type Collidable = {

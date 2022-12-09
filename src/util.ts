@@ -58,9 +58,7 @@ export const call = <T>(obj: T, props: RewriteMethodsToProperties<T>): T => {
     return obj
 }
 
-export type ReadonlyVector3 = Readonly<Pick<THREE.Vector3, "x" | "y" | "z" | "isVector3" | "getComponent" | "clone" | "dot" | "lengthSq" | "length" | "manhattanLength" | "manhattanDistanceTo" | "angleTo" | "distanceTo" | "distanceToSquared" | "equals" | "toArray">>
-
-// NOTE: We've tried https://github.com/blitz-js/superjson but it was too slow for us. This game need to stringify save data several times per frame, and superjson took up half of the overall execution time.
+/** We use `{ foo: true, bar: true }` to represent `new Set(["foo", "bar"])` because {@link JSON.stringify}, which is used to save the game state to {@link localStorage}, doesn't accept {@link Set}. NOTE: We've tried https://github.com/blitz-js/superjson but it was too slow for us. This game need to stringify save data several times per frame, and superjson took up half of the overall execution time. */
 export type SerializableSet<T extends keyof any> = Partial<Record<T, true>>
 
 /**
@@ -76,7 +74,7 @@ export const createStore = <S, A>(initialState: S, actions: (
 ) => A) => create<S & A>()((set, get) => ({ ...initialState, ...actions(set, get, (f) => { set(produce(f) as any) }) }))
 
 /**
- * Works the same as the following code, but includes a fix for a problem where localStorage[name] can be changed after destroy(), and a fix for having to specify the types twice.
+ * Works the same as the following code, but includes a fix for a problem where {@link localStorage}[name] can be changed after destroy(), and a fix for having to specify the types twice.
  * ```typescript
  * create<S & A>()(persist((get, set) => ({ ...initialState, ...actions } as S & A), { name, version }))
  * ```
