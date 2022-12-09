@@ -14,7 +14,7 @@ export const ObjectValues = <V extends unknown>(obj: { readonly [k in keyof any]
 /** {@link Object.keys `Object.keys`} with a strict type. */
 export const ObjectKeys = <K extends keyof any>(obj: { readonly [k in K]?: any }): K[] => Object.keys(obj) as any
 /** {@link Object.fromEntries `Object.fromEntries`} with a strict type. This function assumes that all values in K are used once, i.e. if `const entries: ["a" | "b" | "c", number][] = [["a", 1], ["b", 2]]`, `typeof fromEntries(entries)` should be of type `{ a: number, b: number }` but it actually is `{ a: number, b: number, c: number }`). */
-export const fromEntries = <K extends keyof any, V>(obj: [K, V][]): { [k in K]: V } => Object.fromEntries(obj) as any
+export const fromEntries = <K extends keyof any, V>(obj: readonly (readonly [K, V])[]): { [k in K]: V } => Object.fromEntries(obj) as any
 
 /** {@link Promise.all `Promise.all`} but accepts an object */
 export const PromiseAll = async <T>(obj: T): Promise<{ [k in keyof T]: Awaited<T[k]> }> => {

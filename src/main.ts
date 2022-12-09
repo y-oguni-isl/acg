@@ -68,18 +68,7 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
 
 // Parallel download
 const { enemies } = await PromiseAll({
-    enemies: PromiseAll(fromEntries(ObjectEntries(stages)
-        .map(([k, v]) => [
-            k,
-            v.createEnemyPools().then((m) => {
-                for (const v of ObjectValues(m)) {
-                    if (v instanceof THREE.Object3D) {
-                        show(v)
-                    }
-                }
-                return m
-            }),
-        ]))),
+    enemies: PromiseAll(fromEntries(ObjectEntries(stages).map(([k, v]) => [k, v.createEnemyPools().then(show)]))),
     weapons: Promise.all(weapons.map((weapon) => weapon(airplane).then(show))),
 })
 
@@ -186,11 +175,9 @@ if (stats) {
 
     const prevTime = { render: 0, update: 0 }
     let updateCount = 0
-    let renderCount = 0
     renderer.setAnimationLoop((time: number): void => {
         const update = !getState().transcending && !isPaused()
-        const render = !getState().transcending && !ephemeralDOMStore.getState().powerSaveMode // || renderCount % 120 === 0
-        renderCount++
+        const render = !getState().transcending && !ephemeralDOMStore.getState().powerSaveMode
 
         // FPS monitor
         stats?.update()

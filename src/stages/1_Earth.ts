@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { getRenderingOption } from "../debug"
 import { onBeforeRender } from "../hooks"
 import { getState } from "../saveData"
-import { PromiseAll, call } from "../util"
+import { PromiseAll, call, ObjectValues } from "../util"
 import * as webgl from "../webgl"
 import type { EnemyPools, EnemyUserData, StageDefinition } from "./types"
 import * as constants from "../constants"
@@ -24,7 +24,7 @@ const Earth: StageDefinition = {
         return stage
     },
     visible: () => getState().availableNews.aliensComing ?? false,
-    createEnemyPools: async (): Promise<EnemyPools> => {
+    createEnemyPools: async (): Promise<THREE.Object3D & EnemyPools> => {
         const pools = await PromiseAll({
             alive: webgl.createBirdPool(true).then((m) => m.onAllocate((copy): EnemyUserData => ({
                 name: "Bird",
@@ -52,6 +52,8 @@ const Earth: StageDefinition = {
                 items: { Scrap: Math.floor(1 * constants.getVacuumGain(getState()) * getState().getExplorationLv() * (500 ** getState().transcendence)) },
             }))),
             weatherDead: webgl.createUFOPool().then((m) => m.onAllocate(() => ({ time: 0 }))),
+        }) satisfies Omit<EnemyPools, "spawn">
+        return Object.assign(new THREE.Object3D().add(...ObjectValues(pools)), pools, {
             spawn: (t: number) => {
                 if (t % 5 === 0) {
                     pools.alive.allocate().position.set(2, 0, ((t * 0.06) % 1) * (constants.xMax - constants.xMin) + constants.xMin)
@@ -61,7 +63,6 @@ const Earth: StageDefinition = {
                 }
             }
         })
-        return pools
     },
 }
 

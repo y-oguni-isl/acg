@@ -7,7 +7,7 @@ export type StageDefinition = {
     /** Whether the stage name is listed in the Stages window, and the player can move to the stage. */
     visible(): boolean
     /** Creates object pools for enemies in the stage, one for alive and one for dead. */
-    createEnemyPools(): Promise<EnemyPools>
+    createEnemyPools(): Promise<THREE.Object3D & EnemyPools>
 }
 
 export type EnemyUserData = {

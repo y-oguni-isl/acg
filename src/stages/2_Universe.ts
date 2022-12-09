@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { ShaderMaterial } from "three"
 import { onBeforeRender } from "../hooks"
 import { getState } from "../saveData"
-import { call, PromiseAll } from "../util"
+import { call, ObjectValues, PromiseAll } from "../util"
 import fragmentShader from "./2_Universe.frag"
 import vertexShader from "./2_Universe.vert"
 import * as webgl from "../webgl"
@@ -23,7 +23,7 @@ const Universe: StageDefinition = {
         )
     },
     visible: () => getState().availableNews.aliensComing ?? false,
-    createEnemyPools: async (): Promise<EnemyPools> => {
+    createEnemyPools: async (): Promise<THREE.Object3D & EnemyPools> => {
         const pools = await PromiseAll({
             alive: webgl.createUFOPool().then((m) => m.onAllocate((copy): EnemyUserData => ({
                 name: "UFO",
@@ -47,13 +47,14 @@ const Universe: StageDefinition = {
                 items: { Scrap: Math.floor(1 * constants.getVacuumGain(getState()) * getState().getExplorationLv() * (500 ** getState().transcendence)) }
             }))),
             dead: webgl.createUFOPool().then((m) => m.onAllocate(() => ({ time: 0 }))),
+        }) satisfies Omit<EnemyPools, "spawn">
+        return Object.assign(new THREE.Object3D().add(...ObjectValues(pools)), pools, {
             spawn: (t: number) => {
                 if (t % 31 === 0 && (getState().availableNews.aliensComing ?? false)) {
                     pools.alive.allocate().position.set(2, 0, ((t * 0.06) % 1) * (constants.xMax - constants.xMin) + constants.xMin)
                 }
-            },
-        }) satisfies EnemyPools
-        return pools
+            }
+        })
     },
 }
 

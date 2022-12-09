@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { onBeforeRender } from "../hooks"
 import { getState } from "../saveData"
-import { call, PromiseAll } from "../util"
+import { call, ObjectValues, PromiseAll } from "../util"
 import * as webgl from "../webgl"
 import fragmentShader from "./3_Mothership.frag"
 import vertexShader from "./3_Mothership.vert"
@@ -20,7 +20,7 @@ const Mothership: StageDefinition = {
         ))
     },
     visible: () => (getState().availableNews.aliensComing ?? false) && getState().upgrades["ATK×2"] > 0,
-    createEnemyPools: async (): Promise<EnemyPools> => {
+    createEnemyPools: async (): Promise<THREE.Object3D & EnemyPools> => {
         const pools = await PromiseAll({
             alive: webgl.createMothership().then((m) => m.onAllocate((copy): EnemyUserData => ({
                 name: "Planet",
@@ -36,13 +36,14 @@ const Mothership: StageDefinition = {
                 items: {},
             }))),
             dead: webgl.createMothership().then((m) => m.onAllocate(() => ({ time: 0 }))),
+        }) satisfies Omit<EnemyPools, "spawn">
+        return Object.assign(new THREE.Object3D().add(...ObjectValues(pools)), pools, {
             spawn: (t: number) => {
                 if (pools.alive.children.length === 0 && !getState().canTranscend) {
                     pools.alive.allocate().position.set(4, 0, 0)
                 }
-            },
-        }) satisfies EnemyPools
-        return pools
+            }
+        })
     }
 }
 
