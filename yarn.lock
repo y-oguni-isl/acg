@@ -586,7 +586,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/glob@npm:^8.0.0":
+"@types/glob@npm:^8":
   version: 8.0.0
   resolution: "@types/glob@npm:8.0.0"
   dependencies:
@@ -611,9 +611,9 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:*":
-  version: 18.11.9
-  resolution: "@types/node@npm:18.11.9"
-  checksum: 7b7d90894dd1ae9b6836e49ace5bdea55cc08806a508e38851e333f1ad77ec81ea6dca58e6a2444ad0471fee965b9908cc1ef06028eebca9c20d54729df98bab
+  version: 18.11.11
+  resolution: "@types/node@npm:18.11.11"
+  checksum: 7ff6dfb616544cf046b95a988435b2eddf31ea839864454fedb9b0512bbe0b9abbf7f61c3e9d3c6160b626ec8d15cf6b2255a242827ba8e599c5525952b696a5
   languageName: node
   linkType: hard
 
@@ -695,7 +695,7 @@ __metadata:
     "@babel/core": "npm:^7.20.5"
     "@preact/preset-vite": "npm:^2.4.0"
     "@tabler/icons": "npm:^1.114.0"
-    "@types/glob": "npm:^8.0.0"
+    "@types/glob": "npm:^8"
     "@types/license-checker": "npm:^25.0.3"
     "@types/node": "npm:^18.11.10"
     "@types/react-modal": "npm:^3"
