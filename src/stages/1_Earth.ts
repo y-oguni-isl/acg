@@ -4,7 +4,7 @@ import { onBeforeRender } from "../hooks"
 import { getState } from "../saveData"
 import { call } from "../util"
 import * as webgl from "../webgl"
-import type { EnemyPools, EnemyUserData, StageDefinition } from "./types"
+import type { EnemyUserData, StageDefinition } from "./types"
 import * as constants from "../constants"
 import models from "../models"
 
@@ -22,18 +22,18 @@ const Earth: StageDefinition = {
         return stage
     },
     visible: () => getState().availableNews.aliensComing ?? false,
-    createEnemyPools: (): THREE.Object3D & EnemyPools => {
-        const alive = webgl.createBirdPool(true).onAllocate((copy): EnemyUserData => ({
+    createEnemyPools: () => {
+        const birdAlive = webgl.createBirdPool(true).onAllocate((copy): EnemyUserData => ({
             name: "Bird",
             time: 0,
             hp: 15 * (1 + Math.random()) * getState().getExplorationLv() * (500 ** getState().transcendence),
             update: () => { copy.position.x -= 0.01 },
-            onKilled: () => { dead.allocate().position.copy(copy.position) },
+            onKilled: () => { birdDead.allocate().position.copy(copy.position) },
             radius: 0.03,
             money: 1 * getState().getExplorationLv() * (500 ** getState().transcendence),
             items: { Food: Math.floor(1 * constants.getVacuumGain(getState()) * getState().getExplorationLv() * (500 ** getState().transcendence)) },
         }))
-        const dead = webgl.createBirdPool(false).onAllocate(() => ({ time: 0 }))
+        const birdDead = webgl.createBirdPool(false).onAllocate(() => ({ time: 0 }))
         const weatherAlive = webgl.createUFOPool().onAllocate((copy): EnemyUserData => ({
             name: "Weather Effect UFO",
             time: 0,
@@ -50,10 +50,12 @@ const Earth: StageDefinition = {
         }))
         const weatherDead = webgl.createUFOPool().onAllocate(() => ({ time: 0 }))
 
-        return Object.assign(new THREE.Object3D().add(alive, dead, weatherAlive, weatherDead), { alive, dead, weatherAlive, weatherDead }, {
+        return Object.assign(new THREE.Object3D().add(birdAlive, birdDead, weatherAlive, weatherDead), {
+            alive: () => [...birdAlive.children, ...weatherAlive.children],
+            dead: () => [...birdDead.children, ...weatherDead.children],
             spawn: (t: number) => {
                 if (t % 5 === 0) {
-                    alive.allocate().position.set(2, 0, ((t * 0.06) % 1) * (constants.xMax - constants.xMin) + constants.xMin)
+                    birdAlive.allocate().position.set(2, 0, ((t * 0.06) % 1) * (constants.xMax - constants.xMin) + constants.xMin)
                 }
                 if (getState().getWeather() && weatherAlive.children.length === 0) {
                     weatherAlive.allocate().position.set(1, 0, Math.random() * (constants.xMax - constants.xMin) + constants.xMin)

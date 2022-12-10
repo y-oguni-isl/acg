@@ -3,7 +3,7 @@ import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils"
 import { onBeforeRender } from "../hooks"
 import { logObjectPoolSize } from "../debug"
 
-type Instance<T extends THREE.Object3D> = T & {
+export type ObjectPoolInstance<T extends THREE.Object3D> = T & {
     free: () => void
     getOriginalScale: () => THREE.Vector3
 }
@@ -21,16 +21,16 @@ const counter: Record<string, number> = new Proxy({}, { get: (target, p, receive
  * copy.free() // free() detaches the copy from `pool` and gives the object back to the `pool.pool`.
  * ```
  */
-export class ObjectPool<T extends THREE.Object3D> extends THREE.Object3D<Instance<T>>  {
-    declare children: Instance<T>[]
+export class ObjectPool<T extends THREE.Object3D> extends THREE.Object3D<ObjectPoolInstance<T>>  {
+    declare children: ObjectPoolInstance<T>[]
 
     readonly mesh
     readonly #noMesh
     readonly #originalPositions
     readonly #model: T
-    readonly #pool = new Set<Instance<T>>()
-    readonly #onCloneListeners = new Set<(copy: Instance<T>) => void>()
-    readonly #onAllocateListeners = new Set<(copy: Instance<T>) => T["userData"]>()
+    readonly #pool = new Set<ObjectPoolInstance<T>>()
+    readonly #onCloneListeners = new Set<(copy: ObjectPoolInstance<T>) => void>()
+    readonly #onAllocateListeners = new Set<(copy: ObjectPoolInstance<T>) => T["userData"]>()
 
     constructor(name: string, model: T) {
         super()
@@ -54,26 +54,26 @@ export class ObjectPool<T extends THREE.Object3D> extends THREE.Object3D<Instanc
         return this
     }
 
-    onClone(f: (copy: Instance<T>) => void) {
+    onClone(f: (copy: ObjectPoolInstance<T>) => void) {
         this.#onCloneListeners.add(f)
         return this
     }
 
     /** The return value of the callback is assigned to `copy.userData`. */
-    onAllocate<UserData extends Record<string, unknown>>(f: (copy: Instance<T>) => UserData) {
+    onAllocate<UserData extends Record<string, unknown>>(f: (copy: ObjectPoolInstance<T>) => UserData) {
         this.#onAllocateListeners.add(f)
         return this as any as ObjectPool<Omit<T, "userData"> & { userData: UserData }>
     }
 
-    allocate(): Instance<T> {
-        const copy = ((): Instance<T> => {
+    allocate(): ObjectPoolInstance<T> {
+        const copy = ((): ObjectPoolInstance<T> => {
             for (const item of this.#pool) {
                 this.#pool.delete(item)
                 return item
             }
 
             // NOTE: model.clone() doesn't work when the model has animations: https://discourse.threejs.org/t/skinnedmesh-cloning-issues/27551
-            const copy = SkeletonUtils.clone(this.#model) as Instance<T>
+            const copy = SkeletonUtils.clone(this.#model) as ObjectPoolInstance<T>
             copy.free = () => {
                 if (copy.parent) { copy.removeFromParent() }
                 this.#pool.add(copy)

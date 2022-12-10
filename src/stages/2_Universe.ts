@@ -6,7 +6,7 @@ import { call } from "../util"
 import fragmentShader from "./2_Universe.frag"
 import vertexShader from "./2_Universe.vert"
 import * as webgl from "../webgl"
-import type { EnemyPools, EnemyUserData, StageDefinition } from "./types"
+import type { EnemyUserData, StageDefinition } from "./types"
 import * as constants from "../constants"
 
 const Universe: StageDefinition = {
@@ -23,8 +23,8 @@ const Universe: StageDefinition = {
         )
     },
     visible: () => getState().availableNews.aliensComing ?? false,
-    createEnemyPools: (): THREE.Object3D & EnemyPools => {
-        const alive = webgl.createUFOPool().onAllocate((copy): EnemyUserData => ({
+    createEnemyPools: () => {
+        const ufoAlive = webgl.createUFOPool().onAllocate((copy): EnemyUserData => ({
             name: "UFO",
             time: 0,
             hp: 1000 * (1 + Math.random()) * getState().getExplorationLv() * (500 ** getState().transcendence),
@@ -40,12 +40,12 @@ const Universe: StageDefinition = {
                     copy.position.x -= 0.005
                 }
             },
-            onKilled: () => { dead.allocate().position.copy(copy.position) },
+            onKilled: () => { ufoDead.allocate().position.copy(copy.position) },
             radius: 0.03,
             money: 500 * getState().getExplorationLv() * (500 ** getState().transcendence),
             items: { Scrap: Math.floor(1 * constants.getVacuumGain(getState()) * getState().getExplorationLv() * (500 ** getState().transcendence)) }
         }))
-        const dead = webgl.createUFOPool().onAllocate(() => ({ time: 0 }))
+        const ufoDead = webgl.createUFOPool().onAllocate(() => ({ time: 0 }))
         const weatherAlive = webgl.createUFOPool().onAllocate((copy): EnemyUserData => ({
             name: "Weather Effect UFO",
             time: 0,
@@ -62,10 +62,12 @@ const Universe: StageDefinition = {
         }))
         const weatherDead = webgl.createUFOPool().onAllocate(() => ({ time: 0 }))
 
-        return Object.assign(new THREE.Object3D().add(alive, dead, weatherAlive, weatherDead), { alive, dead, weatherAlive, weatherDead }, {
+        return Object.assign(new THREE.Object3D().add(ufoAlive, ufoDead, weatherAlive, weatherDead), {
+            alive: () => [...ufoAlive.children, ...weatherAlive.children],
+            dead: () => [...ufoDead.children, ...weatherDead.children],
             spawn: (t: number) => {
                 if (t % 31 === 0 && (getState().availableNews.aliensComing ?? false)) {
-                    alive.allocate().position.set(2, 0, ((t * 0.06) % 1) * (constants.xMax - constants.xMin) + constants.xMin)
+                    ufoAlive.allocate().position.set(2, 0, ((t * 0.06) % 1) * (constants.xMax - constants.xMin) + constants.xMin)
                 }
                 if (getState().getWeather() && weatherAlive.children.length === 0) {
                     weatherAlive.allocate().position.set(1, 0, Math.random() * (constants.xMax - constants.xMin) + constants.xMin)

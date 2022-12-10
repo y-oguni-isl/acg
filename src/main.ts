@@ -63,6 +63,7 @@ for (const [name, stage] of ObjectEntries(stages)) {
     obj.visible = getState().stage === name
     subscribe((state, prev) => { if (state.stage !== prev.stage) { obj.visible = state.stage === name } })
 }
+onUpdate.add(() => { getState().countdown() })  // Weather
 
 // Camera
 const cameraInitialPosition = [-0.5, 0.6, 0] as const
@@ -73,22 +74,65 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
 weapons.map((weapon) => show(weapon(airplane)))
 
 // Enemies
-const enemies = ObjectFromEntries(ObjectEntries(stages).map(([k, v]) => [k, show(v.createEnemyPools())]))
+{
+    const enemies = ObjectFromEntries(ObjectEntries(stages).map(([k, v]) => [k, show(v.createEnemyPools())]))
+    const listAliveEnemies = () => ObjectValues(enemies).flatMap((v) => v.alive())
+    const listDeadEnemies = () => ObjectValues(enemies).flatMap((v) => v.dead())
+    onUpdate.add((t) => {
+        // Spawn enemies
+        enemies[getState().stage].spawn(t)
 
-const listAliveEnemies = () => ObjectValues(enemies).flatMap((v) => v.weatherAlive ? [...v.alive.children, ...v.weatherAlive.children] : [...v.alive.children])
-const listDeadEnemies = () => ObjectValues(enemies).flatMap((v) => v.weatherDead ? [...v.dead.children, ...v.weatherDead.children] : [...v.dead.children])
+        // Move enemies
+        listAliveEnemies().forEach((e) => e.userData.update())
 
-// Delete all enemies when switching to another stage
-subscribe((state, prev) => {
-    if (state.stage === prev.stage && state.transcendence === prev.transcendence) { return }
-    for (const enemy of listAliveEnemies()) {
-        enemy.free()
-        onEnemyRemoved.forEach((f) => f(enemy))
-    }
-    for (const enemy of listDeadEnemies()) {
-        enemy.free()
-    }
-})
+        // Delete enemies outside of the screen or that are dead
+        for (const enemy of listAliveEnemies()) {
+            if (enemy.position.x < -1 || enemy.userData.hp <= 0) {
+                if (enemy.userData.hp <= 0) {
+                    enemy.userData.onKilled()
+                    getState().incrementKillCount(enemy.userData.name)
+                    getState().addMoney(enemy.userData.money)
+                    getState().addItems(enemy.userData.items)
+                }
+                enemy.free()
+                onEnemyRemoved.forEach((f) => f(enemy))
+            }
+            enemy.userData.time++
+        }
+
+        // Animate dead enemies
+        for (const body of listDeadEnemies()) {
+            body.position.y -= 0.001 * body.userData.time
+            body.rotateZ(0.1 * (Math.random() - 0.5)) // free fall
+            body.userData.time++
+            if (body.userData.time > 100) {
+                body.free()
+            }
+        }
+
+        // Collisions between the enemy and the player's attacks
+        const aliveEnemies = listAliveEnemies()
+        onCollisionDetection.forEach((f) => f(aliveEnemies))
+
+        // Update the autopilot algorithm's target
+        const findMin = <T>(arr: readonly T[], key: (v: T) => void) => arr.length === 0 ? undefined : arr.reduce((p, c) => key(p) < key(c) ? p : c, arr[0]!)
+        if (!airplane.userData.autopilotTarget || !(listAliveEnemies() as { position: THREE.Vector3 }[]).includes(airplane.userData.autopilotTarget) || airplane.userData.autopilotTarget.position.x < airplane.position.x) {
+            airplane.userData.autopilotTarget = findMin(listAliveEnemies().filter((e) => e.position.x > airplane.position.x + 0.3 && e.userData.name !== "Weather Effect UFO"), (e) => e.position.x)
+        }
+    })
+
+    // Delete all enemies when switching to another stage
+    subscribe((state, prev) => {
+        if (state.stage === prev.stage && state.transcendence === prev.transcendence) { return }
+        for (const enemy of listAliveEnemies()) {
+            enemy.free()
+            onEnemyRemoved.forEach((f) => f(enemy))
+        }
+        for (const enemy of listDeadEnemies()) {
+            enemy.free()
+        }
+    })
+}
 
 // Download the 3D model for newspapers after every other 3D models is downloaded because it should not be prioritized.
 show(webgl.createNewspaperAnimationPlayer())
@@ -160,17 +204,11 @@ if (stats) {
 
 // Main game loop:
 // 1. Repeat a number of times proportional to the time elapsed since the previous frame:
-//    1. Spawn enemies
-//    2. Move enemies
-//    3. `onUpdate` event
-//    4. `onCollisionDetection` event
-//    5. Delete enemies
-//    6. Animate dead enemies
-//    7. Update the autopilot algorithm
-//    8. Tick the weather system
+//    1. `onUpdate` event
+//    2. `onCollisionDetection` event
 // 2. if not `powerSaveMode`:
 //    1. `onBeforeRender` event
-//    2. Move camera
+//    2. Move the camera
 //    3. `onPreprocess` event
 //    4. render()
 {
@@ -192,55 +230,7 @@ if (stats) {
             const numUpdates = Math.floor((time - prevTime.update) / (1000 / updatePerSecond))
             prevTime.update += numUpdates * (1000 / updatePerSecond)
             for (let _ = 0; _ < numUpdates; _++) {
-                // Spawn enemies
-                enemies[getState().stage].spawn(updateCount)
-
-                // Move enemies
-                listAliveEnemies().forEach((e) => e.userData.update())
-
-                // Fire the onUpdate hook
-                onUpdate.forEach((f) => f(updateCount))
-
-                // Collisions between the enemy and the player's attacks
-                {
-                    const aliveEnemies = listAliveEnemies()
-                    onCollisionDetection.forEach((f) => f(aliveEnemies))
-                }
-
-                // Delete the enemy if it is outside screen or is killed
-                for (const enemy of listAliveEnemies()) {
-                    if (enemy.position.x < -1 || enemy.userData.hp <= 0) {
-                        if (enemy.userData.hp <= 0) {
-                            enemy.userData.onKilled()
-                            getState().incrementKillCount(enemy.userData.name)
-                            getState().addMoney(enemy.userData.money)
-                            getState().addItems(enemy.userData.items)
-                        }
-                        enemy.free()
-                        onEnemyRemoved.forEach((f) => f(enemy))
-                    }
-                    enemy.userData.time++
-                }
-
-                // Animate dead enemies
-                for (const body of listDeadEnemies()) {
-                    body.position.y -= 0.001 * body.userData.time
-                    body.rotateZ(0.1 * (Math.random() - 0.5)) // free fall
-                    body.userData.time++
-                    if (body.userData.time > 100) {
-                        body.free()
-                    }
-                }
-
-                // Update the autopilot algorithm's target
-                const findMin = <T>(arr: readonly T[], key: (v: T) => void) => arr.length === 0 ? undefined : arr.reduce((p, c) => key(p) < key(c) ? p : c, arr[0]!)
-                if (!airplane.userData.autopilotTarget || !(listAliveEnemies() as { position: THREE.Vector3 }[]).includes(airplane.userData.autopilotTarget) || airplane.userData.autopilotTarget.position.x < airplane.position.x) {
-                    airplane.userData.autopilotTarget = findMin(listAliveEnemies().filter((e) => e.position.x > airplane.position.x + 0.3 && e.userData.name !== "Weather Effect UFO"), (e) => e.position.x)
-                }
-
-                // Weather
-                getState().countdown()
-
+                onUpdate.forEach((f) => f(updateCount))  // Fire the onUpdate hook
                 updateCount++
             }
         }

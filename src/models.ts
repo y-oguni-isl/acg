@@ -4,23 +4,21 @@ import * as THREE from "three"
 import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils"
 
-const div = document.createElement("div")
-div.classList.add("loading-message")
-document.body.append(div)
-
 const loadingMessage = {} as Record<string, string>
 const setLoadingMessage = (key: string, message: string) => {
+    const div = document.querySelector("div#loading-message")
+    if (!div) { return }  // preact somehow removes the div
     loadingMessage[key] = message
     div.style.display = Object.keys(loadingMessage).length === 0 ? "none" : "block"
     div.innerText = ObjectValues(loadingMessage).join("\n")
 }
 const removeLoadingMessage = (key: string) => {
+    const div = document.querySelector("div#loading-message")
+    if (!div) { return }
     delete loadingMessage[key]
     div.style.display = Object.keys(loadingMessage).length === 0 ? "none" : "block"
     div.innerText = ObjectValues(loadingMessage).join("\n")
 }
-
-// {Object.keys(loadingMessage).length > 0 && <div class="">{ObjectValues(loadingMessage).join("\n")}</div>}
 
 /** Downloads and parses a .gltf (text) or .glb (binary) file. The `filepath` argument is relative to the public/ folder. */
 export const loadGLTF = async (filepath: string): Promise<THREE.Object3D> => {
@@ -62,4 +60,3 @@ export default ObjectFromEntries(models.map(([k, v]) => [
 ]))
 
 export const loaded = () => { removeLoadingMessage("loadingModels") }
-

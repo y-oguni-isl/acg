@@ -5,7 +5,7 @@ import { call } from "../util"
 import * as webgl from "../webgl"
 import fragmentShader from "./3_Mothership.frag"
 import vertexShader from "./3_Mothership.vert"
-import type { EnemyPools, EnemyUserData, StageDefinition } from "./types"
+import type { EnemyUserData, StageDefinition } from "./types"
 
 const Mothership: StageDefinition = {
     createModel: () => {
@@ -20,7 +20,7 @@ const Mothership: StageDefinition = {
         ))
     },
     visible: () => (getState().availableNews.aliensComing ?? false) && getState().upgrades["ATK×2"] > 0,
-    createEnemyPools: (): THREE.Object3D & EnemyPools => {
+    createEnemyPools: () => {
         const alive = webgl.createMothership().onAllocate((copy): EnemyUserData => ({
             name: "Planet",
             time: 0,
@@ -36,7 +36,9 @@ const Mothership: StageDefinition = {
         }))
         const dead = webgl.createMothership().onAllocate(() => ({ time: 0 }))
 
-        return Object.assign(new THREE.Object3D().add(alive, dead), { alive, dead }, {
+        return Object.assign(new THREE.Object3D().add(alive, dead), {
+            alive: () => [...alive.children],
+            dead: () => [...dead.children],
             spawn: (t: number) => {
                 if (alive.children.length === 0 && !getState().canTranscend) {
                     alive.allocate().position.set(4, 0, 0)

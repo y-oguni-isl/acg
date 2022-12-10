@@ -119,7 +119,3 @@ dialog::backdrop,
 img {
     cursor: none;
 }
-
-.loading-message {
-    @apply text-gray-100 absolute top-[35%] left-0 w-full text-center whitespace-pre;
-}
