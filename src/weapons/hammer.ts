@@ -1,10 +1,11 @@
 import * as THREE from "three"
-import { onBeforeRender, onCollisionDetection, onUpdate } from "../hooks"
+import { onBeforeRender, onUpdate } from "../hooks"
 import { getState, subscribe } from "../saveData"
 import fragmentShader from "./hammer.frag"
 import * as constants from "../constants"
 import * as webgl from "../webgl"
 import models from "../models"
+import { Weapon } from "./type"
 
 /** Creates and moves 3D models of hammers, and performs collision detections against enemies. */
 export default (source: THREE.Object3D) => {
@@ -50,16 +51,17 @@ export default (source: THREE.Object3D) => {
     })
 
     // Collision detection
-    onCollisionDetection.add((enemies) => {
-        for (const enemy of enemies) {
-            for (const hammer of pool.children) {
-                if (enemy.position.distanceTo(hammer.position) < enemy.userData.radius + 0.02) {
-                    enemy.userData.hp -= constants.getAtk(getState()).Hammer ?? 0
-                    hammer.free()
+    return {
+        obj: pool,
+        doDamage: (enemies) => {
+            for (const enemy of enemies) {
+                for (const hammer of pool.children) {
+                    if (enemy.position.distanceTo(hammer.position) < enemy.userData.radius + 0.02) {
+                        enemy.userData.hp -= constants.getAtk(getState()).Hammer ?? 0
+                        hammer.free()
+                    }
                 }
             }
         }
-    })
-
-    return pool
+    } satisfies Weapon
 }

@@ -25,7 +25,7 @@ import * as THREE from "three"
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js"
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js"
-import { onBeforeRender, onCollisionDetection, onEnemyRemoved, onPreprocess, onUpdate } from "./hooks"
+import { onBeforeRender, onPreprocess, onUpdate } from "./hooks"
 import { getState, subscribe } from "./saveData"
 import { domStore, ephemeralDOMStore } from "./dom"
 import { call, ObjectEntries, ObjectFromEntries, ObjectValues, ObjectKeys } from "./util"
@@ -71,7 +71,8 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
 
 // Weapons
 // NOTE: To add a weapon, create a file `src/weapons/[name].ts` while running `corepack yarn start`, which runs codegen.js everytime you edit the files, and fix all type errors. You can also add an entry in `upgradeNames`, `basePrice` etc. in `constants.tsx` to add a new upgrade and reference the number of upgrades the player purchased by `getState().upgrades.[name]`.
-weapons.map((weapon) => show(weapon(airplane)))
+const weaponPools = weapons.map((weapon) => weapon(airplane))
+weaponPools.forEach(({ obj }) => { scene.add(obj) })
 
 // Enemies
 {
@@ -95,7 +96,7 @@ weapons.map((weapon) => show(weapon(airplane)))
                     getState().addItems(enemy.userData.items)
                 }
                 enemy.free()
-                onEnemyRemoved.forEach((f) => f(enemy))
+                weaponPools.forEach((w) => "onEnemyRemoved" in w && w.onEnemyRemoved(enemy))
             }
             enemy.userData.time++
         }
@@ -112,7 +113,7 @@ weapons.map((weapon) => show(weapon(airplane)))
 
         // Collisions between the enemy and the player's attacks
         const aliveEnemies = listAliveEnemies()
-        onCollisionDetection.forEach((f) => f(aliveEnemies))
+        weaponPools.forEach((w) => w.doDamage(aliveEnemies))
 
         // Update the autopilot algorithm's target
         const findMin = <T>(arr: readonly T[], key: (v: T) => void) => arr.length === 0 ? undefined : arr.reduce((p, c) => key(p) < key(c) ? p : c, arr[0]!)
@@ -126,7 +127,7 @@ weapons.map((weapon) => show(weapon(airplane)))
         if (state.stage === prev.stage && state.transcendence === prev.transcendence) { return }
         for (const enemy of listAliveEnemies()) {
             enemy.free()
-            onEnemyRemoved.forEach((f) => f(enemy))
+            weaponPools.forEach((w) => "onEnemyRemoved" in w && w.onEnemyRemoved(enemy))
         }
         for (const enemy of listDeadEnemies()) {
             enemy.free()
@@ -205,7 +206,6 @@ if (stats) {
 // Main game loop:
 // 1. Repeat a number of times proportional to the time elapsed since the previous frame:
 //    1. `onUpdate` event
-//    2. `onCollisionDetection` event
 // 2. if not `powerSaveMode`:
 //    1. `onBeforeRender` event
 //    2. Move the camera

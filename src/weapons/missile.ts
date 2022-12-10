@@ -1,10 +1,11 @@
 import * as THREE from "three"
-import { onCollisionDetection, onUpdate } from "../hooks"
+import { onUpdate } from "../hooks"
 import { getState, subscribe } from "../saveData"
 import * as constants from "../constants"
 import * as webgl from "../webgl"
 import fragmentShader from "./missile.frag"
 import models from "../models"
+import { Weapon } from "./type"
 
 /** Creates and moves 3D models of missiles, and performs collision detections against enemies. */
 export default (source: THREE.Object3D) => {
@@ -44,16 +45,17 @@ export default (source: THREE.Object3D) => {
     })
 
     // Collision detection
-    onCollisionDetection.add((enemies) => {
-        for (const enemy of enemies) {
-            for (const missile of pool.children) {
-                if (enemy.position.distanceTo(missile.position) < enemy.userData.radius + 0.02) {
-                    enemy.userData.hp -= constants.getAtk(getState()).Missile ?? 0
-                    missile.free()
+    return {
+        obj: pool,
+        doDamage: (enemies) => {
+            for (const enemy of enemies) {
+                for (const missile of pool.children) {
+                    if (enemy.position.distanceTo(missile.position) < enemy.userData.radius + 0.02) {
+                        enemy.userData.hp -= constants.getAtk(getState()).Missile ?? 0
+                        missile.free()
+                    }
                 }
             }
-        }
-    })
-
-    return pool
+        },
+    } satisfies Weapon
 }

@@ -10,11 +10,10 @@ export const generate = () => {
 
         const dir = "src/webgl"
 
-        for (const f of /** @type {string[]} */(glob.sync(dir + "/**/*.ts"))) {
+        for (const f of glob.sync(dir + "/**/*.ts")) {
             if (path.basename(f) === "index.ts" || !/^[^.]+.ts$/.test(path.basename(f))) { continue }
             const content = fs.readFileSync(f).toString()
-            /** @type {string[]} */
-            const names = []
+            const names: string[] = []
 
             // List default exported identifiers
             if (/^export default/m.test(content)) {
@@ -23,7 +22,7 @@ export const generate = () => {
 
             // List named exported identifiers
             for (const m of content.matchAll(/^export (?:const|class) (\w+)/mg)) {
-                names.push(m[1])
+                names.push(m[1]!)
             }
 
             // Reexport the identifiers
@@ -48,11 +47,10 @@ ${reexports}
     // src/stages/index.ts
     {
         const dir = "src/stages"
-        /** @type {string[]} */
-        const names = []
+        const names: string[] = []
 
         // List files whose name matches to `<id>_<name>.ts` in the directory
-        for (const f of /** @type {string[]} */(glob.sync(dir + "/**/*.ts"))) {
+        for (const f of glob.sync(dir + "/**/*.ts")) {
             if (/^\d+_[^.]+\.ts/.test(path.basename(f))) {
                 names.push(path.basename(f).slice(0, -".ts".length))
             }
@@ -73,12 +71,11 @@ ${names.map((name) => `    ${name.split("_").at(-1)},`).join("\n")}
     // src/weapons/index.ts
     {
         const dir = "src/weapons"
-        /** @type {string[]} */
-        const names = []
+        const names: string[] = []
 
         // List files in the directory
-        for (const f of /** @type {string[]} */(glob.sync(dir + "/**/*.ts"))) {
-            if (/^[^.]+\.ts/.test(path.basename(f)) && path.basename(f) !== "index.ts") {
+        for (const f of glob.sync(dir + "/**/*.ts")) {
+            if (/^[^.]+\.ts/.test(path.basename(f)) && path.basename(f) !== "index.ts" && path.basename(f) !== "type.ts") {
                 names.push(path.basename(f).slice(0, -".ts".length))
             }
         }
