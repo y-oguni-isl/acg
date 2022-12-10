@@ -4,10 +4,11 @@ import { getState, subscribe } from "../saveData"
 import * as constants from "../constants"
 import * as webgl from "../webgl"
 import fragmentShader from "./missile.frag"
+import models from "../models"
 
 /** Creates and moves 3D models of missiles, and performs collision detections against enemies. */
-export default async (source: THREE.Object3D) => {
-    const model = await webgl.loadGLTF("models/ballistic_missile.glb", 0.03)
+export default (source: THREE.Object3D) => {
+    const model = models["ballistic_missile.glb"](0.03)
     model.position.set(-0.01, 0, -0.06)  // move the center of the mass to the origin
     const uniforms = { daytime: { value: getState().stage === "Earth" } }
     subscribe((state) => { uniforms.daytime.value = state.stage === "Earth" })

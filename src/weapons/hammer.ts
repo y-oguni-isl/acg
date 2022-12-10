@@ -4,10 +4,11 @@ import { getState, subscribe } from "../saveData"
 import fragmentShader from "./hammer.frag"
 import * as constants from "../constants"
 import * as webgl from "../webgl"
+import models from "../models"
 
 /** Creates and moves 3D models of hammers, and performs collision detections against enemies. */
-export default async (source: THREE.Object3D) => {
-    const model = await webgl.loadGLTF("models/hammer_notexture.glb", 0.03)
+export default (source: THREE.Object3D) => {
+    const model = models["hammer_notexture.glb"](0.03)
     model.position.set(-0.01, 0, -0.06)  // move the center of the mass to the origin
     const uniforms = { daytime: { value: getState().stage === "Earth" } }
     subscribe((state) => { uniforms.daytime.value = state.stage === "Earth" })

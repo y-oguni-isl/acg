@@ -4,11 +4,11 @@ import { xMax, xMin, yMax, yMin } from "../constants"
 import { onBeforeRender, onUpdate } from "../hooks"
 import { getState } from "../saveData"
 import * as constants from "../constants"
-import { loadGLTF } from "./webglUtil"
+import models from "../models"
 
 /** Creates the 3D model for the fighter (or airplane). */
-export default async (canvas: HTMLCanvasElement) => {
-    const airplane = (await loadGLTF("models/low-poly_airplane.glb", 0.05)) as Omit<THREE.Object3D, "userData"> & {
+export default (canvas: HTMLCanvasElement) => {
+    const airplane = models["low-poly_airplane.glb"](0.05) as Omit<THREE.Object3D, "userData"> & {
         userData: {
             velocity: THREE.Vector2
             /** The enemy that the autopilot algorithm is currently targeting. */

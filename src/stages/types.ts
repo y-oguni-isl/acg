@@ -8,7 +8,7 @@ export type StageDefinition = {
     /** Whether the stage name is listed in the Stages window, and the player can move to the stage. */
     visible(): boolean
     /** Creates object pools for enemies in the stage, one for alive and one for dead. The THREE.Object3D has all the object pools in its children. */
-    createEnemyPools(): Promise<THREE.Object3D & EnemyPools>
+    createEnemyPools(): THREE.Object3D & EnemyPools
 }
 
 /** A type that represents the state of an enemy, which is stored in the {@link THREE.Object3D.userData} property in the 3D model of the enemy. */

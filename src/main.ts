@@ -19,6 +19,7 @@ setAutoFreeze(false) // Disable auto freezing because it'll make immer 2.7x fast
 import "typed-query-selector"                  // Replaces document.querySelector(All)'s type with better ones.
 import "core-js/proposals/map-upsert-stage-2"  // Adds Map.emplace() https://github.com/tc39/proposal-upsert
 import "core-js/proposals/set-methods"         // Adds Set.intersection(), Set.union(), Set.difference(), etc. https://github.com/tc39/proposal-set-methods
+import { loaded } from "./models"
 import Stats from "stats.js"
 import * as THREE from "three"
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js"
@@ -27,7 +28,7 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { onBeforeRender, onCollisionDetection, onEnemyRemoved, onPreprocess, onUpdate } from "./hooks"
 import { getState, subscribe } from "./saveData"
 import { domStore, ephemeralDOMStore } from "./dom"
-import { call, ObjectEntries, fromEntries, PromiseAll, ObjectValues, ObjectKeys } from "./util"
+import { call, ObjectEntries, ObjectFromEntries, ObjectValues, ObjectKeys } from "./util"
 import * as webgl from "./webgl"
 import { getRenderingOption, init3DModelDebugger } from "./debug"
 import stages from "./stages"
@@ -50,7 +51,7 @@ document.body.appendChild(renderer.domElement)
 const show = <T extends Omit<THREE.Object3D, "userData">>(obj: T): T => { scene.add(obj as any as THREE.Object3D); return obj }
 
 // Airplane
-const airplane = show(await webgl.createAirplane(renderer.domElement))
+const airplane = show(webgl.createAirplane(renderer.domElement))
 
 // Contrail
 scene.add(webgl.createContrail(airplane))
@@ -67,13 +68,12 @@ for (const [name, stage] of ObjectEntries(stages)) {
 const cameraInitialPosition = [-0.5, 0.6, 0] as const
 const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10), { position: { set: cameraInitialPosition } })
 
-// Parallel download
-const { enemies } = await PromiseAll({
-    enemies: PromiseAll(fromEntries(ObjectEntries(stages).map(([k, v]) => [k, v.createEnemyPools().then(show)]))),
+// Weapons
+// NOTE: To add a weapon, create a file `src/weapons/[name].ts` while running `corepack yarn start`, which runs codegen.js everytime you edit the files, and fix all type errors. You can also add an entry in `upgradeNames`, `basePrice` etc. in `constants.tsx` to add a new upgrade and reference the number of upgrades the player purchased by `getState().upgrades.[name]`.
+weapons.map((weapon) => show(weapon(airplane)))
 
-    // NOTE: To add a weapon, create a file `src/weapons/[name].ts` while running `corepack yarn start`, which runs codegen.js everytime you edit the files, and fix all type errors. You can also add an entry in `upgradeNames`, `basePrice` etc. in `constants.tsx` to add a new upgrade and reference the number of upgrades the player purchased by `getState().upgrades.[name]`.
-    weapons: Promise.all(weapons.map((weapon) => weapon(airplane).then(show))),
-})
+// Enemies
+const enemies = ObjectFromEntries(ObjectEntries(stages).map(([k, v]) => [k, show(v.createEnemyPools())]))
 
 const listAliveEnemies = () => ObjectValues(enemies).flatMap((v) => v.weatherAlive ? [...v.alive.children, ...v.weatherAlive.children] : [...v.alive.children])
 const listDeadEnemies = () => ObjectValues(enemies).flatMap((v) => v.weatherDead ? [...v.dead.children, ...v.weatherDead.children] : [...v.dead.children])
@@ -89,10 +89,6 @@ subscribe((state, prev) => {
         enemy.free()
     }
 })
-
-// Update the loading message
-ephemeralDOMStore.getState().setLoadingMessage("loadingModels", `Loading models...`)
-await new Promise((resolve) => setTimeout(resolve, 0)) // Make the browser to render the changes in the DOM
 
 // Download the 3D model for newspapers after every other 3D models is downloaded because it should not be prioritized.
 show(webgl.createNewspaperAnimationPlayer())
@@ -288,11 +284,10 @@ window.addEventListener("click", playAudio)  // We need this because of the auto
 window.addEventListener("keydown", playAudio)
 playAudio()
 
-// Clear the loading message
-ephemeralDOMStore.getState().removeLoadingMessage("loadingModels")
-
 // The first tutorial message
 getState().addTutorial("wasd")
 
 // Without this, the code that awaits between the instantiation of a Three.js object and addEventlistener("resize",) goes wrong if the window is resized while awaiting.
 window.dispatchEvent(new UIEvent("resize"))
+
+loaded()

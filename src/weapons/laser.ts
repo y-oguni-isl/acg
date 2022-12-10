@@ -12,7 +12,7 @@ import * as webgl from "../webgl"
  * Creates and moves 3D models of lasers, and performs collision detections against enemies.
  * See docs/laser for the implementation details.
  */
-export default async (source: THREE.Object3D) => {
+export default (source: THREE.Object3D) => {
     const uniforms = {
         time: { value: 0.0 },
         count: { value: 0.0 },

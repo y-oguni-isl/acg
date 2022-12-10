@@ -1,9 +1,7 @@
 import * as THREE from "three"
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils"
-import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
 import { onBeforeRender } from "../hooks"
-import { logObjectPoolSize, getRenderingOption } from "../debug"
-import { ephemeralDOMStore } from "../dom"
+import { logObjectPoolSize } from "../debug"
 
 type Instance<T extends THREE.Object3D> = T & {
     free: () => void
@@ -89,18 +87,6 @@ export class ObjectPool<T extends THREE.Object3D> extends THREE.Object3D<Instanc
         this.add(copy)
         return copy
     }
-}
-
-/** Downloads and parses a .gltf (text) or .glb (binary) file. The model will be resized if the `height` argument is non-null. The `filepath` argument is relative to the public/ folder. */
-export const loadGLTF = async (filepath: string, height: number | null): Promise<THREE.Object3D> => {
-    if (!getRenderingOption(filepath)) { return new THREE.Object3D() }
-    const obj = (await new Promise<GLTF>((resolve, reject) => new GLTFLoader().load(filepath, resolve, (xhr) => { ephemeralDOMStore.getState().setLoadingMessage(filepath, `Loading ${filepath} (${xhr.loaded}/${xhr.total})`) }, reject)))
-        .scene.children[0]!.children[0]!
-    ephemeralDOMStore.getState().removeLoadingMessage(filepath)
-    if (height !== null) {
-        obj.scale.multiplyScalar(height / new THREE.Box3().setFromObject(obj).getSize(new THREE.Vector3()).y)
-    }
-    return obj
 }
 
 /**

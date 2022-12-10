@@ -23,7 +23,6 @@ export default defineConfig({
                 generate()
                 watcher = fs.watch("src/webgl", (type, filename) => {
                     if (!filename.endsWith("index.ts")) {
-                        console.log("codegen")
                         generate()
                     }
                 })

@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "preact/hooks"
 import { Debugger } from "../debug"
 import Autolinker from "autolinker"
 import stages from "../stages"
-import { ObjectEntries, fromEntries, ObjectKeys, ObjectValues, createPersistingStore, createStore } from "../util"
+import { ObjectEntries, ObjectFromEntries, ObjectKeys, ObjectValues, createPersistingStore, createStore } from "../util"
 import * as constants from "../constants"
 import shallow from "zustand/shallow"
 import { removeTooltip, setTooltip, Tooltip } from "./tooltip"
@@ -46,12 +46,9 @@ type EnemyStatus = { hp: number, name: string, money: number, items: { readonly 
 
 /** The current state of the DOM (HTML). Unlike {@link domStore}, this store manages data that should not be persisted in {@link localStorage}. */
 export const ephemeralDOMStore = createStore({
-    loadingMessage: {} as Record<string, string>,
     enemyStatus: null as (EnemyStatus | null),
     powerSaveMode: false,
 }, (set, get, setProduce) => ({
-    setLoadingMessage: (key: string, message: string) => { setProduce((d) => { d.loadingMessage[key] = message }) },
-    removeLoadingMessage: (key: string) => { setProduce((d) => { delete d.loadingMessage[key] }) },
     setEnemyStatus: (status: EnemyStatus) => {
         setProduce((d) => {
             d.enemyStatus = status
@@ -171,8 +168,7 @@ const UI = () => {
     const resetProgressDialog = useRef<DialogRef>(null)
     const optionsDialog = useRef<DialogRef>(null)
     const [creditHTML, setCreditHTML] = useState<string>("")
-    const areStageNamesVisible = useStore(store, () => fromEntries(ObjectEntries(stages).map(([k, v]) => [k, v.visible()])), shallow)
-    const loadingMessage = useStore(ephemeralDOMStore, (s) => s.loadingMessage)
+    const areStageNamesVisible = useStore(store, () => ObjectFromEntries(ObjectEntries(stages).map(([k, v]) => [k, v.visible()])), shallow)
     const weather = useStore(store, (s) => s.getWeather())
     const weatherEffectWillBeEnabledInLessThan = useStore(store, (s) => Math.ceil((s.weatherEffectWillBeEnabledInLessThan[s.stage] ?? Number.MAX_SAFE_INTEGER) / constants.updatePerSecond / 60))
     const transcending = useStore(store, (s) => s.transcending)
@@ -379,9 +375,6 @@ const UI = () => {
             </div>}
             <button class="sm:hidden absolute right-2 bottom-2 px-4" onClick={() => { newsDialog.current!.close() }}>Close</button>
         </Dialog>
-
-        {/* Loading Message */}
-        {Object.keys(loadingMessage).length > 0 && <div class="text-gray-100 absolute top-[35%] left-0 w-full text-center whitespace-pre">{ObjectValues(loadingMessage).join("\n")}</div>}
 
         {/* Tooltip */}
         <Tooltip />

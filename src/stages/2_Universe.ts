@@ -2,7 +2,7 @@ import * as THREE from "three"
 import { ShaderMaterial } from "three"
 import { onBeforeRender } from "../hooks"
 import { getState } from "../saveData"
-import { call, ObjectValues, PromiseAll } from "../util"
+import { call } from "../util"
 import fragmentShader from "./2_Universe.frag"
 import vertexShader from "./2_Universe.vert"
 import * as webgl from "../webgl"
@@ -23,53 +23,52 @@ const Universe: StageDefinition = {
         )
     },
     visible: () => getState().availableNews.aliensComing ?? false,
-    createEnemyPools: async (): Promise<THREE.Object3D & EnemyPools> => {
-        const pools = await PromiseAll({
-            alive: webgl.createUFOPool().then((m) => m.onAllocate((copy): EnemyUserData => ({
-                name: "UFO",
-                time: 0,
-                hp: 1000 * (1 + Math.random()) * getState().getExplorationLv() * (500 ** getState().transcendence),
-                update: () => {
-                    if (copy.userData.time % 80 <= 3) { // before teleportation
-                        copy.scale.copy(copy.getOriginalScale().multiply(new THREE.Vector3(1, 1 - (copy.userData.time % 80) / 3, 1)))
-                    } else if (copy.userData.time % 80 === 3 + 1) {  // teleportation
-                        copy.position.x -= 0.35 + Math.random() * 0.2
-                        copy.position.z = Math.max(constants.xMin, Math.min(constants.xMax, copy.position.z + (Math.random() - 0.5) * 0.2))
-                    } else if (copy.userData.time % 80 <= 3 + 1 + 3) { // after teleportation
-                        copy.scale.copy(copy.getOriginalScale().multiply(new THREE.Vector3(1, (copy.userData.time % 80 - (3 + 1)) / 3, 1)))
-                    } else {
-                        copy.position.x -= 0.005
-                    }
-                },
-                onKilled: () => { pools.dead.allocate().position.copy(copy.position) },
-                radius: 0.03,
-                money: 500 * getState().getExplorationLv() * (500 ** getState().transcendence),
-                items: { Scrap: Math.floor(1 * constants.getVacuumGain(getState()) * getState().getExplorationLv() * (500 ** getState().transcendence)) }
-            }))),
-            dead: webgl.createUFOPool().then((m) => m.onAllocate(() => ({ time: 0 }))),
-            weatherAlive: webgl.createUFOPool().then((m) => m.onAllocate((copy): EnemyUserData => ({
-                name: "Weather Effect UFO",
-                time: 0,
-                hp: 1500 * getState().getExplorationLv() * getState().upgrades.Laser,
-                update: () => { /* skip*/ },
-                onKilled: () => {
-                    pools.weatherDead.allocate().position.copy(copy.position)
-                    getState().stopWeatherEffect()
-                    getState().completeTutorial("weatherEffect")
-                },
-                radius: 0.03,
-                money: 400 * getState().getExplorationLv() * getState().upgrades.Laser,
-                items: { Scrap: Math.floor(1 * constants.getVacuumGain(getState()) * getState().getExplorationLv() * (500 ** getState().transcendence)) },
-            }))),
-            weatherDead: webgl.createUFOPool().then((m) => m.onAllocate(() => ({ time: 0 }))),
-        }) satisfies Omit<EnemyPools, "spawn">
-        return Object.assign(new THREE.Object3D().add(...ObjectValues(pools)), pools, {
+    createEnemyPools: (): THREE.Object3D & EnemyPools => {
+        const alive = webgl.createUFOPool().onAllocate((copy): EnemyUserData => ({
+            name: "UFO",
+            time: 0,
+            hp: 1000 * (1 + Math.random()) * getState().getExplorationLv() * (500 ** getState().transcendence),
+            update: () => {
+                if (copy.userData.time % 80 <= 3) { // before teleportation
+                    copy.scale.copy(copy.getOriginalScale().multiply(new THREE.Vector3(1, 1 - (copy.userData.time % 80) / 3, 1)))
+                } else if (copy.userData.time % 80 === 3 + 1) {  // teleportation
+                    copy.position.x -= 0.35 + Math.random() * 0.2
+                    copy.position.z = Math.max(constants.xMin, Math.min(constants.xMax, copy.position.z + (Math.random() - 0.5) * 0.2))
+                } else if (copy.userData.time % 80 <= 3 + 1 + 3) { // after teleportation
+                    copy.scale.copy(copy.getOriginalScale().multiply(new THREE.Vector3(1, (copy.userData.time % 80 - (3 + 1)) / 3, 1)))
+                } else {
+                    copy.position.x -= 0.005
+                }
+            },
+            onKilled: () => { dead.allocate().position.copy(copy.position) },
+            radius: 0.03,
+            money: 500 * getState().getExplorationLv() * (500 ** getState().transcendence),
+            items: { Scrap: Math.floor(1 * constants.getVacuumGain(getState()) * getState().getExplorationLv() * (500 ** getState().transcendence)) }
+        }))
+        const dead = webgl.createUFOPool().onAllocate(() => ({ time: 0 }))
+        const weatherAlive = webgl.createUFOPool().onAllocate((copy): EnemyUserData => ({
+            name: "Weather Effect UFO",
+            time: 0,
+            hp: 1500 * getState().getExplorationLv() * getState().upgrades.Laser,
+            update: () => { /* skip*/ },
+            onKilled: () => {
+                weatherDead.allocate().position.copy(copy.position)
+                getState().stopWeatherEffect()
+                getState().completeTutorial("weatherEffect")
+            },
+            radius: 0.03,
+            money: 400 * getState().getExplorationLv() * getState().upgrades.Laser,
+            items: { Scrap: Math.floor(1 * constants.getVacuumGain(getState()) * getState().getExplorationLv() * (500 ** getState().transcendence)) },
+        }))
+        const weatherDead = webgl.createUFOPool().onAllocate(() => ({ time: 0 }))
+
+        return Object.assign(new THREE.Object3D().add(alive, dead, weatherAlive, weatherDead), { alive, dead, weatherAlive, weatherDead }, {
             spawn: (t: number) => {
                 if (t % 31 === 0 && (getState().availableNews.aliensComing ?? false)) {
-                    pools.alive.allocate().position.set(2, 0, ((t * 0.06) % 1) * (constants.xMax - constants.xMin) + constants.xMin)
+                    alive.allocate().position.set(2, 0, ((t * 0.06) % 1) * (constants.xMax - constants.xMin) + constants.xMin)
                 }
-                if (getState().getWeather() && pools.weatherAlive.children.length === 0) {
-                    pools.weatherAlive.allocate().position.set(1, 0, Math.random() * (constants.xMax - constants.xMin) + constants.xMin)
+                if (getState().getWeather() && weatherAlive.children.length === 0) {
+                    weatherAlive.allocate().position.set(1, 0, Math.random() * (constants.xMax - constants.xMin) + constants.xMin)
                 }
             }
         })

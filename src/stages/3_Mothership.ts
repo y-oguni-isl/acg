@@ -1,7 +1,7 @@
 import * as THREE from "three"
 import { onBeforeRender } from "../hooks"
 import { getState } from "../saveData"
-import { call, ObjectValues, PromiseAll } from "../util"
+import { call } from "../util"
 import * as webgl from "../webgl"
 import fragmentShader from "./3_Mothership.frag"
 import vertexShader from "./3_Mothership.vert"
@@ -20,27 +20,26 @@ const Mothership: StageDefinition = {
         ))
     },
     visible: () => (getState().availableNews.aliensComing ?? false) && getState().upgrades["ATK×2"] > 0,
-    createEnemyPools: async (): Promise<THREE.Object3D & EnemyPools> => {
-        const pools = await PromiseAll({
-            alive: webgl.createMothership().then((m) => m.onAllocate((copy): EnemyUserData => ({
-                name: "Planet",
-                time: 0,
-                hp: 1200000 * getState().getExplorationLv() * (500 ** getState().transcendence),
-                update: () => { /* skip */ },
-                onKilled: () => {
-                    pools.dead.allocate().position.copy(copy.position)
-                    getState().defeatedMothership()
-                },
-                radius: 1,
-                money: 10000 * getState().getExplorationLv() * (500 ** getState().transcendence),
-                items: {},
-            }))),
-            dead: webgl.createMothership().then((m) => m.onAllocate(() => ({ time: 0 }))),
-        }) satisfies Omit<EnemyPools, "spawn">
-        return Object.assign(new THREE.Object3D().add(...ObjectValues(pools)), pools, {
+    createEnemyPools: (): THREE.Object3D & EnemyPools => {
+        const alive = webgl.createMothership().onAllocate((copy): EnemyUserData => ({
+            name: "Planet",
+            time: 0,
+            hp: 1200000 * getState().getExplorationLv() * (500 ** getState().transcendence),
+            update: () => { /* skip */ },
+            onKilled: () => {
+                dead.allocate().position.copy(copy.position)
+                getState().defeatedMothership()
+            },
+            radius: 1,
+            money: 10000 * getState().getExplorationLv() * (500 ** getState().transcendence),
+            items: {},
+        }))
+        const dead = webgl.createMothership().onAllocate(() => ({ time: 0 }))
+
+        return Object.assign(new THREE.Object3D().add(alive, dead), { alive, dead }, {
             spawn: (t: number) => {
-                if (pools.alive.children.length === 0 && !getState().canTranscend) {
-                    pools.alive.allocate().position.set(4, 0, 0)
+                if (alive.children.length === 0 && !getState().canTranscend) {
+                    alive.allocate().position.set(4, 0, 0)
                 }
             }
         })

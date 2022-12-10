@@ -1,11 +1,12 @@
 import * as THREE from "three"
-import { loadGLTF, ObjectPool } from "./webglUtil"
+import { ObjectPool } from "./webglUtil"
 import { onBeforeRender } from "../hooks"
 import { subscribe } from "../saveData"
 import { domStore } from "../dom"
 import { call, ObjectKeys } from "../util"
 import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise"
 import * as constants from "../constants"
+import models from "../models"
 
 /**
  * Create a function that plays an animation of falling newspapers.
@@ -15,9 +16,9 @@ export default () => {
     const group = new THREE.Group()
     let startTime = Date.now();
 
-    // Load the 3D model asynchronously
-    (async () => {
-        const newspapers = new ObjectPool("newspaper", call(await loadGLTF("models/y2k_newspaper_article.glb", 0.1), { rotateY: Math.PI / 2, rotateX: Math.PI * 0.3, scale: { multiplyScalar: 2 }, position: { set: [0.8, 0.5, 0.5] } }))
+    {
+        // Load the 3D model asynchronously
+        const newspapers = new ObjectPool("newspaper", call(models["y2k_newspaper_article.glb"](0.1), { rotateY: Math.PI / 2, rotateX: Math.PI * 0.3, scale: { multiplyScalar: 2 }, position: { set: [0.8, 0.5, 0.5] } }))
             .withVertexAnimation((positions, originalPositions) => {
                 for (let i = 0; i < positions.count; i++) {
                     positions.setY(i, originalPositions.getY(i) +
@@ -47,7 +48,7 @@ export default () => {
                 obj.position.set(noise.noise(i, 4) * 0.5 + 0.2, 0.3 + (Math.cos(t) - t * 0.5 - 1) * r + (noise.noise(i, 1) + 1) * 0.3, 0.5 + (Math.sin(t) - t * 0.8) * r + (noise.noise(i, 2) + 1) * 0.3)
             }
         })
-    })().catch(console.error)
+    }
 
     group.visible = false
 
