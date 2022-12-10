@@ -282,14 +282,14 @@ const UI = () => {
             {hasVacuum && stage !== "Mothership" && <div class="pl-3 pr-4 pt-1 pb-3 window">
                 <h2 class="mb-2 tracking-wide"><i class="ti ti-route" /> Explore: <span class="tracking-tight">Lv. {explorationLv}</span></h2>
                 <button
-                    class="block w-full text-left pl-[2rem] sm:pl-[3.3rem]"
+                    class="block w-full text-left pl-[2rem] sm:pl-[5.1rem]"
                     onClick={() => { getState().exploreNext() }}
                     onMouseEnter={() => { setTooltip("explorationNext", <ExplorationNextTooltip />) }}
                     onMouseLeave={() => { removeTooltip("explorationNext") }}>
                     <i class="ti ti-arrow-forward" /> Next<span class="[font-size:80%] tracking-tighter"><i class="ti ti-meat ml-3 mr-1" />{constants.explorationCost(explorationLv)}</span>
                 </button>
                 {explorationLv >= 2 && <button
-                    class="block w-full text-left pl-[2rem] sm:pl-[3.3rem] mt-1"
+                    class="block w-full text-left pl-[2rem] sm:pl-[5.1rem] mt-1"
                     onClick={() => { getState().explorePrev() }}
                     onMouseEnter={() => { setTooltip("explorationPrev", <ExplorationPrevTooltip />) }}
                     onMouseLeave={() => { removeTooltip("explorationPrev") }}>
