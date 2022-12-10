@@ -47,19 +47,18 @@ renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.setPixelRatio(window.devicePixelRatio * domStore.getState().resolutionMultiplier)
 document.body.appendChild(renderer.domElement)
 
-/** The utility function to add the `obj` to the `scene`. */
-const show = <T extends Omit<THREE.Object3D, "userData">>(obj: T): T => { scene.add(obj as any as THREE.Object3D); return obj }
-
 // Airplane
-const airplane = show(webgl.createAirplane(renderer.domElement))
+const airplane = webgl.createAirplane(renderer.domElement)
+scene.add(airplane)
 
-// Contrail
-scene.add(webgl.createContrail(airplane))
+// Contrail and newspapers
+scene.add(webgl.createContrail(airplane), webgl.createNewspaperAnimationPlayer())
 
 // Stages
 // NOTE: To add a stage, create a file `src/stages/[id]_[name].ts` while running `corepack yarn start`, which runs codegen.js everytime you edit the files, and fix all type errors.
 for (const [name, stage] of ObjectEntries(stages)) {
-    const obj = show(stage.createModel())
+    const obj = stage.createModel()
+    scene.add(obj)
     obj.visible = getState().stage === name
     subscribe((state, prev) => { if (state.stage !== prev.stage) { obj.visible = state.stage === name } })
 }
@@ -76,7 +75,8 @@ weaponPools.forEach(({ obj }) => { scene.add(obj) })
 
 // Enemies
 {
-    const enemies = ObjectFromEntries(ObjectEntries(stages).map(([k, v]) => [k, show(v.createEnemyPools())]))
+    const enemies = ObjectFromEntries(ObjectEntries(stages).map(([k, v]) => [k, v.createEnemyPools()]))
+    ObjectValues(enemies).forEach((obj) => { scene.add(obj) })
     const listAliveEnemies = () => ObjectValues(enemies).flatMap((v) => v.alive())
     const listDeadEnemies = () => ObjectValues(enemies).flatMap((v) => v.dead())
     onUpdate.add((t) => {
@@ -134,9 +134,6 @@ weaponPools.forEach(({ obj }) => { scene.add(obj) })
         }
     })
 }
-
-// Download the 3D model for newspapers after every other 3D models is downloaded because it should not be prioritized.
-show(webgl.createNewspaperAnimationPlayer())
 
 // Post processing
 const effectComposer = new EffectComposer(renderer)
