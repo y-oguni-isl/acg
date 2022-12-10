@@ -40,7 +40,7 @@ const Upgrades = () => {
         .filter((_, i, arr) => i < 2 || arr[i - 1]![1] > 0 || arr[i - 2]![1] > 0)
         .map(([k]) => k), shallow)
     return <>
-        <div class="px-3 pt-1 pb-3 window">
+        <div class="pr-3 pl-4 pt-1 pb-3 window">
             <h2 class="mb-2 tracking-wide"><i class="ti ti-chevrons-up" /> Upgrades</h2>
             <div class="[&>*:not(:last-child)]:mb-1">
                 {upgrades.map((name, i) => <Row key={name} name={name} rowNumber={i} />)}
@@ -72,14 +72,14 @@ const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
 
     return <div
         ref={ref}
-        class="relative block pointer backdrop-blur-3xl drop-shadow-md select-none border-opacity-40 border-[1px] rounded-lg border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600"
+        class="relative block pointer backdrop-blur-3xl drop-shadow-md select-none border-opacity-40 border-[1px] rounded-lg border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600 hover:scale-105 hover:[box-shadow:0_0_3px_rgba(255,255,255,0.5)]"
         disabled={disabled}
         onMouseDown={() => {
             if (disabled) { return }
             buyUpgrade(props.name)
         }}>
         <div
-            class="px-2 hover:bg-[linear-gradient(0deg,rgba(255,255,255,1)_0%,rgba(255,255,255,0)_10%)]"
+            class="px-2"
             onMouseEnter={() => { setTooltip(`upgrade-${props.name}`, <TooltipContent name={props.name} />) }}
             onMouseLeave={() => { removeTooltip(`upgrade-${props.name}`) }}>
             <span class="inline-block w-28 tracking-wider">{isUpgradeNameHidden ? "???" : <><i class={"mr-1 ti " + ({

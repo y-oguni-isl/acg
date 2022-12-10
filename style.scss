@@ -4,18 +4,18 @@
 
 $button1: rgb(55, 65, 81, 0.7);
 $button2: rgb(55, 65, 81, 0.7);
-$button1-hover: rgb(52, 98, 171, 0.7);
-$button2-hover: rgb(139, 169, 217, 0.7);
+$button1-hover: rgb(55, 65, 81, 0.7);
+$button2-hover: rgb(55, 65, 81, 0.7);
 
 $button1-gold: rgba(255, 202, 27, 0.8);
 $button2-gold: rgba(255, 231, 16, 0.7);
 $button1-hover-gold: rgba(255, 202, 27, 0.8);
 $button2-hover-gold: rgba(255, 243, 140, 0.7);
 
-$button1-primary: rgb(52, 98, 171, 0.7);
-$button2-primary: rgb(139, 169, 217, 0.7);
-$button1-hover-primary: rgba(69, 128, 222, 0.7);
-$button2-hover-primary: rgba(160, 194, 249, 0.7);
+$button1-primary: rgb(0, 195, 195, 0.7);
+$button2-primary: rgb(0, 234, 234, 0.7);
+$button1-hover-primary: rgb(0, 212, 212, 0.7);
+$button2-hover-primary: rgb(0, 244, 244, 0.7);
 
 @each $name, $col1, $col2, $col1-hover, $col2-hover in
     button-hover-animation $button1 $button2 $button1-hover $button2-hover,
@@ -73,6 +73,8 @@ button {
 
     &:hover:not(:disabled) {
         animation: 0.1s forwards button-hover-animation;
+        @apply scale-105;
+        box-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
     }
 
     &.button-primary {
