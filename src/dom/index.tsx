@@ -365,7 +365,7 @@ const UI = () => {
         </Dialog>
 
         {/* Newspaper Dialog */}
-        <Dialog ref_={newsDialog} class="from-gray-200 to-gray-400 bg-gradient-to-b [box-shadow:0_0_5px_1px_#000000b0] [border-radius:2px] w-[400px] h-[620px] p-5 box-border shadow-2xl select-none" onClose={() => {
+        <Dialog ref_={newsDialog} class="from-gray-200 to-gray-400 bg-gradient-to-b [box-shadow:0_0_5px_1px_#00000040] [border-radius:2px] w-[400px] h-[620px] p-5 box-border shadow-2xl select-none" onClose={() => {
             domStore.getState().hideNews()
             getState().addTutorial("nextStage")
         }}>
