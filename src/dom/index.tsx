@@ -2,7 +2,7 @@ import { render } from "preact"
 import Upgrades from "./upgrades"
 import { useStore } from "zustand"
 import { deleteSaveData, getState, store } from "../saveData"
-import { useEffect, useRef, useState } from "preact/hooks"
+import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks"
 import { Debugger } from "../debug"
 import Autolinker from "autolinker"
 import stages from "../stages"
@@ -20,11 +20,13 @@ const tutorialIndices = new Map(ObjectKeys(constants.tutorialHTML).map((name, i)
 
 /** A black banner showing a tutorial message. */
 const Tutorial = () => {
-    const tutorial = useStore(store, (s) =>
+    const currentTutorial = useStore(store, (s) =>
         [...new Set(ObjectKeys(s.availableTutorials)).difference(new Set(ObjectKeys(s.completedTutorials)))]
             .sort((a, b) => tutorialIndices.get(a)! - tutorialIndices.get(b)!)[0])
-    return <div style={{ opacity: tutorial === undefined ? "0" : "1" }} class="absolute w-[90%] py-3 left-[5%] px-16 text-center top-[70%] [transition:opacity_ease_1s] whitespace-pre-wrap pointer-events-none z-10 window-popup">
-        {tutorial && <><i class="ti ti-message-report absolute left-4 top-0 [font-size:250%]" /><span class="[&>b]:text-orange-300">{constants.tutorialHTML[tutorial]}</span></>}
+    const lastTutorial = useRef<constants.TutorialName | undefined>(undefined)  // Remember previous message to keep text when fading out
+    useLayoutEffect(() => { lastTutorial.current = currentTutorial ?? lastTutorial.current }, [currentTutorial])
+    return <div style={{ opacity: currentTutorial === undefined ? "0" : "1" }} class="absolute w-[90%] py-3 left-[5%] px-16 text-center top-[70%] [transition:opacity_ease_1s] whitespace-pre-wrap pointer-events-none z-10 window-popup">
+        {(currentTutorial ?? lastTutorial.current) && <><i class="ti ti-message-report absolute left-4 top-0 [font-size:250%]" /><span class="[&>b]:text-orange-300">{constants.tutorialHTML[(currentTutorial ?? lastTutorial.current)!]}</span></>}
     </div>
 }
 
