@@ -241,7 +241,7 @@ const UI = () => {
         {/* Power Save Mode */}
         {powerSaveMode && <div class="absolute text-center w-full top-[45%] select-none [transition:opacity_ease_1s] whitespace-pre-wrap pointer-events-none z-10">
             <div class="relative py-3 px-8 mx-auto w-fit window-popup">
-                <h2 class="tracking-wide text-orange-300"><i class="ti ti-zzz" /> Power Save Mode</h2>
+                <h2 class="tracking-wide text-orange-300"><i class="ti ti-zzz inline-block" /> Power Save Mode</h2>
                 <p class="[font-size:60%] tracking-wide">Power Save Mode stops rendering the game,<br />but the game still runs in the background.</p>
             </div>
         </div>}

@@ -121,3 +121,14 @@ dialog::backdrop,
 img {
     cursor: none;
 }
+
+@keyframes iconAnimation {
+    from { transform: scale(120%); opacity: 1; }
+    50%  { transform: scale(100%); opacity: 0.8; }
+    to   { transform: scale(120%); opacity: 1; }
+}
+
+i.ti {
+    display: inline-block;
+    animation: iconAnimation 1.5s linear infinite;
+}
