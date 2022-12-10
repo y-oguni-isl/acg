@@ -57,6 +57,8 @@ button {
         box-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
     }
 
+    &:disabled { @apply select-none pointer-events-none; }  // Without this line window.onmousemove doesn't fire on disabled buttons on Chrome 107 (not on Firefox)
+
     &.button-primary {
         background: linear-gradient(240deg, $button1-primary 0%, $button2-primary 100%);
     }
