@@ -4,31 +4,12 @@
 
 $button1: rgb(55, 65, 81, 0.7);
 $button2: rgb(55, 65, 81, 0.7);
-$button1-hover: rgb(55, 65, 81, 0.7);
-$button2-hover: rgb(55, 65, 81, 0.7);
 
 $button1-gold: rgba(226, 166, 1, 0.856);
 $button2-gold: rgba(255, 204, 0, 0.7);
-$button1-hover-gold: rgba(226, 166, 1, 0.856);
-$button2-hover-gold: rgba(255, 204, 0, 0.7);
 
 $button1-primary: rgb(0, 195, 195, 0.7);
 $button2-primary: rgb(0, 234, 234, 0.7);
-$button1-hover-primary: rgb(0, 212, 212, 0.7);
-$button2-hover-primary: rgb(0, 244, 244, 0.7);
-
-@each $name, $col1, $col2, $col1-hover, $col2-hover in
-    button-hover-animation $button1 $button2 $button1-hover $button2-hover,
-    button-hover-animation-gold $button1-gold $button2-gold $button1-hover-gold $button2-hover-gold,
-    button-hover-animation-primary $button1-primary $button2-primary $button1-hover-primary $button2-hover-primary {
-    @keyframes #{$name} {
-        from { background: linear-gradient(240deg, $col1 0%, $col2 100%); }
-        @for $i from 1 through 9 {
-            #{$i * 10%}  { background: linear-gradient(240deg, mix($col1-hover, $col1, $i * 10%) 0%, mix($col2-hover, $col2, $i * 10%) 100%); }
-        }
-        to   { background: linear-gradient(240deg, $col1-hover 0%, $col2-hover 100%); }
-    }
-}
 
 input:not([type]),input[type=text] { @apply text-gray-700 pl-1; }
 
@@ -72,26 +53,17 @@ button {
     &:focus { @apply outline-none; }
 
     &:hover:not(:disabled) {
-        animation: 0.1s forwards button-hover-animation;
         @apply scale-105;
         box-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
     }
 
     &.button-primary {
         background: linear-gradient(240deg, $button1-primary 0%, $button2-primary 100%);
-
-        &:hover:not(:disabled) {
-            animation: 0.1s forwards button-hover-animation-primary;
-        }
     }
 
     .gold & {
         @apply border-t-yellow-400 border-l-yellow-400 border-b-yellow-600 border-r-yellow-600;
         background: linear-gradient(240deg, $button1-gold 0%, $button2-gold 100%);
-
-        &:hover:not(:disabled) {
-            animation: 0.1s forwards button-hover-animation-gold;
-        }
     }
 }
 
