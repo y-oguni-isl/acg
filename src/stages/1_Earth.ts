@@ -37,7 +37,7 @@ const Earth: StageDefinition = {
         const weatherAlive = webgl.createUFOPool().onAllocate((copy): EnemyUserData => ({
             name: "Weather Effect UFO",
             time: 0,
-            hp: 1500 * getState().getExplorationLv() * getState().upgrades.Laser,
+            hp: 300 * getState().upgrades.Laser,
             update: () => { /* skip*/ },
             onKilled: () => {
                 weatherDead.allocate().position.copy(copy.position)
@@ -45,7 +45,7 @@ const Earth: StageDefinition = {
                 getState().completeTutorial("weatherEffect")
             },
             radius: 0.03,
-            money: 400 * getState().getExplorationLv() * getState().upgrades.Laser,
+            money: 400 * getState().upgrades.Laser,
             items: { Scrap: Math.floor(1 * constants.getVacuumGain(getState()) * getState().getExplorationLv() * (500 ** getState().transcendence)) },
         }))
         const weatherDead = webgl.createUFOPool().onAllocate(() => ({ time: 0 }))

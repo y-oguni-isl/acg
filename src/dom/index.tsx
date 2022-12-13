@@ -167,7 +167,7 @@ const UI = () => {
     const [creditHTML, setCreditHTML] = useState<string>("")
     const areStageNamesVisible = useStore(store, () => ObjectFromEntries(ObjectEntries(stages).map(([k, v]) => [k, v.visible()])), shallow)
     const weather = useStore(store, (s) => s.getWeather())
-    const weatherEffectWillBeEnabledInLessThan = useStore(store, (s) => Math.ceil((s.weatherEffectWillBeEnabledInLessThan[s.stage] ?? Number.MAX_SAFE_INTEGER) / constants.updatePerSecond / 60))
+    const weatherEffectWillBeEnabledInLessThan = useStore(store, (s) => Math.ceil((s.weatherEffectWillBeEnabledInLessThan[s.stage] ?? Number.MAX_SAFE_INTEGER) / 60))
     const isWeatherSystemUnlocked = useStore(store, (s) => constants.isWeatherSystemUnlocked(s))
     const transcending = useStore(store, (s) => s.transcending)
     const powerSaveMode = useStore(ephemeralDOMStore, (s) => s.powerSaveMode)

@@ -116,7 +116,7 @@ export const isWeatherSystemUnlocked = (state: Pick<SaveData, "completedTutorial
 export const isVerticalMoveUnlocked = () => false
 
 /** Returns the interval to start the next weather effect. */
-export const newWeatherEffectETA = (rand = Math.random()) => rand * 60 * 6
+export const newWeatherEffectETA = (rand = Math.random()) => rand * 60 * 24
 
 
 /** Returns the price of the upgrade. */
