@@ -20,7 +20,6 @@ import "typed-query-selector"                  // Replaces document.querySelecto
 import "core-js/proposals/map-upsert-stage-2"  // Adds Map.emplace() https://github.com/tc39/proposal-upsert
 import "core-js/proposals/set-methods"         // Adds Set.intersection(), Set.union(), Set.difference(), etc. https://github.com/tc39/proposal-set-methods
 import { loaded } from "./models"
-import Stats from "stats.js"
 import * as THREE from "three"
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js"
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
@@ -28,7 +27,7 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { onBeforeRender, onPreprocess, onUpdate } from "./hooks"
 import { getState, subscribe } from "./saveData"
 import { domStore, ephemeralDOMStore } from "./dom"
-import { call, ObjectEntries, ObjectFromEntries, ObjectValues, ObjectKeys } from "./util"
+import { call, ObjectEntries, ObjectFromEntries, ObjectValues, ObjectKeys, FPSMonitor } from "./util"
 import * as webgl from "./webgl"
 import { getRenderingOption, init3DModelDebugger } from "./debug"
 import stages from "./stages"
@@ -210,10 +209,9 @@ onUpdate.add(() => {
     }
 })
 
-// FPS monitor https://github.com/mrdoob/stats.js/
-const stats = import.meta.env.DEV ? new Stats() : null
+// FPS monitor
+const stats = import.meta.env.DEV ? new FPSMonitor() : null
 if (stats) {
-    Object.assign(stats.dom.style, { bottom: "50px", top: "" })
     document.body.append(stats.dom)
 }
 

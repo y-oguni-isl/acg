@@ -89,3 +89,27 @@ export const createPersistingStore = <S, A>(name: string, version: number, initi
     }
     return store
 }
+
+/** This is a lightweight drop-in replacement for Stats.js (https://github.com/mrdoob/stats.js/). Stats.js uses a canvas to display FPS, but its rendering was too slow (1.46ms per frame) for us. */
+export class FPSMonitor {
+    private readonly queue: number[] = []
+    public readonly dom = document.createElement('div')
+    private t = 0
+    constructor(private readonly queueSize: number = 30) { this.dom.classList.add("fps-monitor") }
+
+    public update() {
+        const now = performance.now()
+        this.queue.push(now)
+        if (this.queue.length > this.queueSize) {
+            this.queue.shift()
+        }
+        if (this.t++ % 20 === 0) {
+            if (this.queue.length < 2) {
+                this.dom.innerText = " 0.0 fps"
+            } else {
+                const elapsed = now - this.queue[0]!
+                this.dom.innerText = `${(1000 / (elapsed / (this.queue.length - 1))).toFixed(1).padStart(4)} fps`
+            }
+        }
+    }
+}

@@ -106,3 +106,5 @@ i.ti {
     display: inline-block;
     animation: iconAnimation 1.5s linear infinite;
 }
+
+.fps-monitor { @apply absolute left-0 bottom-[50px] text-white bg-black bg-opacity-60 font-mono whitespace-pre; }

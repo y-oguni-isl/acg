@@ -20,7 +20,6 @@
     "immer": "^9.0.16",
     "preact": "^10.11.3",
     "react-modal": "^3.16.1",
-    "stats.js": "^0.17.0",
     "three": "^0.147.0",
     "zustand": "^4.1.4"
   },
@@ -31,7 +30,6 @@
     "@types/license-checker": "^25.0.3",
     "@types/node": "^18.11.10",
     "@types/react-modal": "^3",
-    "@types/stats.js": "^0.17.0",
     "@types/three": "^0.146.0",
     "autoprefixer": "^10.4.13",
     "core-dts": "^0.0.3",
