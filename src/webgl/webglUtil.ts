@@ -46,7 +46,7 @@ export class ObjectPool<T extends THREE.Object3D> extends THREE.Object3D<ObjectP
     withVertexAnimation(f: (positions: THREE.BufferAttribute, originalPositions: THREE.BufferAttribute) => void, opts: { computeVertexNormals?: boolean } = {}) {
         if (this.#noMesh) { return this }
         onBeforeRender.add(() => {
-            if (!this.parent || this.children.length === 0) { return }
+            if (!this.parent || this.children.length === 0 || !this.visible) { return }
             f(this.mesh.geometry.attributes.position as THREE.BufferAttribute, this.#originalPositions)
             this.mesh.geometry.attributes.position!.needsUpdate = true
             if (opts.computeVertexNormals !== false) { this.mesh.geometry.computeVertexNormals() } // very slow
