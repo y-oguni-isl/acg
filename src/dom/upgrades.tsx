@@ -13,25 +13,18 @@ const buildProgressBarStyle = (name: constants.UpgradeName, rowNumber: number) =
     const price = constants.price(name, getState())
     const count = getState().upgrades[name]
     const money = getState().money
-    const baseColor = count >= constants.maxUpgrades ? new THREE.Vector4(255, 0, 0, 1) : money >= price ? new THREE.Vector4(0, 220, 220, 1) : new THREE.Vector4(128, 128, 128, 1)
     const progress = count >= constants.maxUpgrades ? 1 : money / price
+    const r = count >= constants.maxUpgrades ? 255 : money >= price ? 0 : 128
+    const g = count >= constants.maxUpgrades ? 0 : money >= price ? 220 : 128
+    const b = count >= constants.maxUpgrades ? 0 : money >= price ? 220 : 128
+    const theta0 = Date.now() * 0.004 + rowNumber
 
-    let style = "linear-gradient(90deg,"
+    let style = "linear-gradient(90deg"
     for (let i = 0; i <= 1; i += 0.05) {
-        const color = baseColor.clone()
-        const t = (Math.sin(i * 2 - Date.now() * 0.004 + rowNumber) + 1) / 2
-        color.x += t * 70
-        color.y += t * 70
-        color.z += t * 70
-        if (i > progress) {
-            color.w = 0
-        } else {
-            color.w = 0.5
-        }
-        style += `rgba(${color.toArray().join(",")}) ${i * 100}%,`
+        const t = (Math.sin(i * 2 - theta0) + 1) / 2 * 70
+        style += `,rgba(${r + t},${g + t},${b + t},${i > progress ? 0 : 0.5}) ${i * 100}%`
     }
-
-    return `${style.slice(0, -1)})`
+    return style + ")"
 }
 
 /** The list of upgrades shown at the left top corner. */
