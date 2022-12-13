@@ -705,6 +705,7 @@ __metadata:
     sass: "npm:^1.56.1"
     tailwindcss: "npm:^3.2.4"
     three: "npm:^0.147.0"
+    three.quarks: "npm:^0.8.1"
     typed-query-selector: "npm:^2.8.0"
     vite: "npm:^3.2.4"
     zustand: "npm:^4.1.4"
@@ -2856,6 +2857,22 @@ __metadata:
     mkdirp: "npm:^1.0.3"
     yallist: "npm:^4.0.0"
   checksum: 661e622cf4ae2cf9ffcef086a2bca16fadcf585415985377a1a54a8b92a475cc9c34501f59e87d16168586160d559d80186f1e5b18daf71d9678c6852d5137a2
+  languageName: node
+  linkType: hard
+
+"three.quarks@npm:^0.8.1":
+  version: 0.8.1
+  resolution: "three.quarks@npm:0.8.1"
+  dependencies:
+    three: "npm:^0.146.0"
+  checksum: bafe988dcc3b374ce0495f8de83ccbe4be59e9cf556b0e4f5c23b04250ca274a1a99d0790740ac2a1fc8d0a28fd15ce87c4b2a4f6d4e6df028f853f8dc98956f
+  languageName: node
+  linkType: hard
+
+"three@npm:^0.146.0":
+  version: 0.146.0
+  resolution: "three@npm:0.146.0"
+  checksum: 7bfbe2cf1d4f07b81131b451aa9925ca4d48d7d7e4116523ddf678479941bcd4baea8a4b7248d01ba24b0689eefb80fdeb47755453ccdcc253e8bd01edae60e1
   languageName: node
   linkType: hard
 

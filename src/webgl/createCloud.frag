@@ -46,4 +46,6 @@ void main() {
 
     // clip by the distance from the origin
     gl_FragColor.a *= 1.0 - smoothstep(0.3, 0.55, length(modelCoordPos));
+
+    gl_FragColor.rgb *= 0.95;
 }

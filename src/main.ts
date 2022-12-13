@@ -76,6 +76,9 @@ const scene = new THREE.Scene().add(
 
     // Enemies
     ...ObjectValues(enemies = ObjectFromEntries(ObjectEntries(stages).map(([k, v]) => [k, v.createEnemyPools()]))),
+
+    // Particle systems
+    await webgl.createLevelupAnimation(airplane),
 )
 
 // Postprocessing

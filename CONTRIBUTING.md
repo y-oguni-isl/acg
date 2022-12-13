@@ -24,6 +24,7 @@ I highly recommend using VSCode with the extensions listed in `.vscode/extension
 | public/audio | sound effects and bgms |
 | public/font | fonts |
 | public/models | 3D models. You can add 3D models you found online, but remember to update the `credit.html`, avoid using models that have ND licenses, and use smaller models (preferably under 5MB, 3MB ≈ 1s to download). You can use this link: [sketchfab](https://sketchfab.com/search?features=downloadable&licenses=322a749bcfa841b29dff1e8a1bb74b0b&licenses=7c23a1ba438d4306920229c12afcb5f9&licenses=b9ddc40b93e34cdca1fc152f39b9f375&type=models) to search 3D models. |
+| public/vfx | Particle systems. Use this editor https://forrestsun.com/three.quarks-editor/ to modify or add effects. Note that the effects are so small that you won't be able to see them until you zoom in on the editor. |
 | public/[audio,font,models]/credit.html | list of each file's attributions, updated by hand |
 | public/lib_credit.html | the automatically updated list of third-party libraries |
 | public/lib_credit2.html | the list of third-party libraries that are missing from lib_credit.html, updated by hand |
