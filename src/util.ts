@@ -2,7 +2,6 @@
  * This file defines small utility functions that are shared among other files.
  */
 
-import produce, { Draft } from "immer"
 import type { UseBoundStore, StoreApi } from "zustand"
 import create from "zustand"
 import { persist } from "zustand/middleware"
@@ -61,8 +60,7 @@ export type SerializableSet<T extends keyof any> = Partial<Record<T, true>>
 export const createStore = <S, A>(initialState: S, actions: (
     set: UseBoundStore<StoreApi<S>>["setState"],
     get: UseBoundStore<StoreApi<S>>["getState"],
-    setProduce: (f: (draft: Draft<S>) => void) => void,  // set(produce(f))
-) => A) => create<S & A>()((set, get) => ({ ...initialState, ...actions(set, get, (f) => { set(produce(f) as any) }) }))
+) => A) => create<S & A>()((set, get) => ({ ...initialState, ...actions(set, get) }))
 
 /**
  * Works the same as the following code, but includes a fix for a problem where {@link localStorage}[name] can be changed after destroy(), and a fix for having to specify the types twice.
@@ -73,10 +71,9 @@ export const createStore = <S, A>(initialState: S, actions: (
 export const createPersistingStore = <S, A>(name: string, version: number, initialState: S, actions: (
     set: UseBoundStore<StoreApi<S>>["setState"],
     get: UseBoundStore<StoreApi<S>>["getState"],
-    setProduce: (f: (draft: Draft<S>) => void) => void,  // set(produce(f))
 ) => A) => {
     let destroyed = false
-    const store = create<S & A>()(persist((set, get) => ({ ...initialState, ...actions(set, get, (f) => { set(produce(f) as any) }) }), {
+    const store = create<S & A>()(persist((set, get) => ({ ...initialState, ...actions(set, get) }), {
         name,
         version,
         serialize: (s) => { if (destroyed) { throw new Error("destroyed") } return JSON.stringify(s) },

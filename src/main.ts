@@ -13,9 +13,6 @@
     broadcastChannel.postMessage("hello")
 }
 
-import { setAutoFreeze } from "immer"
-setAutoFreeze(false) // Disable auto freezing because it'll make immer 2.7x faster https://immerjs.github.io/immer/performance/#pre-freeze-data
-
 import "typed-query-selector"                  // Replaces document.querySelector(All)'s type with better ones.
 import "core-js/proposals/map-upsert-stage-2"  // Adds Map.emplace() https://github.com/tc39/proposal-upsert
 import "core-js/proposals/set-methods"         // Adds Set.intersection(), Set.union(), Set.difference(), etc. https://github.com/tc39/proposal-set-methods
@@ -34,8 +31,6 @@ import stages from "./stages"
 import { StageDefinition } from "./stages/types"
 import { StageName, updatePerSecond } from "./constants"
 import weapons from "./weapons"
-
-setAutoFreeze(false) // Disable auto freeze because it'll make immer 2.7x faster https://immerjs.github.io/immer/performance/#pre-freeze-data
 
 // Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true })

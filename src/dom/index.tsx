@@ -38,9 +38,9 @@ export const domStore = createPersistingStore("acgDOMStore", 3, {
     bgmVolume: 1,
     resolutionMultiplier: 1,
     quality: "standard" as "standard" | "high",
-}, (set, get, setProduce) => ({
-    showNews: (news: readonly [headline: string, text: string]) => { setProduce((d) => { d.news = [...news] }) },
-    hideNews: () => { setProduce((d) => { d.news = null }) },
+}, (set, get) => ({
+    showNews: (news: readonly [headline: string, text: string]) => { set({ news: [...news] }) },
+    hideNews: () => { set({ news: null }) },
 }))
 
 // Loading messages should not be persisted
@@ -50,14 +50,9 @@ type EnemyStatus = { hp: number, name: string, money: number, items: { readonly 
 export const ephemeralDOMStore = createStore({
     enemyStatus: null as (EnemyStatus | null),
     powerSaveMode: false,
-}, (set, get, setProduce) => ({
-    setEnemyStatus: (status: EnemyStatus) => {
-        setProduce((d) => {
-            d.enemyStatus = status
-            d.enemyStatus.hp = Math.max(0, Math.round(d.enemyStatus.hp))
-        })
-    },
-    updatePowerSaveModeState: () => { setProduce((d) => { d.powerSaveMode = domStore.getState().usePowerSaveMode && (document.visibilityState === "hidden" || !document.hasFocus()) }) },
+}, (set, get) => ({
+    setEnemyStatus: (status: EnemyStatus) => { set({ enemyStatus: { ...status, hp: Math.max(0, Math.round(status.hp)) } }) },
+    updatePowerSaveModeState: () => { set({ powerSaveMode: domStore.getState().usePowerSaveMode && (document.visibilityState === "hidden" || !document.hasFocus()) }) },
 }))
 
 ephemeralDOMStore.getState().updatePowerSaveModeState()

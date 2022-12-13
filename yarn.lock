@@ -698,7 +698,6 @@ __metadata:
     core-dts: "npm:^0.0.3"
     core-js: "npm:^3.26.1"
     glob: "npm:^8.0.3"
-    immer: "npm:^9.0.16"
     license-checker: "npm:^25.0.1"
     postcss: "npm:^8.4.19"
     preact: "npm:^10.11.3"
@@ -1695,13 +1694,6 @@ __metadata:
   dependencies:
     safer-buffer: "npm:>= 2.1.2 < 3.0.0"
   checksum: 14633c984e398011b4cce3d453e6566e4cc1b58f257e6fc48ae39c25a158b926e6cd7ee6023cd84aff12952a7581bd10bd4e7954af802dd5678e83b4cb8fdbba
-  languageName: node
-  linkType: hard
-
-"immer@npm:^9.0.16":
-  version: 9.0.16
-  resolution: "immer@npm:9.0.16"
-  checksum: cba94dce2c4193ac32fc789749d7b009a7a5d922e2ffc447f1b62efa25d623836571393e920b09a9e2b352702e178a6c4e9cf9597754b43cb161f3927fbae704
   languageName: node
   linkType: hard
 

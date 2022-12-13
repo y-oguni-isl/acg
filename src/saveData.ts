@@ -39,13 +39,16 @@ export const store = createPersistingStore(localStorageKey, 8, {
     killCount: {} as Record<`${constants.StageName}_${string}`, number>,
     /** True if the player has accessed `store.getState()` in dev tools. */
     cheated: false,
-}, (set, get, setProduce) => {
+}, (set, get) => {
     /** Add a tutorial. */
-    const addTutorial = (name: constants.TutorialName) => { setProduce((d) => { d.availableTutorials[name] = true }) }
+    const addTutorial = (name: constants.TutorialName) => {
+        if (name in get().availableTutorials) { return }
+        set({ availableTutorials: { ...get().availableTutorials, [name]: true } })
+    }
     /** Adds an available news. */
     const addNews = (name: constants.NewsName) => {
         if (get().availableNews[name]) { return }
-        setProduce((d) => { d.availableNews[name] = true })
+        set({ availableNews: { ...get().availableNews, [name]: true } })
     }
     /** Adds (delta > 0) or subtracts (delta < 0) money. */
     const addMoney = (delta: number) => {
@@ -55,12 +58,11 @@ export const store = createPersistingStore(localStorageKey, 8, {
     }
     /** Closes a tutorial. */
     const completeTutorial = (name: constants.TutorialName) => {
-        setProduce((d) => {
-            d.completedTutorials[name] = true
-            if (name === "nextStage") {
-                d.availableTutorials.backToPreviousStage = true
-            }
-        })
+        if (name in get().completedTutorials) { return }
+        set({ completedTutorials: { ...get().completedTutorials, [name]: true } })
+        if (name === "nextStage") {
+            set({ availableTutorials: { ...get().availableTutorials, backToPreviousStage: true } })
+        }
     }
     /** Returns the current weather. */
     const getWeather = (): constants.WeatherEffect | null => {
@@ -80,7 +82,7 @@ export const store = createPersistingStore(localStorageKey, 8, {
         getUpgrade: (name: constants.UpgradeName) => get().upgrades[name] + constants.weatherDebuff(name, getWeather()),
         addItems: (delta: Partial<Record<constants.ItemName, number>>) => {
             const items = { ...get().items }
-            for (const [k, v] of ObjectEntries(delta)) { items[k] = Math.floor((items[k] ?? 0) + v) }  // a lot faster than immer
+            for (const [k, v] of ObjectEntries(delta)) { items[k] = Math.floor((items[k] ?? 0) + v) }
             set({ items })
         },
         buyUpgrade: (name: constants.UpgradeName) => {
@@ -94,14 +96,11 @@ export const store = createPersistingStore(localStorageKey, 8, {
         },
         setStageTransitingTo: (stage: constants.StageName) => {
             if (get().stage === stage) { return }
-            setProduce((d) => { d.stageTransitingTo = stage })
+            set({ stageTransitingTo: stage })
         },
         completeStageTransition: () => {
-            setProduce((d) => {
-                if (d.stageTransitingTo === null) { return }
-                d.stage = d.stageTransitingTo
-                d.stageTransitingTo = null
-            })
+            if (get().stageTransitingTo === null) { return }
+            set({ stage: get().stageTransitingTo!, stageTransitingTo: null })
             if (get().stage === "Earth") {
                 completeTutorial("backToPreviousStage")
             } else if (get().stage === "Universe") {
@@ -127,47 +126,49 @@ export const store = createPersistingStore(localStorageKey, 8, {
             }
         },
         stopWeatherEffect: () => {
-            setProduce((d) => {
-                d.weatherEffectWillBeEnabledIn[d.stage] = constants.newWeatherEffectETA()
-                d.weatherEffectWillBeEnabledInLessThan[d.stage] = constants.newWeatherEffectETA(1)
+            set({
+                weatherEffectWillBeEnabledIn: { ...get().weatherEffectWillBeEnabledIn, [get().stage]: constants.newWeatherEffectETA() },
+                weatherEffectWillBeEnabledInLessThan: { ...get().weatherEffectWillBeEnabledInLessThan, [get().stage]: constants.newWeatherEffectETA(1) },
             })
         },
         defeatedMothership: () => {
             addNews("ending1")
-            setProduce((d) => { d.canTranscend = true })
+            set({ canTranscend: true })
         },
-        transcend: () => { setProduce((d) => { d.transcending = true }) },
-        cancelTranscending: () => { setProduce((d) => { d.transcending = false }) },
+        transcend: () => { set({ transcending: true }) },
+        cancelTranscending: () => { set({ transcending: false }) },
         confirmTranscending: () => {
-            setProduce((d) => {
-                if (!d.transcending) { return }
-                d.stageTransitingTo = null
-                d.stage = "Earth"
-                d.transcending = false
-                d.transcendence++
-                d.canTranscend = false
+            if (!get().transcending) { return }
+            set({
+                stageTransitingTo: null,
+                stage: "Earth",
+                transcending: false,
+                transcendence: get().transcendence + 1,
+                canTranscend: false,
             })
         },
         incrementKillCount: (name: string) => {
-            setProduce((d) => { d.killCount[`${get().stage}_${name}`] = (d.killCount[`${get().stage}_${name}`] ?? 0) + 1 })
+            const key = `${get().stage}_${name}` as const
+            set({ killCount: { ...get().killCount, [key]: (get().killCount[key] ?? 0) + 1 } })
             if (get().killCount[`Universe_UFO`] ?? 0 > 10) {
                 getState().completeTutorial("backToPreviousStage")
             }
         },
-        cheat: () => { setProduce((d) => { d.cheated = true }) },
+        cheat: () => { set({ cheated: true }) },
         /** Increments `exploration[stage]` by 1. */
         exploreNext: () => {
             const lv = getExplorationLv()
             if ((get().items.Food ?? 0) < constants.explorationCost(lv)) { return }
-            setProduce((d) => {
-                d.items.Food = (d.items.Food ?? 0) - constants.explorationCost(lv)
-                d.exploration[d.stage] = lv + 1
+            set({
+                items: { ...get().items, Food: (get().items.Food ?? 0) - constants.explorationCost(lv) },
+                exploration: { ...get().exploration, [get().stage]: lv + 1 }
             })
         },
         /** Decrements `exploration[stage]` by 1. */
         explorePrev: () => {
-            if (getExplorationLv() <= 1) { throw new Error() }
-            setProduce((d) => { d.exploration[d.stage] = (d.exploration[d.stage] ?? 1) - 1 })
+            const lv = getExplorationLv()
+            if (lv <= 1) { throw new Error() }
+            set({ exploration: { ...get().exploration, [get().stage]: lv - 1 } })
         },
     }
 });
