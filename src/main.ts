@@ -115,7 +115,7 @@ domStore.subscribe((state, prev) => {
 })
 
 // Update weather
-onUpdate.add(() => { getState().countdown() })
+onUpdate.add((t) => { if (t % updatePerSecond === 0) { getState().countdown() } })
 
 // Update enemies
 {
