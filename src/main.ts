@@ -32,13 +32,11 @@ import { call, ObjectEntries, ObjectFromEntries, ObjectValues, ObjectKeys } from
 import * as webgl from "./webgl"
 import { getRenderingOption, init3DModelDebugger } from "./debug"
 import stages from "./stages"
-import { updatePerSecond } from "./constants"
+import { StageDefinition } from "./stages/types"
+import { StageName, updatePerSecond } from "./constants"
 import weapons from "./weapons"
 
 setAutoFreeze(false) // Disable auto freeze because it'll make immer 2.7x faster https://immerjs.github.io/immer/performance/#pre-freeze-data
-
-/** The scene object, which contains all visible Three.js objects. */
-const scene = new THREE.Scene()
 
 // Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true })
@@ -47,59 +45,96 @@ renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.setPixelRatio(window.devicePixelRatio * domStore.getState().resolutionMultiplier)
 document.body.appendChild(renderer.domElement)
 
-// Airplane
-const airplane = webgl.createAirplane(renderer.domElement)
-scene.add(airplane)
-
-// Contrail and newspapers
-scene.add(webgl.createContrail(airplane), webgl.createNewspaperAnimationPlayer())
-
-// Stages
-// NOTE: To add a stage, create a file `src/stages/[id]_[name].ts` while running `corepack yarn start`, which runs codegen.js everytime you edit the files, and fix all type errors.
-for (const [name, stage] of ObjectEntries(stages)) {
-    const obj = stage.createModel()
-    scene.add(obj)
-    obj.visible = getState().stage === name
-    subscribe((state, prev) => { if (state.stage !== prev.stage) { obj.visible = state.stage === name } })
-}
-onUpdate.add(() => { getState().countdown() })  // Weather
-
 // Camera
 const cameraInitialPosition = [-0.5, 0.6, 0] as const
 const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 10), { position: { set: cameraInitialPosition } })
 
-// Weapons
-// NOTE: To add a weapon, create a file `src/weapons/[name].ts` while running `corepack yarn start`, which runs codegen.js everytime you edit the files, and fix all type errors. You can also add an entry in `upgradeNames`, `basePrice` etc. in `constants.tsx` to add a new upgrade and reference the number of upgrades the player purchased by `getState().upgrades.[name]`.
-const weaponPools = weapons.map((weapon) => weapon(airplane))
-weaponPools.forEach(({ obj }) => { scene.add(obj) })
+let airplane: ReturnType<typeof webgl.createAirplane>
+let weaponPools: ReturnType<typeof weapons[number]>[]
+let enemies: Record<StageName, ReturnType<StageDefinition["createEnemyPools"]>>
 
-// Enemies
+/** The scene object, which contains all visible Three.js objects. */
+const scene = new THREE.Scene().add(
+    // Airplane
+    airplane = webgl.createAirplane(renderer.domElement),
+
+    // Contrail
+    webgl.createContrail(airplane),
+
+    // Newspapers
+    webgl.createNewspaperAnimationPlayer(),
+
+    // Stages
+    // NOTE: To add a stage, create a file `src/stages/[id]_[name].ts` while running `corepack yarn start`, which runs codegen.js everytime you edit the files, and fix all type errors.
+    ...ObjectEntries(stages).map(([name, { createModel }]) => {
+        const obj = createModel()
+
+        // Visible when the current stage `getState().stage` is equal to `name`
+        obj.visible = getState().stage === name
+        subscribe((state, prev) => { if (state.stage !== prev.stage) { obj.visible = state.stage === name } })
+
+        return obj
+    }),
+
+    // Weapons
+    // NOTE: To add a weapon, create a file `src/weapons/[name].ts` while running `corepack yarn start`, which runs codegen.js everytime you edit the files, and fix all type errors. You can also add an entry in `upgradeNames`, `basePrice` etc. in `constants.tsx` to add a new upgrade and reference the number of upgrades the player purchased by `getState().upgrades.[name]`.
+    ...(weaponPools = weapons.map((weapon) => weapon(airplane))).map(({ obj }) => obj),
+
+    // Enemies
+    ...ObjectValues(enemies = ObjectFromEntries(ObjectEntries(stages).map(([k, v]) => [k, v.createEnemyPools()]))),
+)
+
+// Postprocessing
+const effectComposer = new EffectComposer(renderer)
+const stageTransitionPass = webgl.createStageTransitionPass()
 {
-    const enemies = ObjectFromEntries(ObjectEntries(stages).map(([k, v]) => [k, v.createEnemyPools()]))
-    ObjectValues(enemies).forEach((obj) => { scene.add(obj) })
+    let renderPass: RenderPass
+    for (const pass of [
+        renderPass = new RenderPass(scene, camera),
+        new UnrealBloomPass(new THREE.Vector2(256, 256), 0.2, 0, 0),
+        webgl.createSelectiveBloomPass(renderer, scene, camera, renderPass),
+        webgl.createRainPass(getRenderingOption("rain.blur")),
+        webgl.createJammingPass(),
+        stageTransitionPass.pass,
+    ]) {
+        effectComposer.addPass(pass)
+    }
+}
+
+// Resize the canvas to fit to the window
+window.addEventListener("resize", () => {
+    // https://stackoverflow.com/a/20434960/10710682 and
+    // https://stackoverflow.com/a/20641695/10710682
+    camera.aspect = window.innerWidth / window.innerHeight
+    camera.updateProjectionMatrix()
+    renderer.setSize(window.innerWidth, window.innerHeight)
+    renderer.setPixelRatio(window.devicePixelRatio * domStore.getState().resolutionMultiplier)
+    effectComposer.setSize(window.innerWidth, window.innerHeight)
+    effectComposer.setPixelRatio(window.devicePixelRatio * domStore.getState().resolutionMultiplier)
+})
+
+// Update the renderer and effect composer when the screen resolution option is changed.
+domStore.subscribe((state, prev) => {
+    if (state.resolutionMultiplier === prev.resolutionMultiplier) { return }
+    renderer.setPixelRatio(window.devicePixelRatio * state.resolutionMultiplier)
+    effectComposer.setPixelRatio(window.devicePixelRatio * state.resolutionMultiplier)
+})
+
+// Update weather
+onUpdate.add(() => { getState().countdown() })
+
+// Update enemies
+{
     const listAliveEnemies = () => ObjectValues(enemies).flatMap((v) => v.alive())
     const listDeadEnemies = () => ObjectValues(enemies).flatMap((v) => v.dead())
+
     onUpdate.add((t) => {
         // Spawn enemies
         enemies[getState().stage].spawn(t)
 
         // Move enemies
-        listAliveEnemies().forEach((e) => e.userData.update())
-
-        // Delete enemies outside of the screen or that are dead
-        for (const enemy of listAliveEnemies()) {
-            if (enemy.position.x < -1 || enemy.userData.hp <= 0) {
-                if (enemy.userData.hp <= 0) {
-                    enemy.userData.onKilled()
-                    getState().incrementKillCount(enemy.userData.name)
-                    getState().addMoney(enemy.userData.money)
-                    getState().addItems(enemy.userData.items)
-                }
-                enemy.free()
-                weaponPools.forEach((w) => "onEnemyRemoved" in w && w.onEnemyRemoved(enemy))
-            }
-            enemy.userData.time++
-        }
+        const aliveEnemies = listAliveEnemies()
+        aliveEnemies.forEach((e) => e.userData.update())
 
         // Animate dead enemies
         for (const body of listDeadEnemies()) {
@@ -112,13 +147,27 @@ weaponPools.forEach(({ obj }) => { scene.add(obj) })
         }
 
         // Collisions between the enemy and the player's attacks
-        const aliveEnemies = listAliveEnemies()
         weaponPools.forEach((w) => w.doDamage(aliveEnemies))
 
         // Update the autopilot algorithm's target
         const findMin = <T>(arr: readonly T[], key: (v: T) => void) => arr.length === 0 ? undefined : arr.reduce((p, c) => key(p) < key(c) ? p : c, arr[0]!)
-        if (!airplane.userData.autopilotTarget || !(listAliveEnemies() as { position: THREE.Vector3 }[]).includes(airplane.userData.autopilotTarget) || airplane.userData.autopilotTarget.position.x < airplane.position.x) {
-            airplane.userData.autopilotTarget = findMin(listAliveEnemies().filter((e) => e.position.x > airplane.position.x + 0.3 && e.userData.name !== "Weather Effect UFO"), (e) => e.position.x)
+        if (!airplane.userData.autopilotTarget || !(aliveEnemies as { position: THREE.Vector3 }[]).includes(airplane.userData.autopilotTarget) || airplane.userData.autopilotTarget.position.x < airplane.position.x) {
+            airplane.userData.autopilotTarget = findMin(aliveEnemies.filter((e) => e.position.x > airplane.position.x + 0.3 && e.userData.name !== "Weather Effect UFO"), (e) => e.position.x)
+        }
+
+        // Delete enemies outside of the screen or that are dead
+        for (const enemy of aliveEnemies) {
+            if (enemy.position.x < -1 || enemy.userData.hp <= 0) {
+                if (enemy.userData.hp <= 0) {
+                    enemy.userData.onKilled()
+                    getState().incrementKillCount(enemy.userData.name)
+                    getState().addMoney(enemy.userData.money)
+                    getState().addItems(enemy.userData.items)
+                }
+                enemy.free()
+                weaponPools.forEach((w) => "onEnemyRemoved" in w && w.onEnemyRemoved(enemy))
+            }
+            enemy.userData.time++
         }
     })
 
@@ -133,19 +182,6 @@ weaponPools.forEach(({ obj }) => { scene.add(obj) })
             enemy.free()
         }
     })
-}
-
-// Post processing
-const effectComposer = new EffectComposer(renderer)
-const stageTransitionPass = webgl.createStageTransitionPass()
-{
-    const renderPass = new RenderPass(scene, camera)
-    effectComposer.addPass(renderPass)
-    if (getRenderingOption("unrealbloom")) { effectComposer.addPass(new UnrealBloomPass(new THREE.Vector2(256, 256), 0.2, 0, 0)) }
-    if (getRenderingOption("selective unrealbloom")) { effectComposer.addPass(webgl.createSelectiveBloomPass(renderer, scene, camera, renderPass)) }
-    if (getRenderingOption("rain")) { effectComposer.addPass(webgl.createRainPass(getRenderingOption("rain.blur"))) }
-    if (getRenderingOption("jamming")) { effectComposer.addPass(webgl.createJammingPass()) }
-    effectComposer.addPass(stageTransitionPass.pass)
 }
 
 // Stage transition animation
@@ -172,25 +208,6 @@ onUpdate.add(() => {
             camera.position.set(...cameraInitialPosition)
         })
     }
-})
-
-// Resize the canvas to fit to the window
-window.addEventListener("resize", () => {
-    // https://stackoverflow.com/a/20434960/10710682 and
-    // https://stackoverflow.com/a/20641695/10710682
-    camera.aspect = window.innerWidth / window.innerHeight
-    camera.updateProjectionMatrix()
-    renderer.setSize(window.innerWidth, window.innerHeight)
-    renderer.setPixelRatio(window.devicePixelRatio * domStore.getState().resolutionMultiplier)
-    effectComposer.setSize(window.innerWidth, window.innerHeight)
-    effectComposer.setPixelRatio(window.devicePixelRatio * domStore.getState().resolutionMultiplier)
-})
-
-// Update the renderer and effect composer when the screen resolution option is changed.
-domStore.subscribe((state, prev) => {
-    if (state.resolutionMultiplier === prev.resolutionMultiplier) { return }
-    renderer.setPixelRatio(window.devicePixelRatio * state.resolutionMultiplier)
-    effectComposer.setPixelRatio(window.devicePixelRatio * state.resolutionMultiplier)
 })
 
 // FPS monitor https://github.com/mrdoob/stats.js/
