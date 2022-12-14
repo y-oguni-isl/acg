@@ -47,7 +47,7 @@ export const domStore = createPersistingStore("acgDOMStore", 3, {
 type EnemyStatus = { hp: number, name: string, money: number, items: { readonly [k in constants.ItemName]?: number } }
 
 /** The current state of the DOM (HTML). Unlike {@link domStore}, this store manages data that should not be persisted in {@link localStorage}. */
-export const nonpersistentDOMStore = createStore({
+export const nonpersistentDOMStore = createStore("acgNonpersistentDOMStore", {
     enemyStatus: null as (EnemyStatus | null),
     powerSaveMode: false,
     updateFPSMonitor: () => { },

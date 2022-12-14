@@ -57,10 +57,10 @@ export type SerializableSet<T extends keyof any> = Partial<Record<T, true>>
  * create<S & A>()((get, set) => ({ ...initialState, ...actions } as S & A))
  * ```
  */
-export const createStore = <S, A>(initialState: S, actions: (
+export const createStore = <S, A>(name: string, initialState: S, actions: (
     set: UseBoundStore<StoreApi<S>>["setState"],
     get: UseBoundStore<StoreApi<S>>["getState"],
-) => A) => create<S & A>()((set, get) => ({ ...initialState, ...actions(set, get) }))
+) => A) => fixZustandHMR(name, create<S & A>()((set, get) => ({ ...initialState, ...actions(set, get) })))
 
 /**
  * Works the same as the following code, but includes a fix for a problem where {@link localStorage}[name] can be changed after destroy(), and a fix for having to specify the types twice.
@@ -83,6 +83,14 @@ export const createPersistingStore = <S, A>(name: string, version: number, initi
     store.destroy = () => {
         destroyed = true
         destroy()
+    }
+    return fixZustandHMR(name, store)
+}
+
+/** Prevents hot module reloading from causing inconsistent store references between files. */
+const fixZustandHMR = <T>(key: string, store: T): T => {
+    if (import.meta.env.DEV) {
+        return (window as any)[`zustand-${key}`] ?? ((window as any)[`zustand-${key}`] = store)
     }
     return store
 }

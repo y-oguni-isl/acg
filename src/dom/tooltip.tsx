@@ -7,7 +7,7 @@ import { useEffect, useState } from "preact/hooks"
 import { useStore } from "zustand"
 import { createStore } from "../util"
 
-const store = createStore({
+const store = createStore("tooltipStore", {
     key: "",
     content: null as ComponentChildren,
     visible: false,

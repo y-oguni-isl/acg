@@ -8,7 +8,7 @@ import { useStore } from "zustand"
 import { createPersistingStore, createStore, ObjectEntries, ObjectKeys } from "./util"
 import { useEffect, useState } from "preact/hooks"
 
-const modelDebuggerStore = createStore({
+const debuggerStore = createStore("acgDebugger", {
     paused: false,
     version: 0,
     objectPools: {} as Record<string, number>,
@@ -31,11 +31,11 @@ const renderingOptionsStore = createPersistingStore("acgRenderingOptions", 2, {
 
 /** Returns a boolean indicating whether the component should be rendered or not, which can be controlled in the rendering options window. */
 export const getRenderingOption = renderingOptionsStore.getState().getRenderingOption
-export const logObjectPoolSize = modelDebuggerStore.getState().setObjectPoolSize
+export const logObjectPoolSize = debuggerStore.getState().setObjectPoolSize
 
 export const Debugger = () => {
     if (import.meta.env.PROD) { return <></> }
-    const { resume, stop, paused, objectPools } = useStore(modelDebuggerStore)
+    const { resume, stop, paused, objectPools } = useStore(debuggerStore)
     const { renderingOptions, setRenderingOption } = useStore(renderingOptionsStore)
     const [innerWidth, setInnerWidth] = useState(() => window.innerWidth)
     const [opened, setOpened] = useState(false)
@@ -85,10 +85,10 @@ export const init3DModelDebugger = (camera: THREE.Camera, renderer: THREE.Render
     const orbit = new OrbitControls(camera, renderer.domElement)
     orbit.listenToKeyEvents(window)
 
-    orbit.enabled = modelDebuggerStore.getState().paused
-    modelDebuggerStore.subscribe((s) => { orbit.enabled = s.paused })
+    orbit.enabled = debuggerStore.getState().paused
+    debuggerStore.subscribe((s) => { orbit.enabled = s.paused })
 
     scene.add(new THREE.AxesHelper())
 
-    return () => modelDebuggerStore.getState().paused
+    return () => debuggerStore.getState().paused
 }
