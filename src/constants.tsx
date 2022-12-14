@@ -2,6 +2,7 @@
  * This file defines constants for the game.
  */
 
+import type { JSXInternal } from "preact/src/jsx"
 import type { SaveData } from "./saveData"
 import type stages from "./stages"
 
@@ -39,9 +40,9 @@ export type ItemName = "Food" | "Scrap"
 
 /** the flavor text for each item */
 export const flavorText = {
-    Food: "On the trail, it's good to have a hearty meal ready to go. The right foods will give you the energy you need to explore new territory.",
-    Scrap: "With a little ingenuity and a lot of scrap, we can make some missiles to take down our enemies."
-} satisfies Record<ItemName, string>
+    Food: <>On the trail, it's good to have a hearty meal ready to go.<br />The right foods will give you the energy you need to explore new territory.</>,
+    Scrap: <>With a little ingenuity and a lot of scrap, <br />we can make some missiles to take down our enemies.</>,
+} satisfies Record<ItemName, JSXInternal.Element>
 
 /** A mapping from a stage name to its weather effect. */
 export const weathers = {

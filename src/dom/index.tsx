@@ -47,25 +47,27 @@ export const domStore = createPersistingStore("acgDOMStore", 3, {
 type EnemyStatus = { hp: number, name: string, money: number, items: { readonly [k in constants.ItemName]?: number } }
 
 /** The current state of the DOM (HTML). Unlike {@link domStore}, this store manages data that should not be persisted in {@link localStorage}. */
-export const ephemeralDOMStore = createStore({
+export const nonpersistentDOMStore = createStore({
     enemyStatus: null as (EnemyStatus | null),
     powerSaveMode: false,
+    updateFPSMonitor: () => { },
 }, (set, get) => ({
     setEnemyStatus: (status: EnemyStatus) => { set({ enemyStatus: { ...status, hp: Math.max(0, Math.round(status.hp)) } }) },
     updatePowerSaveModeState: () => { set({ powerSaveMode: domStore.getState().usePowerSaveMode && (document.visibilityState === "hidden" || !document.hasFocus()) }) },
+    setFPSMonitorCallback: (updateFPSMonitor: () => void) => { set({ updateFPSMonitor }) }
 }))
 
-ephemeralDOMStore.getState().updatePowerSaveModeState()
-document.addEventListener("visibilitychange", () => { ephemeralDOMStore.getState().updatePowerSaveModeState() })
-window.addEventListener("blur", () => { ephemeralDOMStore.getState().updatePowerSaveModeState() })
-window.addEventListener("focus", () => { ephemeralDOMStore.getState().updatePowerSaveModeState() })
+nonpersistentDOMStore.getState().updatePowerSaveModeState()
+document.addEventListener("visibilitychange", () => { nonpersistentDOMStore.getState().updatePowerSaveModeState() })
+window.addEventListener("blur", () => { nonpersistentDOMStore.getState().updatePowerSaveModeState() })
+window.addEventListener("focus", () => { nonpersistentDOMStore.getState().updatePowerSaveModeState() })
 
 /** A random text to fill newspapers. */
 const randomText = Array(10000).fill(0).map(() => Array(Math.floor(Math.random() * 6) + 2).fill(0).map(() => "abcdefghijklmnopqrstuvwxyz"[Math.floor(Math.random() * 26)]).join("")).join(" ")
 
 /** The "Enemy Stats" window */
 const EnemyStats = () => {
-    const enemyStatus = useStore(ephemeralDOMStore, (s) => s.enemyStatus, shallow)
+    const enemyStatus = useStore(nonpersistentDOMStore, (s) => s.enemyStatus, shallow)
     const hasVacuum = useStore(store, (s) => s.upgrades.Vacuum > 0)
     if (!enemyStatus) { return <></> }
     return <div class="pl-3 pr-4 pt-1 pb-3 window">
@@ -87,9 +89,10 @@ const Items = () => {
     return <div class="pr-3 pl-4 pt-1 pb-3 window">
         <h2 class="mb-2 tracking-wide"><i class="ti ti-notes" /> Items</h2>
         <table class="w-full">{ObjectEntries(items).map(([k, v]) =>
-            <tr onMouseEnter={() => { setTooltip(`item-${k}`, constants.flavorText[k]) }}
-                onMouseLeave={() => { removeTooltip(`item-${k}`) }}>
-                <td><i class="ti ti-meat" /> {k}</td><td class="text-right">{v}</td>
+            <tr class="border-b-2 border-b-gray-200 border-opacity-60"
+                onMouseEnter={() => { setTooltip(`left:item-${k}`, constants.flavorText[k]) }}
+                onMouseLeave={() => { removeTooltip(`left:item-${k}`) }}>
+                <td><i class={k === "Food" ? "ti ti-meat" : "ti ti-settings"} /> {k}</td><td class="text-right">{v}</td>
             </tr>)}
         </table>
     </div>
@@ -100,11 +103,12 @@ const Transcend = () => {
     const canTranscend = useStore(store, (s) => s.canTranscend)
     return <>
         {canTranscend && <div class="pr-3 pl-4 pt-1 pb-3 window gold">
+            <h2><i class="ti ti-arrows-transfer-up" /> Transcendence</h2>
             <p class="text-xs mb-2">
                 You have reached the point of singularity and can transcended to a higher plane of existence.
             </p>
             {/* Higher plane of existence = enemies have more HP and money */}
-            <button class="w-full" tabIndex={-1} onClick={() => { getState().transcend() }}>Show Bonus</button>
+            <button class="w-full" tabIndex={-1} onClick={() => { getState().transcend() }}><i class="ti ti-list" /> Show Bonus</button>
         </div>}
     </>
 }
@@ -157,6 +161,32 @@ const Cursor = () => {
         class="absolute z-20 pointer-events-none"></img> : <></>
 }
 
+/** FPS monitor */
+const FPSMonitor = () => {
+    const ref = useRef<HTMLDivElement>(null)
+    useEffect(() => {
+        const queue: number[] = []
+        let t = 0
+        nonpersistentDOMStore.getState().setFPSMonitorCallback(() => {
+            if (!ref.current) { return }
+            const now = performance.now()
+            queue.push(now)
+            if (queue.length > 30) {
+                queue.shift()
+            }
+            if (t++ % 20 === 0) {
+                if (queue.length < 2) {
+                    ref.current.innerText = " 0.0 fps"
+                } else {
+                    const elapsed = now - queue[0]!
+                    ref.current.innerText = `${(1000 / (elapsed / (queue.length - 1))).toFixed(1).padStart(4)} fps`
+                }
+            }
+        })
+    })
+    return <div ref={ref} class="absolute right-0 bottom-0 text-white bg-black bg-opacity-30 px-2 rounded-tl-lg font-mono whitespace-pre"></div>
+}
+
 /** The root component */
 const UI = () => {
     const state = useStore(domStore)
@@ -170,7 +200,7 @@ const UI = () => {
     const weatherEffectWillBeEnabledInLessThan = useStore(store, (s) => Math.ceil((s.weatherEffectWillBeEnabledInLessThan[s.stage] ?? Number.MAX_SAFE_INTEGER) / 60))
     const isWeatherSystemUnlocked = useStore(store, (s) => constants.isWeatherSystemUnlocked(s))
     const transcending = useStore(store, (s) => s.transcending)
-    const powerSaveMode = useStore(ephemeralDOMStore, (s) => s.powerSaveMode)
+    const powerSaveMode = useStore(nonpersistentDOMStore, (s) => s.powerSaveMode)
     const stage = useStore(store, (s) => s.stage)
     const hasVacuum = useStore(store, (s) => s.upgrades.Vacuum > 0)
     const explorationLv = useStore(store, (s) => s.getExplorationLv())
@@ -216,8 +246,8 @@ const UI = () => {
                     <li>Enemy×2</li>
                 </ul> */}
                 <div class="float-right">
-                    <span class="gold"><button class="px-8" onClick={() => { getState().confirmTranscending() }}>Confirm</button></span>
-                    <button class="px-8 ml-2" onClick={() => { getState().cancelTranscending() }}>Cancel</button>
+                    <span class="gold"><button class="px-8" onClick={() => { getState().confirmTranscending() }}><i class="ti ti-check" /> Confirm</button></span>
+                    <button class="px-8 ml-2" onClick={() => { getState().cancelTranscending() }}><i class="ti ti-x" /> Cancel</button>
                 </div>
             </div>
             <Cursor />
@@ -226,36 +256,45 @@ const UI = () => {
 
     return <>
         {/* Top-Left Pane */}
-        <div class="absolute left-[-4px] top-[-2px] w-44 sm:w-72 [&>*]:mt-3">
+        <div class="absolute left-[-4px] top-2 w-44 sm:w-72 h-full [&>*]:mt-3 [transform:perspective(5cm)_rotateY(2deg)]">
             <Upgrades />
             {hasVacuum && <Items />}
             <Transcend />
+            <div class="pr-3 pl-4 py-1 window window--oneline w-fit tracking-wide [&>*:not(:first-child)]:ml-5">
+                <span
+                    class="pointer hover:text-white"
+                    onClick={() => { creditDialog.current!.showModal() }}
+                    onMouseEnter={() => { setTooltip("left:license", <>License</>) }}
+                    onMouseLeave={() => { removeTooltip("left:license") }}>
+                    <i class="ti ti-license" />
+                </span>
+                <span
+                    class="pointer hover:text-white"
+                    onClick={() => { optionsDialog.current!.showModal() }}
+                    onMouseEnter={() => { setTooltip("left:options", <>Graphics Settings</>) }}
+                    onMouseLeave={() => { removeTooltip("left:options") }}>
+                    <i class="ti ti-tool" />
+                </span>
+            </div>
+
+            {/* Tooltip */}
+            <Tooltip filter={(key) => key.startsWith("left:")} />
         </div>
 
-        {/* Tutorial Message */}
-        <Tutorial />
-
-        {/* Power Save Mode */}
-        {powerSaveMode && <div class="absolute text-center w-full top-[45%] select-none [transition:opacity_ease_1s] whitespace-pre-wrap pointer-events-none z-10">
-            <div class="relative py-3 px-8 mx-auto w-fit window-popup">
-                <h2 class="tracking-wide text-orange-300"><i class="ti ti-zzz inline-block" /> Power Save Mode</h2>
-                <p class="[font-size:60%] tracking-wide">Power Save Mode stops rendering the game,<br />but the game still runs in the background.</p>
-            </div>
-        </div>}
-
         {/* Top-Right pane */}
-        <div class="absolute right-[-4px] top-[-2px] min-w-[7rem] sm:min-w-[13rem] [&>*]:mt-3">
+        <div class="absolute right-[-4px] top-2 min-w-[7rem] h-full sm:min-w-[13rem] [&>*]:mt-3 [transform:perspective(5cm)_rotateY(-2deg)]">
             {/* Stages */}
             {ObjectValues(areStageNamesVisible).some((v) => v) && <div class="pl-3 pr-4 pt-1 pb-3 window">
                 <h2 class="mb-2 tracking-wide"><i class="ti ti-map-2" /> Stages</h2>
-                <div class="[&>*:not(:last-child)]:mb-1">{ObjectKeys(stages).map((name) =>
+                <div class="[&>*:not(:last-child)]:mb-1">{ObjectKeys(stages).map((name) => <div class="relative">
                     <button
                         tabIndex={-1}
-                        class={"w-full" + (stage === name ? " button-primary" : "")}
+                        class={"w-full ![border-radius:2rem_0.5rem_2rem_0.5rem]" + (stage === name ? " button-primary" : "")}
                         onClick={() => { getState().setStageTransitingTo(name) }}
                         disabled={!areStageNamesVisible[name] || stage === name}>
                         {areStageNamesVisible[name] ? name : "???"}
-                    </button>)}
+                    </button>
+                </div>)}
                 </div>
             </div>}
 
@@ -277,58 +316,67 @@ const UI = () => {
             {hasVacuum && stage !== "Mothership" && <div class="pl-3 pr-4 pt-1 pb-3 window">
                 <h2 class="mb-2 tracking-wide"><i class="ti ti-route" /> Explore: <span class="tracking-tight">Lv. {explorationLv}</span></h2>
                 <button
-                    class="block w-full text-left pl-[2rem] sm:pl-[5.1rem]"
+                    class="block w-full ![border-radius:2rem_0.5rem_2rem_0.5rem] text-center relative"
                     onClick={() => { getState().exploreNext() }}
-                    onMouseEnter={() => { setTooltip("explorationNext", <ExplorationNextTooltip />) }}
-                    onMouseLeave={() => { removeTooltip("explorationNext") }}>
-                    <i class="ti ti-arrow-forward" /> Next<span class="[font-size:80%] tracking-tighter"><i class="ti ti-meat ml-3 mr-1" />{constants.explorationCost(explorationLv)}</span>
+                    onMouseEnter={() => { setTooltip("right:explorationNext", <ExplorationNextTooltip />) }}
+                    onMouseLeave={() => { removeTooltip("right:explorationNext") }}>
+                    <i class="ti ti-arrow-forward" /> Next
+                    <span class="[font-size:80%] tracking-tighter absolute right-2"><i class="ti ti-meat ml-3 mr-1" />{constants.explorationCost(explorationLv)}</span>
                 </button>
                 {explorationLv >= 2 && <button
-                    class="block w-full text-left pl-[2rem] sm:pl-[5.1rem] mt-1"
+                    class="block w-full ![border-radius:2rem_0.5rem_2rem_0.5rem] text-center mt-1"
                     onClick={() => { getState().explorePrev() }}
-                    onMouseEnter={() => { setTooltip("explorationPrev", <ExplorationPrevTooltip />) }}
-                    onMouseLeave={() => { removeTooltip("explorationPrev") }}>
+                    onMouseEnter={() => { setTooltip("right:explorationPrev", <ExplorationPrevTooltip />) }}
+                    onMouseLeave={() => { removeTooltip("right:explorationPrev") }}>
                     <i class="ti ti-arrow-back" /> Prev
                 </button>}
             </div>}
+
+            {/* Tooltip */}
+            <Tooltip filter={(key) => key.startsWith("right:")} />
         </div>
+
+        {/* Tutorial Message */}
+        <Tutorial />
+
+        {/* Power Save Mode */}
+        {powerSaveMode && <div class="absolute text-center w-full top-[45%] select-none [transition:opacity_ease_1s] whitespace-pre-wrap pointer-events-none z-10">
+            <div class="relative py-3 px-8 mx-auto w-fit window-popup">
+                <h2 class="tracking-wide text-orange-300"><i class="ti ti-zzz inline-block" /> Power Save Mode</h2>
+                <p class="[font-size:60%] tracking-wide">Power Save Mode stops rendering the game,<br />but the game still runs in the background.</p>
+            </div>
+        </div>}
 
         <Debugger />
 
         {/* "Reset Progress" Dialog */}
-        <Dialog class="window p-5" ref_={resetProgressDialog}>
+        <Dialog class="p-5" ref_={resetProgressDialog}>
             <p>Are you sure you want to reset your save data?</p>
             <div class="float-right mt-4">
                 <button class="px-4 button-primary" onClick={() => {
                     deleteSaveData()
                     location.reload()
-                }}>Reset</button>
-                <button class="px-4 ml-2" onClick={() => { resetProgressDialog.current!.close() }}>Cancel</button>
+                }}><i class="ti ti-check" /> Reset</button>
+                <button class="px-4 ml-2" onClick={() => { resetProgressDialog.current!.close() }}><i class="ti ti-x" /> Cancel</button>
             </div>
         </Dialog>
 
-        {/* Bottom-Left Pane */}
-        <div class="absolute left-[-4px] bottom-[-2px] px-5 pb-1 window tracking-wide [&>*:not(:first-child)]:ml-5">
-            <span class="pointer hover:text-white" onClick={() => { creditDialog.current!.showModal() }}><i class="ti ti-license" /> Credits</span>
-            <span class="pointer hover:text-white" onClick={() => { optionsDialog.current!.showModal() }}><i class="ti ti-tool" /> Options</span>
-        </div>
-
         {/* Credits Dialog */}
-        <Dialog ref_={creditDialog} class="window p-5">
+        <Dialog ref_={creditDialog} class="p-5">
             <h1 class="text-xl mb-2 tracking-wider w-full text-center">Credits</h1>
             <ul dangerouslySetInnerHTML={{ __html: creditHTML ?? "" }} class="w-full h-full block [&_li]:mb-2 [&_h2]:font-bold [&_a]:text-violet-300 select-text list-disc ml-5"></ul>
         </Dialog>
 
         {/* Options Dialog */}
-        <Dialog ref_={optionsDialog} class="window py-4 px-10">
-            <h1 class="text-xl mb-2 tracking-wider w-full text-center">Options</h1>
+        <Dialog ref_={optionsDialog} class="py-4 px-10">
+            <h1 class="text-xl mb-2 tracking-wider w-full text-center"><i class="ti ti-tool" /> Graphics Settings</h1>
             <table>
                 <tr>
-                    <td class="pr-4 text-right" title="Power Save Mode stops rendering the game,<br />but the game still runs in the background.">Power Save Mode</td>
+                    <td class="pr-4 text-right" title="Power Save Mode stops rendering the game,<br />but the game still runs in the background."><i class="ti ti-zzz" /> Power Save Mode</td>
                     <td><label class="pointer"><input type="checkbox" checked={state.usePowerSaveMode} onChange={(ev) => { domStore.setState({ usePowerSaveMode: ev.currentTarget.checked }) }} /> enabled</label></td>
                 </tr>
                 <tr>
-                    <td class="pr-4 text-right">Resolution</td>
+                    <td class="pr-4 text-right"><i class="ti ti-arrows-minimize" /> Resolution</td>
                     <td class="[&>*:not(:first-child)]:ml-2">
                         <label><input type="radio" name="resolution" checked={state.resolutionMultiplier === 1} onChange={(ev) => { domStore.setState({ resolutionMultiplier: 1 }) }} /> x1</label>
                         <label><input type="radio" name="resolution" checked={state.resolutionMultiplier === Math.SQRT1_2} onChange={(ev) => { domStore.setState({ resolutionMultiplier: Math.SQRT1_2 }) }} /> x0.7</label>
@@ -338,7 +386,7 @@ const UI = () => {
                     </td>
                 </tr>
                 <tr>
-                    <td class="pr-4 text-right">Quality</td>
+                    <td class="pr-4 text-right"><i class="ti ti-flame" /> Quality</td>
                     <td class="[&>*:not(:first-child)]:ml-2">
                         <label><input type="radio" name="quality" value="high" checked={state.quality === "high"} onChange={(ev) => { domStore.setState({ quality: ev.currentTarget.value as "high" | "standard" }) }} /> High</label>
                         <label><input type="radio" name="quality" value="standard" checked={state.quality === "standard"} onChange={(ev) => { domStore.setState({ quality: ev.currentTarget.value as "high" | "standard" }) }} /> Standard</label>
@@ -366,7 +414,7 @@ const UI = () => {
             domStore.getState().hideNews()
             getState().addTutorial("nextStage")
         }}>
-            {state.news && <div class="[line-height:1.2] [font-size:12px] text-justify overflow-y-hidden h-full [font-family:KottaOne] [-webkit-text-stroke:3px_rgba(0,0,0,0.05)]">
+            {state.news && <div class="[line-height:1.2] [font-size:12px] text-justify overflow-y-hidden h-full [font-family:KottaOne] [-webkit-text-stroke:3px_rgba(0,0,0,0.05)] text-gray-900">
                 <h2 class="text-lg tracking-wide font-bold mb-4 [border-bottom:3px_solid_rgb(130,130,130)] text-center">{state.news[0]}</h2>
                 <span>{state.news[1]}</span>
                 <span class="text-gray-500"> {randomText}</span>
@@ -374,11 +422,11 @@ const UI = () => {
             <button class="sm:hidden absolute right-2 bottom-2 px-4" onClick={() => { newsDialog.current!.close() }}>Close</button>
         </Dialog>
 
-        {/* Tooltip */}
-        <Tooltip />
-
         {/* Cursor */}
         <Cursor />
+
+        {/* FPS monitor */}
+        <FPSMonitor />
     </>
 }
 

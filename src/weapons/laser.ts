@@ -5,7 +5,7 @@ import { call } from "../util"
 import fragmentShader from "./laser.frag"
 import vertexShader from "./laser.vert"
 import * as constants from "../constants"
-import { ephemeralDOMStore } from "../dom"
+import { nonpersistentDOMStore } from "../dom"
 import * as webgl from "../webgl"
 import { Damageable, Weapon } from "./type"
 
@@ -56,7 +56,7 @@ export default (source: THREE.Object3D) => {
 
                     // Damage
                     enemy.userData.hp -= constants.getAtk(getState()).Laser
-                    ephemeralDOMStore.getState().setEnemyStatus({ hp: enemy.userData.hp, name: enemy.userData.name, money: enemy.userData.money, items: enemy.userData.items })
+                    nonpersistentDOMStore.getState().setEnemyStatus({ hp: enemy.userData.hp, name: enemy.userData.name, money: enemy.userData.money, items: enemy.userData.items })
                 } else { // No collisions
                     // Delete the hit effect when
                     if (laserHitEffectTargetMap.has(enemy)) {

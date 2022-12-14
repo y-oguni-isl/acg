@@ -14,9 +14,9 @@ const buildProgressBarStyle = (name: constants.UpgradeName, rowNumber: number) =
     const count = getState().upgrades[name]
     const money = getState().money
     const progress = count >= constants.maxUpgrades ? 1 : money / price
-    const r = count >= constants.maxUpgrades ? 255 : money >= price ? 0 : 128
-    const g = count >= constants.maxUpgrades ? 0 : money >= price ? 220 : 128
-    const b = count >= constants.maxUpgrades ? 0 : money >= price ? 220 : 128
+    const r = count >= constants.maxUpgrades ? 255 : progress >= 1 ? 0 : 128
+    const g = count >= constants.maxUpgrades ? 0 : progress >= 1 ? 220 : 128
+    const b = count >= constants.maxUpgrades ? 0 : progress >= 1 ? 220 : 128
     const theta0 = Date.now() * 0.004 + rowNumber
 
     let style = "linear-gradient(90deg"
@@ -73,8 +73,8 @@ const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
         }}>
         <div
             class="px-2"
-            onMouseEnter={() => { setTooltip(`upgrade-${props.name}`, <TooltipContent name={props.name} />) }}
-            onMouseLeave={() => { removeTooltip(`upgrade-${props.name}`) }}>
+            onMouseEnter={() => { setTooltip(`left:upgrade-${props.name}`, <TooltipContent name={props.name} />) }}
+            onMouseLeave={() => { removeTooltip(`left:upgrade-${props.name}`) }}>
             <span class="inline-block w-28 tracking-wider whitespace-nowrap">{isUpgradeNameHidden ? "???" : <><i class={"mr-1 ti " + ({
                 Laser: "ti-flare",
                 Autopilot: "ti-plane",

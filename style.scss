@@ -2,15 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-$button1: rgb(55, 65, 81, 0.7);
-$button2: rgb(55, 65, 81, 0.7);
-
-$button1-gold: rgba(226, 166, 1, 0.856);
-$button2-gold: rgba(255, 204, 0, 0.7);
-
-$button1-primary: rgb(0, 195, 195, 0.7);
-$button2-primary: rgb(0, 234, 234, 0.7);
-
 input:not([type]),input[type=text] { @apply text-gray-700 pl-1; }
 
 @font-face {
@@ -28,13 +19,17 @@ input:not([type]),input[type=text] { @apply text-gray-700 pl-1; }
 }
 
 .window {
-    @apply text-gray-200 backdrop-blur-3xl drop-shadow-lg select-none border-opacity-40 border-2 rounded-md border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600;
+    @apply text-gray-200 backdrop-blur-3xl drop-shadow-lg select-none border-opacity-40 [border-width:8px_2px_2px_2px] rounded-md border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600;
     -webkit-text-stroke: 5px rgba(255, 255, 255, 0.1);
     background: linear-gradient(240deg, rgba(55, 65, 81, 0.144) 0%, rgba(55, 65, 81, 0.4) 100%);
 
     &.gold {
         @apply border-t-yellow-400 border-l-yellow-400 border-b-yellow-600 border-r-yellow-600;
         background: linear-gradient(240deg, rgba(226, 174, 1, 0.7) 0%, rgba(197, 178, 9, 0.5) 100%);
+    }
+
+    &.window--oneline {
+        @apply border-t-2;
     }
 }
 
@@ -47,8 +42,8 @@ input:not([type]),input[type=text] { @apply text-gray-700 pl-1; }
 }
 
 button {
-    @apply text-gray-200 tracking-wider backdrop-blur-3xl drop-shadow-lg select-none border-opacity-40 border-2 rounded-sm border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600;
-    background: linear-gradient(240deg, rgb(55, 65, 81, 0.7) 0%, rgb(55, 65, 81, 0.7) 100%);
+    @apply text-gray-200 tracking-wider backdrop-blur-3xl drop-shadow-lg select-none border-opacity-40 border-2 rounded-lg border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600;
+    background: rgb(55, 65, 81, 0.7);
 
     &:focus { @apply outline-none; }
 
@@ -60,23 +55,26 @@ button {
     &:disabled { @apply select-none pointer-events-none; }  // Without this line window.onmousemove doesn't fire on disabled buttons on Chrome 107 (not on Firefox)
 
     &.button-primary {
-        background: linear-gradient(240deg, $button1-primary 0%, $button2-primary 100%);
+        background: linear-gradient(240deg, rgb(0, 195, 195, 0.7) 0%, rgb(0, 234, 234, 0.7) 100%);
     }
 
     .gold & {
         @apply border-t-yellow-400 border-l-yellow-400 border-b-yellow-600 border-r-yellow-600;
-        background: linear-gradient(240deg, $button1-gold 0%, $button2-gold 100%);
+        background: linear-gradient(240deg, rgba(226, 166, 1, 0.856) 0%, rgba(255, 204, 0, 0.7) 100%);
     }
 }
 
 .ReactModal__Overlay {
-    transition: background-color 0.3s ease-in-out;
-    &, &.ReactModal__Overlay--after-open.ReactModal__Overlay--before-close { background-color: rgba(0, 0, 0, 0.0) !important; }
-    &.ReactModal__Overlay--after-open { background-color: rgba(0, 0, 0, 0.5) !important; }
+    transition: backdrop-filter 0.3s ease-in-out;
+    background-color: rgba(0, 0, 0, 0.0) !important;
+    backdrop-filter: saturate(100%) blur(0px);
+    &, &.ReactModal__Overlay--after-open.ReactModal__Overlay--before-close { backdrop-filter: saturate(100%) blur(0px); }
+    &.ReactModal__Overlay--after-open { backdrop-filter: saturate(50%) blur(20px); }
 }
 
 .ReactModal__Content {
-    transition: transform 0.1s ease-out;
+    transition: transform 0.3s ease-out;
+    @apply text-gray-200 bg-gray-600 bg-opacity-80 select-none border-opacity-40 border-2 rounded-md border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600;
     &, .ReactModal__Overlay--after-open.ReactModal__Overlay--before-close & { transform: translate(-50%, -50%) scale(0%); }
     .ReactModal__Overlay--after-open & { transform: translate(-50%, -50%) scale(100%); }
 }
@@ -85,15 +83,21 @@ input[type=checkbox], input[type=radio] {
     @apply accent-orange-600;
 }
 
-body,
-button,
-button:disabled,
-label,
-a,
-input,
-dialog::backdrop,
+.game {
+    body,
+    button,
+    button:disabled,
+    label,
+    a,
+    input,
+    dialog::backdrop,
+    img {
+        cursor: none;
+    }
+}
+
 img {
-    cursor: none;
+    @apply select-none;
 }
 
 @keyframes iconAnimation {
@@ -106,5 +110,3 @@ i.ti {
     display: inline-block;
     animation: iconAnimation 1.5s linear infinite;
 }
-
-.fps-monitor { @apply absolute left-0 bottom-[50px] text-white bg-black bg-opacity-60 font-mono whitespace-pre; }

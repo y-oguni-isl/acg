@@ -23,8 +23,8 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js"
 import { onBeforeRender, onPreprocess, onUpdate } from "./hooks"
 import { getState, subscribe } from "./saveData"
-import { domStore, ephemeralDOMStore } from "./dom"
-import { call, ObjectEntries, ObjectFromEntries, ObjectValues, ObjectKeys, FPSMonitor } from "./util"
+import { domStore, nonpersistentDOMStore } from "./dom"
+import { call, ObjectEntries, ObjectFromEntries, ObjectValues, ObjectKeys } from "./util"
 import * as webgl from "./webgl"
 import { getRenderingOption, init3DModelDebugger } from "./debug"
 import stages from "./stages"
@@ -207,12 +207,6 @@ onUpdate.add(() => {
     }
 })
 
-// FPS monitor
-const stats = import.meta.env.DEV ? new FPSMonitor() : null
-if (stats) {
-    document.body.append(stats.dom)
-}
-
 // Main game loop:
 // 1. Repeat a number of times proportional to the time elapsed since the previous frame:
 //    1. `onUpdate` event
@@ -228,10 +222,10 @@ if (stats) {
     let updateCount = 0
     renderer.setAnimationLoop((time: number): void => {
         const update = !getState().transcending && !isPaused()
-        const render = !getState().transcending && !ephemeralDOMStore.getState().powerSaveMode
+        const render = !getState().transcending && !nonpersistentDOMStore.getState().powerSaveMode
 
         // FPS monitor
-        stats?.update()
+        nonpersistentDOMStore.getState().updateFPSMonitor()
 
         if (!update) {
             prevTime.update = Date.now()
@@ -291,3 +285,6 @@ getState().addTutorial("wasd")
 window.dispatchEvent(new UIEvent("resize"))
 
 loaded()
+
+// Disable right-clicking
+window.addEventListener("contextmenu", (ev) => { ev.preventDefault() }, { capture: true })

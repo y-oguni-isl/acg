@@ -38,38 +38,42 @@ export const Debugger = () => {
     const { resume, stop, paused, objectPools } = useStore(modelDebuggerStore)
     const { renderingOptions, setRenderingOption } = useStore(renderingOptionsStore)
     const [innerWidth, setInnerWidth] = useState(() => window.innerWidth)
+    const [opened, setOpened] = useState(false)
     useEffect(() => { window.addEventListener("resize", () => { setInnerWidth(window.innerWidth) }) }, [])
     if (innerWidth < 680) { return <></> }
     return <div class="absolute right-56 bottom-1 [font-size:50%]">
-        {/* DEBUG: Rendering options */}
-        <div class="px-3 pt-1 pb-3 window">
-            <h2>[Debug] Rendering</h2>
-            <div>
-                {ObjectEntries(renderingOptions).map(([name, checked]) => <label class="block">
-                    <input type="checkbox" class="mr-1" checked={checked} onClick={() => { setRenderingOption(name, !checked) }} />
-                    <span>{name}</span>
-                </label>)}
+        <button class="[font-size:150%] [-webkit-text-stroke:3px_rgba(255,255,255,0.2)] mb-1 px-2" onClick={() => setOpened(!opened)}>{opened ? "Close" : "Open"} Debugger</button>
+        {opened && <>
+            {/* DEBUG: Rendering options */}
+            <div class="px-3 pt-1 pb-3 window">
+                <h2>[Debug] Rendering</h2>
+                <div>
+                    {ObjectEntries(renderingOptions).map(([name, checked]) => <label class="block">
+                        <input type="checkbox" tabIndex={-1} class="mr-1" checked={checked} onClick={() => { setRenderingOption(name, !checked) }} />
+                        <span>{name}</span>
+                    </label>)}
+                </div>
+                <button class="px-4 hover:bg-opacity-60" tabIndex={-1} onClick={() => { location.reload() }}>Apply</button>
+                <button class="px-4 hover:bg-opacity-60" tabIndex={-1} onClick={() => { ObjectKeys(renderingOptions).forEach((k) => setRenderingOption(k, true)) }}>Enable All</button>
+                <button class="px-4 hover:bg-opacity-60" tabIndex={-1} onClick={() => { ObjectKeys(renderingOptions).forEach((k) => setRenderingOption(k, false)) }}>Disable All</button>
             </div>
-            <button class="px-4 hover:bg-opacity-60" onClick={() => { location.reload() }}>Apply</button>
-            <button class="px-4 hover:bg-opacity-60" onClick={() => { ObjectKeys(renderingOptions).forEach((k) => setRenderingOption(k, true)) }}>Enable All</button>
-            <button class="px-4 hover:bg-opacity-60" onClick={() => { ObjectKeys(renderingOptions).forEach((k) => setRenderingOption(k, false)) }}>Disable All</button>
-        </div>
 
-        {/* DEBUG: 3D model debugger */}
-        <div class="px-3 pt-1 pb-3 window">
-            <h2>[Debug] 3D Models</h2>
-            You can move the camera by dragging the screen while the game is paused.
-            <div>
-                {!paused && <button class="px-2" onClick={() => { stop() }}>🛑 Pause</button>}
-                {paused && <button class="px-2 ml-1" onClick={() => { resume() }}>▶️ Resume</button>}
+            {/* DEBUG: 3D model debugger */}
+            <div class="px-3 pt-1 pb-3 window">
+                <h2>[Debug] 3D Models</h2>
+                You can move the camera by dragging the screen while the game is paused.
+                <div>
+                    {!paused && <button class="px-2" onClick={() => { stop() }}>🛑 Pause</button>}
+                    {paused && <button class="px-2 ml-1" onClick={() => { resume() }}>▶️ Resume</button>}
+                </div>
             </div>
-        </div>
-        <div class="px-3 pt-1 pb-3 window">
-            <h2>[Debug] Object Pools</h2>
-            <table>
-                {ObjectEntries(objectPools).sort((a, b) => a[0].localeCompare(b[0])).map(([k, v]) => <tr><td>{k}</td><td>{v}</td></tr>)}
-            </table>
-        </div>
+            <div class="px-3 pt-1 pb-3 window">
+                <h2>[Debug] Object Pools</h2>
+                <table>
+                    {ObjectEntries(objectPools).sort((a, b) => a[0].localeCompare(b[0])).map(([k, v]) => <tr><td>{k}</td><td>{v}</td></tr>)}
+                </table>
+            </div>
+        </>}
     </div>
 }
 
