@@ -1,5 +1,6 @@
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass"
-import { onBeforeRender } from "../hooks"
+import { updatePerSecond } from "../constants"
+import { onUpdate } from "../hooks"
 import { getState } from "../saveData"
 import fragmentShader from "./createStageTransitionPass.frag"
 import vertexShader from "./createStageTransitionPass.vert"
@@ -22,22 +23,22 @@ export default () => {
             if (played) { return }
             played = true
             let time = 0
-            const loop = (_: number, deltaTime: number) => {
+            const loop = () => {
                 if (time < 1) { // fade in
-                    time = Math.min(1, time + deltaTime * 0.001)
+                    time = Math.min(1, time + 1 / updatePerSecond)
                 } else if (time === 1) { // move to the destination stage
-                    time += deltaTime * 0.001
+                    time += 1 / updatePerSecond
                     callback()
                     getState().completeStageTransition()
                 } else if (time < 2) { // fade out
-                    time = Math.min(2, time + deltaTime * 0.001)
+                    time = Math.min(2, time + 1 / updatePerSecond)
                 } else { // end
-                    onBeforeRender.delete(loop)
+                    onUpdate.delete(loop)
                     played = false
                 }
                 pass.uniforms.time!.value = time
             }
-            onBeforeRender.add(loop)
+            onUpdate.add(loop)
         }
     }
 }
