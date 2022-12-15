@@ -270,7 +270,7 @@ onUpdate.add(() => {
 
 // Play the BGM
 const playAudio = () => {
-    const audio = document.querySelector("audio#rainAudio")!
+    const audio = document.querySelector("audio#bgm")!
     audio.loop = true
     audio.play()
 }
