@@ -14,6 +14,7 @@ import cursorDefault from "../../cursor.png"
 import cursorPointer from "../../cursor-pointer.png"
 import Dialog, { DialogRef } from "./dialog"
 import Modal from "react-modal"
+import "./buttonAnimation"
 
 /** A mapping from tutorial names to their indices.  */
 const tutorialIndices = new Map(ObjectKeys(constants.tutorialHTML).map((name, i) => [name, i]))
@@ -143,7 +144,7 @@ const Cursor = () => {
         const onMouseMove = (ev: MouseEvent) => {
             setPosition([ev.clientX, ev.clientY])
             const element = document.elementFromPoint(ev.clientX, ev.clientY)
-            setStyle(element?.matches(".pointer,.pointer *,button,a,input,dialog") ? "pointer" : "default")
+            setStyle(element?.matches(".pointer,.pointer *,button,button *,a,input,.ReactModal__Overlay") ? "pointer" : "default")
         }
         const onMouseLeave = () => { setPosition(null) }
         window.addEventListener("mousemove", onMouseMove)

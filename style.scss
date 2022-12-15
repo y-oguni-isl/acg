@@ -47,9 +47,11 @@ button {
 
     &:focus { @apply outline-none; }
 
-    &:hover:not(:disabled) {
-        @apply scale-105;
-        box-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+    &:not(:disabled) {
+        &:hover {
+            @apply scale-105;
+            box-shadow: 0 0 3px rgba(255, 255, 255, 0.5);
+        }
     }
 
     &:disabled { @apply select-none pointer-events-none; }  // Without this line window.onmousemove doesn't fire on disabled buttons on Chrome 107 (not on Firefox)
@@ -62,6 +64,11 @@ button {
         @apply border-t-yellow-400 border-l-yellow-400 border-b-yellow-600 border-r-yellow-600;
         background: linear-gradient(240deg, rgba(226, 166, 1, 0.856) 0%, rgba(255, 204, 0, 0.7) 100%);
     }
+}
+
+@keyframes buttonClickAnimation {
+    from { transform: scale(110%); background: white; }
+    to   { }
 }
 
 .ReactModal__Overlay {

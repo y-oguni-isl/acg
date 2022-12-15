@@ -50,7 +50,7 @@ const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
     const isUpgradeNameHidden = useStore(store, (s) => constants.isUpgradeNameHidden(props.name, s))
     const count = useStore(store, (s) => s.upgrades[props.name])
     const disabled = useStore(store, (s) => price > s.money || count >= constants.maxUpgrades)
-    const ref = useRef<HTMLDivElement>(null)
+    const ref = useRef<HTMLButtonElement>(null)
 
     useLayoutEffect(() => {
         const callback = () => {
@@ -63,11 +63,11 @@ const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
 
     const debuff = constants.weatherDebuff(props.name, weather)
 
-    return <div
+    return <button
         ref={ref}
-        class="relative block pointer backdrop-blur-3xl select-none border-opacity-40 border-[1px] rounded-lg border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600 hover:scale-105 hover:[box-shadow:0_0_3px_rgba(255,255,255,0.5)]"
+        class="relative block w-full drop-shadow-none border-[1px]"
         disabled={disabled}
-        onMouseDown={() => {
+        onClick={() => {
             if (disabled) { return }
             buyUpgrade(props.name)
         }}>
@@ -88,7 +88,7 @@ const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
             } satisfies Record<constants.UpgradeName, string>)[props.name]} />{props.name}</>}</span>
             <span class="float-right tracking-tight">{count}{debuff !== 0 && <b class="text-red-400"> ({debuff})</b>}</span>
         </div>
-    </div>
+    </button>
 }
 
 /** Renders the contents of the tooltip that is shown when the mouse cursor is over the one of the buttons in the "Upgrades" window. */
