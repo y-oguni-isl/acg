@@ -4,6 +4,7 @@
 
 import type { ComponentChildren } from "preact"
 import { useEffect, useState } from "preact/hooks"
+import { useEventListener } from "usehooks-ts"
 import { useStore } from "zustand"
 import { createStore } from "../util"
 
@@ -29,13 +30,10 @@ export const Tooltip = (props: { filter: (key: string) => boolean }) => {
     const [mouseY, setMouseY] = useState(0)
     const content = useStore(store, (s) => props.filter(s.key) ? s.content : null)
     const visible = useStore(store, (s) => props.filter(s.key) && s.visible)
-    useEffect(() => {
-        const onMousemove = (ev: MouseEvent) => {
-            setMouseX(ev.clientX)
-            setMouseY(ev.clientY)
-        }
-        window.addEventListener("mousemove", onMousemove)
-    }, [])
+    useEventListener("mousemove", (ev) => {
+        setMouseX(ev.clientX)
+        setMouseY(ev.clientY)
+    })
     return <div style={{
         transform: visible ? "translateY(0%) scaleY(100%)" : "translateY(-50%) scaleY(0%)",
         ...(mouseX < window.innerWidth / 2 ?

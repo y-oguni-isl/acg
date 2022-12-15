@@ -15,6 +15,7 @@ import cursorPointer from "../../cursor-pointer.png"
 import Dialog, { DialogRef } from "./dialog"
 import Modal from "react-modal"
 import "./buttonAnimation"
+import { useEventListener } from "usehooks-ts"
 
 /** A mapping from tutorial names to their indices.  */
 const tutorialIndices = new Map(ObjectKeys(constants.tutorialHTML).map((name, i) => [name, i]))
@@ -140,22 +141,16 @@ const ExplorationNextTooltip = () => {
 const Cursor = () => {
     const [position, setPosition] = useState<[number, number] | null>(null)
     const [style, setStyle] = useState<"default" | "pointer">("default")
-    useEffect(() => {
-        const onMouseMove = (ev: MouseEvent) => {
-            setPosition([ev.clientX, ev.clientY])
-            const element = document.elementFromPoint(ev.clientX, ev.clientY)
-            setStyle(element?.matches(".pointer,.pointer *,button,button *,a,input,.ReactModal__Overlay") ? "pointer" : "default")
-        }
-        const onMouseLeave = () => { setPosition(null) }
-        window.addEventListener("mousemove", onMouseMove)
-        document.body.addEventListener("mouseleave", onMouseLeave)
-        window.addEventListener("blur", onMouseLeave)
-        return () => {
-            window.removeEventListener("mousemove", onMouseMove)
-            document.body.removeEventListener("mouseleave", onMouseLeave)
-            window.removeEventListener("blur", onMouseLeave)
-        }
-    }, [])
+
+    // Listen for mouse events
+    useEventListener("mousemove", (ev) => {
+        setPosition([ev.clientX, ev.clientY])
+        const element = document.elementFromPoint(ev.clientX, ev.clientY)
+        setStyle(element?.matches(".pointer,.pointer *,button,button *,a,input,.ReactModal__Overlay") ? "pointer" : "default")
+    })
+    useEventListener("mouseleave", () => { setPosition(null) }, { current: document.body })
+    useEventListener("blur", () => { setPosition(null) })
+
     return position ? <img
         src={style === "default" ? cursorDefault : cursorPointer}
         style={{ left: position[0] - 10, top: position[1] - 4 }}
@@ -184,7 +179,7 @@ const FPSMonitor = () => {
                 }
             }
         })
-    })
+    }, [])
     return <div ref={ref} class="absolute right-0 bottom-0 text-white bg-black bg-opacity-30 px-2 rounded-tl-lg font-mono whitespace-pre"></div>
 }
 

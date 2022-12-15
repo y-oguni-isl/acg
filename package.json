@@ -21,6 +21,7 @@
     "react-modal": "^3.16.1",
     "three": "^0.147.0",
     "three.quarks": "^0.8.1",
+    "usehooks-ts": "^2.9.1",
     "zustand": "^4.1.4"
   },
   "devDependencies": {

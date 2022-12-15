@@ -6,7 +6,7 @@ import * as THREE from "three"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { useStore } from "zustand"
 import { createPersistingStore, createStore, ObjectEntries, ObjectKeys } from "./util"
-import { useEffect, useState } from "preact/hooks"
+import { useToggle, useWindowSize } from "usehooks-ts"
 
 const debuggerStore = createStore("acgDebugger", {
     paused: false,
@@ -37,12 +37,13 @@ export const Debugger = () => {
     if (import.meta.env.PROD) { return <></> }
     const { resume, stop, paused, objectPools } = useStore(debuggerStore)
     const { renderingOptions, setRenderingOption } = useStore(renderingOptionsStore)
-    const [innerWidth, setInnerWidth] = useState(() => window.innerWidth)
-    const [opened, setOpened] = useState(false)
-    useEffect(() => { window.addEventListener("resize", () => { setInnerWidth(window.innerWidth) }) }, [])
-    if (innerWidth < 680) { return <></> }
+    const windowSize = useWindowSize()
+    const [opened, toggle] = useToggle(false)
+
+    if (windowSize.width < 680) { return <></> }
+
     return <div class="absolute right-56 bottom-1 [font-size:50%]">
-        <button class="[font-size:150%] [-webkit-text-stroke:3px_rgba(255,255,255,0.2)] mb-1 px-2" onClick={() => setOpened(!opened)}>{opened ? "Close" : "Open"} Debugger</button>
+        <button class="[font-size:150%] [-webkit-text-stroke:3px_rgba(255,255,255,0.2)] mb-1 px-2" onClick={() => toggle()}>{opened ? "Close" : "Open"} Debugger</button>
         {opened && <>
             {/* DEBUG: Rendering options */}
             <div class="px-3 pt-1 pb-3 window">

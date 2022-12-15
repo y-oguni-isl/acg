@@ -707,6 +707,7 @@ __metadata:
     three: "npm:^0.147.0"
     three.quarks: "npm:^0.8.1"
     typed-query-selector: "npm:^2.8.0"
+    usehooks-ts: "npm:^2.9.1"
     vite: "npm:^3.2.4"
     zustand: "npm:^4.1.4"
   languageName: unknown
@@ -2958,6 +2959,16 @@ __metadata:
   peerDependencies:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0
   checksum: bed3d1f68ca3dd33647035dbeb9d3a5ece12fced0245cb0fa831426192e52e4948b0fc6e9187d9d4dce9f58269af605f8feeeda100d2928f8b865f9cd9cc4a4a
+  languageName: node
+  linkType: hard
+
+"usehooks-ts@npm:^2.9.1":
+  version: 2.9.1
+  resolution: "usehooks-ts@npm:2.9.1"
+  peerDependencies:
+    react: ^16.8.0  || ^17.0.0 || ^18.0.0
+    react-dom: ^16.8.0  || ^17.0.0 || ^18.0.0
+  checksum: 0541eb1c4fc9d1bbade91d54c6d1c37ad95f8e01deb73d2c33fe420d535ccedfa1297483f8579802af3eed8fa78014d321a5e65026c64e5f3b8fe3a48cbb23dc
   languageName: node
   linkType: hard
 
