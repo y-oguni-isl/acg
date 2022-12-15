@@ -305,6 +305,13 @@ const UI = () => {
             <div class="pr-3 pl-4 py-1 window window--oneline w-fit tracking-wide [&>*:not(:first-child)]:ml-5">
                 <span
                     class="pointer hover:text-white"
+                    onClick={() => { optionsDialog.current!.showModal() }}
+                    onMouseEnter={() => { setTooltip("left:options", <>Settings</>) }}
+                    onMouseLeave={() => { removeTooltip("left:options") }}>
+                    <i class="ti ti-tool" />
+                </span>
+                <span
+                    class="pointer hover:text-white"
                     onClick={() => { creditDialog.current!.showModal() }}
                     onMouseEnter={() => { setTooltip("left:license", <>License</>) }}
                     onMouseLeave={() => { removeTooltip("left:license") }}>
@@ -312,10 +319,16 @@ const UI = () => {
                 </span>
                 <span
                     class="pointer hover:text-white"
-                    onClick={() => { optionsDialog.current!.showModal() }}
-                    onMouseEnter={() => { setTooltip("left:options", <>Graphics Settings</>) }}
-                    onMouseLeave={() => { removeTooltip("left:options") }}>
-                    <i class="ti ti-tool" />
+                    onClick={() => {
+                        window.open("https://twitter.com/intent/tweet/?" + new URLSearchParams({
+                            text: document.title,
+                            url: location.href,
+                            // hashtags: "hashtags",
+                        }).toString(), "", "width=600, height=480")?.focus()
+                    }}
+                    onMouseEnter={() => { setTooltip("left:share", <>Tweet</>) }}
+                    onMouseLeave={() => { removeTooltip("left:share") }}>
+                    <i class="ti ti-brand-twitter" />
                 </span>
             </div>
 
@@ -411,7 +424,7 @@ const UI = () => {
 
         {/* Options Dialog */}
         <Dialog ref_={optionsDialog} class="py-4 px-10">
-            <h1 class="text-xl mb-2 tracking-wider w-full text-center"><i class="ti ti-tool" /> Graphics Settings</h1>
+            <h1 class="text-xl mb-2 tracking-wider w-full text-center"><i class="ti ti-tool" /> Settings</h1>
             <table>
                 <tr>
                     <td class="pr-4 text-right" title="Power Save Mode stops rendering the game,<br />but the game still runs in the background."><i class="ti ti-zzz" /> Power Save Mode</td>
