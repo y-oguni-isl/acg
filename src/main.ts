@@ -225,8 +225,8 @@ onUpdate.add(() => {
         const update = !getState().transcending && !isPaused()
         const render = !getState().transcending && !nonpersistentDOMStore.getState().powerSaveMode
 
-        // FPS monitor
-        nonpersistentDOMStore.getState().updateFPSMonitor()
+        // FPS counter
+        nonpersistentDOMStore.getState().updateFPSCounter()
 
         if (!update) {
             prevTime.update = Date.now()

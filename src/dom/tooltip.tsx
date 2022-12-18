@@ -3,7 +3,7 @@
  */
 
 import type { ComponentChildren } from "preact"
-import { useEffect, useState } from "preact/hooks"
+import { useLayoutEffect, useState } from "preact/hooks"
 import { useEventListener } from "usehooks-ts"
 import { useStore } from "zustand"
 import { createStore } from "../util"
@@ -25,7 +25,7 @@ export const removeTooltip = (key: string) => {
 }
 
 /** This function renders the tooltip's text into the DOM. */
-export const Tooltip = (props: { filter: (key: string) => boolean }) => {
+export const Tooltip = (props: { class?: string, filter: (key: string) => boolean }) => {
     const [mouseX, setMouseX] = useState(0)
     const [mouseY, setMouseY] = useState(0)
     const content = useStore(store, (s) => props.filter(s.key) ? s.content : null)
@@ -39,7 +39,7 @@ export const Tooltip = (props: { filter: (key: string) => boolean }) => {
         ...(mouseX < window.innerWidth / 2 ?
             { left: `${mouseX + 50}px`, top: `${mouseY}px` } :
             { right: `${window.innerWidth - mouseX + 50}px`, top: `${mouseY}px` }),
-    }} class={"text-gray-100 absolute whitespace-nowrap px-6 py-1 backdrop-blur-3xl bg-[linear-gradient(240deg,rgba(31,37,46,0.4)_0%,rgba(30,36,44,0.4)_100%)] pointer-events-none rounded-sm [font-size:80%] [-webkit-text-stroke:5px_rgba(255,255,255,0.15)] [transition:transform_0.1s_ease-out]"}>
+    }} class={"text-gray-100 absolute whitespace-nowrap px-6 py-1 backdrop-blur-3xl bg-[linear-gradient(240deg,rgba(31,37,46,0.4)_0%,rgba(30,36,44,0.4)_100%)] pointer-events-none rounded-sm [font-size:80%] [-webkit-text-stroke:5px_rgba(255,255,255,0.15)] [transition:transform_0.1s_ease-out]" + (props.class ? ` ${props.class}` : "")}>
         {content}
     </div>
 }

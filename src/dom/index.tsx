@@ -36,6 +36,7 @@ const Tutorial = () => {
 export const domStore = createPersistingStore("acgDOMStore", 3, {
     news: null as readonly [headline: string, text: string] | null,
     usePowerSaveMode: true,
+    displayFPSCounter: import.meta.env.DEV,
     sfxVolume: 1,
     bgmVolume: 1,
     resolutionMultiplier: 1,
@@ -52,11 +53,11 @@ type EnemyStatus = { hp: number, name: string, money: number, items: { readonly 
 export const nonpersistentDOMStore = createStore("acgNonpersistentDOMStore", {
     enemyStatus: null as (EnemyStatus | null),
     powerSaveMode: false,
-    updateFPSMonitor: () => { },
+    updateFPSCounter: () => { },
 }, (set, get) => ({
     setEnemyStatus: (status: EnemyStatus) => { set({ enemyStatus: { ...status, hp: Math.max(0, Math.round(status.hp)) } }) },
     updatePowerSaveModeState: () => { set({ powerSaveMode: domStore.getState().usePowerSaveMode && (document.visibilityState === "hidden" || !document.hasFocus()) }) },
-    setFPSMonitorCallback: (updateFPSMonitor: () => void) => { set({ updateFPSMonitor }) }
+    setFPSCounterCallback: (updateFPSCounter: () => void) => { set({ updateFPSCounter: updateFPSCounter }) }
 }))
 
 nonpersistentDOMStore.getState().updatePowerSaveModeState()
@@ -203,13 +204,13 @@ const Cursor = () => {
     </>
 }
 
-/** FPS monitor */
-const FPSMonitor = () => {
+/** FPS counter */
+const FPSCounter = () => {
     const ref = useRef<HTMLDivElement>(null)
     useEffect(() => {
         const queue: number[] = []
         let t = 0
-        nonpersistentDOMStore.getState().setFPSMonitorCallback(() => {
+        nonpersistentDOMStore.getState().setFPSCounterCallback(() => {
             if (!ref.current) { return }
             const now = performance.now()
             queue.push(now)
@@ -246,6 +247,7 @@ const UI = () => {
     const stage = useStore(store, (s) => s.stage)
     const hasVacuum = useStore(store, (s) => s.upgrades.Vacuum > 0)
     const explorationLv = useStore(store, (s) => s.getExplorationLv())
+    const displayFPSCounter = useStore(domStore, (s) => s.displayFPSCounter)
 
     // Download the credit files in parallel
     useEffect(() => {
@@ -306,14 +308,14 @@ const UI = () => {
                 <span
                     class="pointer hover:text-white"
                     onClick={() => { optionsDialog.current!.showModal() }}
-                    onMouseOver={() => { setTooltip("left:options", <>Settings</>) }}
+                    onMouseOver={() => { setTooltip("left:options", <>Open Settings</>) }}
                     onMouseOut={() => { removeTooltip("left:options") }}>
                     <i class="ti ti-tool" />
                 </span>
                 <span
                     class="pointer hover:text-white"
                     onClick={() => { creditDialog.current!.showModal() }}
-                    onMouseOver={() => { setTooltip("left:license", <>License</>) }}
+                    onMouseOver={() => { setTooltip("left:license", <>Show License</>) }}
                     onMouseOut={() => { removeTooltip("left:license") }}>
                     <i class="ti ti-license" />
                 </span>
@@ -426,11 +428,21 @@ const UI = () => {
         <Dialog ref_={optionsDialog} class="py-4 px-10">
             <h1 class="text-xl mb-2 tracking-wider w-full text-center"><i class="ti ti-tool" /> Settings</h1>
             <table>
-                <tr>
-                    <td class="pr-4 text-right" title="Power Save Mode stops rendering the game,<br />but the game still runs in the background."><i class="ti ti-zzz" /> Power Save Mode</td>
+                <tr
+                    onMouseOver={() => { setTooltip(`center:power-save-mode`, <>Power Save Mode stops rendering the game,<br />but the game still runs in the background.</>) }}
+                    onMouseOut={() => { removeTooltip(`center:power-save-mode`) }}>
+                    <td class="pr-4 text-right"><i class="ti ti-zzz" /> Power Save Mode</td>
                     <td><label class="pointer"><input type="checkbox" checked={state.usePowerSaveMode} onChange={(ev) => { domStore.setState({ usePowerSaveMode: ev.currentTarget.checked }) }} /> enabled</label></td>
                 </tr>
-                <tr>
+                <tr
+                    onMouseOver={() => { setTooltip(`center:fps-counter`, <>A FPS counter is added to the bottom-right<br />corner of the screen if enabled.</>) }}
+                    onMouseOut={() => { removeTooltip(`center:fps-counter`) }}>
+                    <td class="pr-4 text-right"><i class="ti ti-device-watch" /> FPS Counter</td>
+                    <td><label class="pointer"><input type="checkbox" checked={state.displayFPSCounter} onChange={(ev) => { domStore.setState({ displayFPSCounter: ev.currentTarget.checked }) }} /> enabled</label></td>
+                </tr>
+                <tr
+                    onMouseOver={() => { setTooltip(`center:resolution`, <>Choose a lower resolution <br />if you're having performance issues.</>) }}
+                    onMouseOut={() => { removeTooltip(`center:resolution`) }}>
                     <td class="pr-4 text-right"><i class="ti ti-arrows-minimize" /> Resolution</td>
                     <td class="[&>*:not(:first-child)]:ml-2">
                         <label><input type="radio" name="resolution" checked={state.resolutionMultiplier === 1} onChange={(ev) => { domStore.setState({ resolutionMultiplier: 1 }) }} /> x1</label>
@@ -458,10 +470,14 @@ const UI = () => {
                     <td><input type="range" class="w-32 align-middle" value={state.bgmVolume} min={0} max={1} step={0.05} onChange={(ev) => { domStore.setState({ bgmVolume: +ev.currentTarget.value }) }} /></td>
                 </tr> */}
             </table>
-            <div class="pointer text-orange-300 hover:text-orange-400 mt-4" onClick={() => {
-                optionsDialog.current?.close()
-                resetProgressDialog.current?.showModal()
-            }}><i class="ti ti-eraser" /> Reset Progress</div>
+            <div
+                class="pointer text-orange-300 hover:text-orange-400 mt-4"
+                onMouseOver={() => { setTooltip(`center:reset-progress`, <>Delete the save data and restart from the beginning.</>) }}
+                onMouseOut={() => { removeTooltip(`center:reset-progress`) }}
+                onClick={() => {
+                    optionsDialog.current?.close()
+                    resetProgressDialog.current?.showModal()
+                }}><i class="ti ti-eraser" /> Reset Progress</div>
         </Dialog>
 
         {/* Newspaper Dialog */}
@@ -480,8 +496,10 @@ const UI = () => {
         {/* Cursor */}
         <Cursor />
 
-        {/* FPS monitor */}
-        <FPSMonitor />
+        {/* FPS Counter */}
+        {displayFPSCounter && <FPSCounter />}
+
+        <Tooltip class="z-30" filter={(key) => key.startsWith("center:")} />
     </>
 }
 
