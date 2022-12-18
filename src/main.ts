@@ -269,16 +269,6 @@ onUpdate.add(() => {
     })
 }
 
-// Play the BGM
-const playAudio = () => {
-    const audio = document.querySelector("audio#bgm")!
-    audio.loop = true
-    audio.play()
-}
-window.addEventListener("click", playAudio)  // We need this because of the autoplay policy https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide
-window.addEventListener("keydown", playAudio)
-playAudio()
-
 // The first tutorial message
 getState().addTutorial("wasd")
 
@@ -289,3 +279,14 @@ loaded()
 
 // Disable right-clicking
 window.addEventListener("contextmenu", (ev) => { ev.preventDefault() }, { capture: true })
+
+// Play the BGM
+const audio = new Audio()
+audio.src = "./audio/Anttis instrumentals - Coming back home instrumental.mp3"  // Download the audio file after the game is started to improve startup time
+const playAudio = () => {
+    audio.loop = true
+    audio.play()
+}
+window.addEventListener("click", playAudio)  // We need this because of the autoplay policy https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide
+window.addEventListener("keydown", playAudio)
+audio.addEventListener("load", () => { playAudio() })
