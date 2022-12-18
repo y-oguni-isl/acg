@@ -12,7 +12,7 @@ import shallow from "zustand/shallow"
 import { removeTooltip, setTooltip, Tooltip } from "./tooltip"
 import cursorDefault from "../../cursor.png"
 import cursorPointer from "../../cursor-pointer.png"
-import Dialog, { DialogRef } from "./dialog"
+import { Dialog, DialogRef, FrostedGlassWindow } from "./components"
 import Modal from "react-modal"
 import "./buttonAnimation"
 import { useEventListener } from "usehooks-ts"
@@ -72,24 +72,23 @@ const randomText = Array(10000).fill(0).map(() => Array(Math.floor(Math.random()
 const EnemyStats = () => {
     const enemyStatus = useStore(nonpersistentDOMStore, (s) => s.enemyStatus, shallow)
     const hasVacuum = useStore(store, (s) => s.upgrades.Vacuum > 0)
-    if (!enemyStatus) { return <></> }
-    return <div class="pl-3 pr-4 pt-1 pb-3 window">
+    return <FrostedGlassWindow visible={enemyStatus !== null} transitionDurationSec={0.9} class="pl-3 pr-4 pt-1 pb-3">
         <h2 class="mb-2 tracking-wide"><i class="ti ti-chart-line" /> Enemy Stats</h2>
         <div>
             <table class="tracking-wide">
-                <tr><td class="pr-1"><i class="ti ti-float-none" /></td><td>{enemyStatus.name}</td></tr>
-                <tr><td class="pr-1"><i class="ti ti-heart" /></td><td>{enemyStatus.hp}</td></tr>
-                <tr><td class="pr-1"><i class="ti ti-moneybag" /></td><td>{enemyStatus.money}</td></tr>
-                {hasVacuum && <tr><td class="pr-1"><i class="ti ti-notes" /></td><td>{ObjectKeys(enemyStatus.items).length === 0 ? "-" : ObjectEntries(enemyStatus.items).map(([k, v]) => <>{k} {v}</>)}</td></tr>}
+                <tr><td class="pr-1"><i class="ti ti-float-none" /></td><td>{enemyStatus?.name}</td></tr>
+                <tr><td class="pr-1"><i class="ti ti-heart" /></td><td>{enemyStatus?.hp}</td></tr>
+                <tr><td class="pr-1"><i class="ti ti-moneybag" /></td><td>{enemyStatus?.money}</td></tr>
+                {hasVacuum && <tr><td class="pr-1"><i class="ti ti-notes" /></td><td>{ObjectKeys(enemyStatus?.items ?? {}).length === 0 ? "-" : ObjectEntries(enemyStatus?.items ?? {}).map(([k, v]) => <>{k} {v}</>)}</td></tr>}
             </table>
         </div>
-    </div>
+    </FrostedGlassWindow>
 }
 
 /** The "Items" window */
 const Items = () => {
     const items = useStore(store, (s) => s.items)
-    return <div class="pr-3 pl-4 pt-1 pb-3 window">
+    return <FrostedGlassWindow visible={true} transitionDurationSec={0.8} class="pr-3 pl-4 pt-1 pb-3">
         <h2 class="mb-2 tracking-wide"><i class="ti ti-notes" /> Items</h2>
         <table class="w-full">{ObjectEntries(items).map(([k, v]) =>
             <tr class="border-b-2 border-b-gray-200 border-opacity-60"
@@ -98,22 +97,20 @@ const Items = () => {
                 <td><i class={k === "Food" ? "ti ti-meat" : "ti ti-settings"} /> {k}</td><td class="text-right">{v}</td>
             </tr>)}
         </table>
-    </div>
+    </FrostedGlassWindow>
 }
 
 /** The "transcend" (or "ascend") window */
 const Transcend = () => {
     const canTranscend = useStore(store, (s) => s.canTranscend)
-    return <>
-        {canTranscend && <div class="pr-3 pl-4 pt-1 pb-3 window gold">
-            <h2><i class="ti ti-arrows-transfer-up" /> Transcendence</h2>
-            <p class="text-xs mb-2">
-                You have reached the point of singularity and can transcended to a higher plane of existence.
-            </p>
-            {/* Higher plane of existence = enemies have more HP and money */}
-            <button class="w-full" tabIndex={-1} onClick={() => { getState().transcend() }}><i class="ti ti-list" /> Show Bonus</button>
-        </div>}
-    </>
+    return <FrostedGlassWindow visible={canTranscend} transitionDurationSec={0.9} class="pr-3 pl-4 pt-1 pb-3 gold">
+        <h2><i class="ti ti-arrows-transfer-up" /> Transcendence</h2>
+        <p class="text-xs mb-2">
+            You have reached the point of singularity and can transcended to a higher plane of existence.
+        </p>
+        {/* Higher plane of existence = enemies have more HP and money */}
+        <button class="w-full" tabIndex={-1} onClick={() => { getState().transcend() }}><i class="ti ti-list" /> Show Bonus</button>
+    </FrostedGlassWindow>
 }
 
 /** The tooltip shown when the mouse cursor is on the "Prev" button in the "Exploration" window */
@@ -245,6 +242,7 @@ const UI = () => {
     const transcending = useStore(store, (s) => s.transcending)
     const powerSaveMode = useStore(nonpersistentDOMStore, (s) => s.powerSaveMode)
     const stage = useStore(store, (s) => s.stage)
+    const duringStageTransition = useStore(store, (s) => s.stageTransitingTo !== null)
     const hasVacuum = useStore(store, (s) => s.upgrades.Vacuum > 0)
     const explorationLv = useStore(store, (s) => s.getExplorationLv())
     const displayFPSCounter = useStore(domStore, (s) => s.displayFPSCounter)
@@ -300,11 +298,11 @@ const UI = () => {
 
     return <>
         {/* Top-Left Pane */}
-        <div class="absolute left-[-4px] top-2 w-44 sm:w-72 h-full [&>*]:mt-3 [transform:perspective(5cm)_rotateY(2deg)]">
+        <div class={"absolute left-[-4px] top-2 w-44 sm:w-72 h-full [&>*]:mt-3 [transform:perspective(5cm)_rotateY(2deg)] " + (duringStageTransition ? " [&>*]:[transform:translateX(-400px)]" : "")}>
             <Upgrades />
             {hasVacuum && <Items />}
             <Transcend />
-            <div class="pr-3 pl-4 py-1 window window--oneline w-fit tracking-wide [&>*:not(:first-child)]:ml-5">
+            <FrostedGlassWindow visible={true} transitionDurationSec={1} class="pr-3 pl-4 py-1 window--oneline w-fit tracking-wide [&>*:not(:first-child)]:ml-5">
                 <span
                     class="pointer hover:text-white"
                     onClick={() => { optionsDialog.current!.showModal() }}
@@ -332,16 +330,16 @@ const UI = () => {
                     onMouseOut={() => { removeTooltip("left:share") }}>
                     <i class="ti ti-brand-twitter" />
                 </span>
-            </div>
+            </FrostedGlassWindow>
 
             {/* Tooltip */}
             <Tooltip filter={(key) => key.startsWith("left:")} />
         </div>
 
         {/* Top-Right pane */}
-        <div class="absolute right-[-4px] top-2 min-w-[7rem] h-full sm:min-w-[13rem] [&>*]:mt-3 [transform:perspective(5cm)_rotateY(-2deg)]">
+        <div class={"absolute right-[-4px] top-2 min-w-[7rem] h-full sm:min-w-[13rem] [&>*]:mt-3 [transform:perspective(5cm)_rotateY(-2deg)]" + (duringStageTransition ? " [&>*]:[transform:translateX(400px)]" : "")}>
             {/* Stages */}
-            {ObjectValues(areStageNamesVisible).some((v) => v) && <div class="pl-3 pr-4 pt-1 pb-3 window">
+            <FrostedGlassWindow visible={ObjectValues(areStageNamesVisible).some((v) => v)} transitionDurationSec={0.6} class="pl-3 pr-4 pt-1 pb-3">
                 <h2 class="mb-2 tracking-wide"><i class="ti ti-map-2" /> Stages</h2>
                 <div class="[&>*:not(:last-child)]:mb-1">{ObjectKeys(stages).map((name) => <div class="relative">
                     <button
@@ -353,10 +351,10 @@ const UI = () => {
                     </button>
                 </div>)}
                 </div>
-            </div>}
+            </FrostedGlassWindow>
 
             {/* Weather */}
-            {isWeatherSystemUnlocked && constants.weathers[stage] !== null && <div class="pl-3 pr-4 pt-1 pb-3 window">
+            <FrostedGlassWindow visible={isWeatherSystemUnlocked && constants.weathers[stage] !== null} transitionDurationSec={0.8} class="pl-3 pr-4 pt-1 pb-3">
                 <h2 class="mb-2 tracking-wide"><i class="ti ti-sun" /> Weather</h2>
                 <div>
                     <table>
@@ -364,13 +362,13 @@ const UI = () => {
                         <tr><td class="pr-1">{weather && ">"}</td><td class={"tracking-wider " + (weather ? "font-bold" : "")}>{constants.weathers[stage]}{!weather && <span class="text-gray-300"> (in {"<" + weatherEffectWillBeEnabledInLessThan} min{weatherEffectWillBeEnabledInLessThan !== 1 && "s"})</span>}</td></tr>
                     </table>
                 </div>
-            </div>}
+            </FrostedGlassWindow>
 
             {/* Enemy */}
             <EnemyStats />
 
             {/* Explore */}
-            {hasVacuum && stage !== "Mothership" && <div class="pl-3 pr-4 pt-1 pb-3 window">
+            <FrostedGlassWindow visible={hasVacuum && stage !== "Mothership"} transitionDurationSec={1} class="pl-3 pr-4 pt-1 pb-3">
                 <h2 class="mb-2 tracking-wide"><i class="ti ti-route" /> Explore: <span class="tracking-tight">Lv. {explorationLv}</span></h2>
                 <button
                     class="block w-full ![border-radius:2rem_0.5rem_2rem_0.5rem] text-center relative"
@@ -387,7 +385,7 @@ const UI = () => {
                     onMouseOut={() => { removeTooltip("right:explorationPrev") }}>
                     <i class="ti ti-arrow-back" /> Prev
                 </button>
-            </div>}
+            </FrostedGlassWindow>
 
             {/* Tooltip */}
             <Tooltip filter={(key) => key.startsWith("right:")} />

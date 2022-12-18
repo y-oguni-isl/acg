@@ -12,7 +12,7 @@ export type DialogRef = Pick<HTMLDialogElement, "showModal" | "close">
  * - `transition` CSS property in `dialog::backdrop` doesn't work in Firefox and Safari as of dec 2022.
  * - A div with `position: absolute` cannot be rendered on top of `<dialog>` (https://stackoverflow.com/questions/41815069/is-it-possible-to-position-a-div-on-top-of-a-dialog-tag-that-is-not-its-parent), which is required for the custom cursor.
  */
-const Dialog = (props: { ref_: MutableRef<DialogRef | null>, class?: string, children?: ComponentChildren, onClose?: () => void }) => {
+export const Dialog = (props: { ref_: MutableRef<DialogRef | null>, class?: string, children?: ComponentChildren, onClose?: () => void }) => {
     const open = useBoolean(false)
     const close = useCallback(() => { open.setFalse(); props.onClose?.() }, [])
     useEffect(() => {
@@ -28,4 +28,10 @@ const Dialog = (props: { ref_: MutableRef<DialogRef | null>, class?: string, chi
         }</Modal>
 }
 
-export default Dialog
+export const FrostedGlassWindow = (props: { class?: string, visible: boolean, transitionDurationSec: number, children: preact.ComponentChildren }) => {
+    return <div
+        style={{ transition: `transform ${props.transitionDurationSec}s ease-in-out` }}
+        class={props.visible ? ("window " + (props.class ?? "")) : ""}>
+        {props.visible && props.children}
+    </div>
+}

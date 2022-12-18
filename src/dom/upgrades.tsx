@@ -7,6 +7,7 @@ import { useRef, useLayoutEffect } from "preact/hooks"
 import shallow from "zustand/shallow"
 import { removeTooltip, setTooltip } from "./tooltip"
 import { onBeforeRender } from "../hooks"
+import { FrostedGlassWindow } from "./components"
 
 /** Constructs the css property to animate the background color of the buttons in the "Upgrades" window. */
 const buildProgressBarStyle = (name: constants.UpgradeName, rowNumber: number) => {
@@ -28,18 +29,16 @@ const buildProgressBarStyle = (name: constants.UpgradeName, rowNumber: number) =
 }
 
 /** The list of upgrades shown at the left top corner. */
-const Upgrades = () => {
+const Upgrades = (props: { class?: string }) => {
     const upgrades = useStore(store, (s) => ObjectEntries(s.upgrades)
         .filter((_, i, arr) => i < 2 || arr[i - 1]![1] > 0 || arr[i - 2]![1] > 0)
         .map(([k]) => k), shallow)
-    return <>
-        <div class="pr-3 pl-4 pt-1 pb-3 window">
-            <h2 class="mb-2 tracking-wide"><i class="ti ti-chevrons-up" /> Upgrades</h2>
-            <div class="[&>*:not(:last-child)]:mb-1">
-                {upgrades.map((name, i) => <Row key={name} name={name} rowNumber={i} />)}
-            </div>
+    return <FrostedGlassWindow visible={true} transitionDurationSec={0.6} class={"pr-3 pl-4 pt-1 pb-3 " + (props.class ?? "")}>
+        <h2 class="mb-2 tracking-wide"><i class="ti ti-chevrons-up" /> Upgrades</h2>
+        <div class="[&>*:not(:last-child)]:mb-1">
+            {upgrades.map((name, i) => <Row key={name} name={name} rowNumber={i} />)}
         </div>
-    </>
+    </FrostedGlassWindow>
 }
 
 /** The button in the "Upgrades" window */
