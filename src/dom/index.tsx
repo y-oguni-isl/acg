@@ -146,8 +146,7 @@ const Cursor = () => {
         const element = document.elementFromPoint(ev.clientX, ev.clientY)
         setStyle(element?.matches(".pointer,.pointer *,button,button *,a,input,.ReactModal__Overlay") ? "pointer" : "default")
     })
-    useEventListener("mouseleave", () => { setPosition(null) }, { current: document.body })
-    useEventListener("blur", () => { setPosition(null) })
+    useEventListener("mouseout", () => { setPosition(null) }, { current: document.body })
 
     // Draw on the canvas
     useEffect(() => {
