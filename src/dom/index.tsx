@@ -15,6 +15,7 @@ import Modal from "react-modal"
 import "./buttonAnimation"
 import { displayLanguageStore, LanguageCode, useTranslation } from "./i18n"
 import { Cursor } from "./cursor"
+import { useBoolean, useTimeout } from "usehooks-ts"
 
 /** The setting values, which can be changed in the settings dialog. */
 export const settingsStore = createPersistingStore("acgDOMStore", 4, {
@@ -38,16 +39,26 @@ export const settingsStore = createPersistingStore("acgDOMStore", 4, {
 /** A mapping from tutorial names to their indices.  */
 const tutorialIndices = new Map(constants.tutorialName.map((name, i) => [name, i]))
 
+const useFadeIn = () => {
+    const loading = useBoolean(true)
+    useTimeout(() => { loading.setFalse() }, 1500)
+    return loading.value
+}
+
 /** A black banner showing a tutorial message. */
 const Tutorial = () => {
     const { t } = useTranslation()
     const currentTutorial = useStore(store, (s) =>
         [...new Set(ObjectKeys(s.availableTutorials)).difference(new Set(ObjectKeys(s.completedTutorials)))]
             .sort((a, b) => tutorialIndices.get(a)! - tutorialIndices.get(b)!)[0])
+    const fadeIn = useFadeIn()
     const lastTutorial = useRef<constants.TutorialName | undefined>(undefined)  // Remember previous message to keep text when fading out
+
     useLayoutEffect(() => { lastTutorial.current = currentTutorial ?? lastTutorial.current }, [currentTutorial])
+
     const displayedTutorial = currentTutorial ?? lastTutorial.current
-    return <div style={{ opacity: currentTutorial === undefined ? "0" : "1" }} class="absolute w-[90%] py-3 left-[5%] px-16 text-center top-[70%] [transition:opacity_ease_1s] whitespace-pre-wrap pointer-events-none z-10 window-popup">
+
+    return <div style={{ opacity: (fadeIn || currentTutorial === undefined) ? "0" : "1" }} class="absolute w-[90%] py-3 left-[5%] px-16 text-center top-[70%] [transition:opacity_ease_1s] whitespace-pre-wrap pointer-events-none z-10 window-popup">
         {displayedTutorial && <><i class="ti ti-message-report absolute left-4 top-0 [font-size:250%]" /><span class="[&>b]:text-orange-300">{t(`tutorial-${displayedTutorial}`)}</span></>}
     </div>
 }
@@ -178,6 +189,7 @@ const UI = () => {
     const canTranscend = useStore(store, (s) => s.canTranscend)
     const lang = useStore(displayLanguageStore, (s) => s.lang)
     const setLang = useStore(displayLanguageStore, (s) => s.setLang)
+    const fadeIn = useFadeIn()
 
     // Download the credit files in parallel
     useEffect(() => {
@@ -206,7 +218,7 @@ const UI = () => {
 
     return <>
         {/* Top-Left Pane */}
-        <div class={"left-pane absolute left-[-4px] top-2 w-44 sm:w-72 h-full [&>*]:mt-3 [transform:perspective(5cm)_rotateY(2deg)] " + (duringStageTransition ? " [&>*]:[transform:translateX(-400px)]" : "")}>
+        <div class={"left-pane absolute left-[-4px] top-2 w-44 sm:w-72 h-full [&>*]:mt-3 [transform:perspective(5cm)_rotateY(2deg)] " + ((fadeIn || duringStageTransition) ? " [&>*]:[transform:translateX(-400px)]" : "")}>
             {/* Upgrades */}
             <Upgrades />
 
@@ -259,7 +271,7 @@ const UI = () => {
         </div>
 
         {/* Top-Right pane */}
-        <div class={"right-pane absolute right-[-4px] top-2 min-w-[7rem] h-full sm:min-w-[13rem] [&>*]:mt-3 [transform:perspective(5cm)_rotateY(-2deg)]" + (duringStageTransition ? " [&>*]:[transform:translateX(400px)]" : "")}>
+        <div class={"right-pane absolute right-[-4px] top-2 min-w-[7rem] h-full sm:min-w-[13rem] [&>*]:mt-3 [transform:perspective(5cm)_rotateY(-2deg)]" + ((fadeIn || duringStageTransition) ? " [&>*]:[transform:translateX(400px)]" : "")}>
             {/* Stages */}
             <FrostedGlassWindow visible={ObjectValues(areStageNamesVisible).some((v) => v)} transitionDurationSec={0.6} class="pl-3 pr-4 pt-1 pb-3">
                 <h2 class="mb-2 tracking-wide"><i class="ti ti-map-2" /> {t("Stages")}</h2>
@@ -437,5 +449,5 @@ const UI = () => {
     </>
 }
 
-Modal.setAppElement(document.body)
-render(<UI />, document.body)
+Modal.setAppElement(document.querySelector("div#game")!)
+render(<UI />, document.querySelector("div#game")!)

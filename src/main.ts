@@ -37,7 +37,7 @@ const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.outputEncoding = THREE.sRGBEncoding
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.setPixelRatio(window.devicePixelRatio * settingsStore.getState().resolutionMultiplier)
-document.body.appendChild(renderer.domElement)
+document.querySelector("div#game")!.appendChild(renderer.domElement)
 
 // Camera
 const cameraInitialPosition = [-0.5, 0.6, 0] as const
@@ -295,3 +295,5 @@ settingsStore.subscribe((state, prev) => {
 window.addEventListener("click", playAudio)  // We need this because of the autoplay policy https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide
 window.addEventListener("keydown", playAudio)
 audio.addEventListener("load", () => { playAudio() })
+
+document.querySelector("div#game")!.style.opacity = "1"
