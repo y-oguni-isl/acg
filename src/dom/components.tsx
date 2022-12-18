@@ -28,6 +28,7 @@ export const Dialog = (props: { ref_: MutableRef<DialogRef | null>, class?: stri
         }</Modal>
 }
 
+/** The small windows displayed at either side of the screen, e.g. upgrades, stages, etc. */
 export const FrostedGlassWindow = (props: { class?: string, visible: boolean, transitionDurationSec: number, children: preact.ComponentChildren }) => {
     return <div
         style={{ transition: `transform ${props.transitionDurationSec}s ease-in-out` }}

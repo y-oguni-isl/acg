@@ -1,3 +1,4 @@
+// Add animations to buttons clicked
 window.addEventListener("click", (ev) => {
     let button: HTMLButtonElement | null
     if (ev.target instanceof Element && (button = ev.target.closest("button"))) {

@@ -264,8 +264,13 @@ const UI = () => {
     return <>
         {/* Top-Left Pane */}
         <div class={"absolute left-[-4px] top-2 w-44 sm:w-72 h-full [&>*]:mt-3 [transform:perspective(5cm)_rotateY(2deg)] " + (duringStageTransition ? " [&>*]:[transform:translateX(-400px)]" : "")}>
+            {/* Upgrades */}
             <Upgrades />
+
+            {/* Items */}
             <Items />
+
+            {/* Transcendence */}
             <FrostedGlassWindow visible={canTranscend} transitionDurationSec={0.9} class="pr-3 pl-4 pt-1 pb-3 window--gold">
                 <h2><i class="ti ti-arrows-transfer-up" /> Transcendence</h2>
                 <p class="text-xs mb-2">
@@ -274,6 +279,8 @@ const UI = () => {
                 {/* Higher plane of existence = enemies have more HP and money */}
                 <button class="w-full button--gold" tabIndex={-1} onClick={() => { transcendenceDialog.current?.showModal() }}><i class="ti ti-list" /> Show Bonus</button>
             </FrostedGlassWindow>
+
+            {/* Small buttons (settings, license, and twitter) */}
             <FrostedGlassWindow visible={true} transitionDurationSec={1} class="pr-3 pl-4 py-1 window--oneline w-fit tracking-wide [&>*:not(:first-child)]:ml-5">
                 <span
                     class="pointer hover:text-white"
