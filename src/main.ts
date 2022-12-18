@@ -281,19 +281,41 @@ loaded()
 window.addEventListener("contextmenu", (ev) => { ev.preventDefault() }, { capture: true })
 
 // Play the BGM
-const audio = new Audio()
-audio.src = "./audio/Anttis instrumentals - Coming back home instrumental.mp3"  // Download the audio file after the game is started to improve startup time
-const playAudio = () => {
+{
+    const audio = new Audio()
+    audio.src = "./audio/Anttis instrumentals - Coming back home instrumental.mp3"  // Download the audio file after the game is started to improve startup time
     audio.loop = true
-    audio.volume = settingsStore.getState().bgmVolume
-    audio.play()
+    const audioContext = new AudioContext()
+    let fadeInGain: GainNode
+    let volumeGain: GainNode
+    audioContext.createMediaElementSource(audio)
+        .connect(fadeInGain = new GainNode(audioContext, { gain: 0 }))
+        .connect(volumeGain = new GainNode(audioContext, { gain: settingsStore.getState().bgmVolume }))
+        .connect(audioContext.destination)
+
+    let scheduled = false
+    const playAudio = () => {
+        audio.play()
+        if (audioContext.state === "suspended") {
+            audioContext.resume()
+        }
+        if (!scheduled) {
+            scheduled = true
+            // Fade in
+            const { currentTime } = audioContext
+            fadeInGain.gain.cancelScheduledValues(currentTime)
+            fadeInGain.gain.setValueAtTime(fadeInGain.gain.value, currentTime)
+            fadeInGain.gain.linearRampToValueAtTime(1, currentTime + 8)
+        }
+    }
+    playAudio()
+    settingsStore.subscribe((state, prev) => {
+        if (state.bgmVolume === prev.bgmVolume) { return }
+        volumeGain.gain.value = state.bgmVolume
+    })
+    window.addEventListener("click", playAudio)  // We need this because of the autoplay policy https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide
+    window.addEventListener("keydown", playAudio)
+    audio.addEventListener("load", () => { playAudio() })
 }
-settingsStore.subscribe((state, prev) => {
-    if (state.bgmVolume === prev.bgmVolume) { return }
-    audio.volume = state.bgmVolume
-})
-window.addEventListener("click", playAudio)  // We need this because of the autoplay policy https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide
-window.addEventListener("keydown", playAudio)
-audio.addEventListener("load", () => { playAudio() })
 
 document.querySelector("div#game")!.style.opacity = "1"
