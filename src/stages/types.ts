@@ -1,4 +1,4 @@
-import type { ItemName } from "../constants"
+import type { EnemyName, ItemName } from "../constants"
 import type { ObjectPoolInstance } from "../webgl/webglUtil"
 
 /** A type that represents the definition of a game stage. */
@@ -17,7 +17,7 @@ export type StageDefinition = {
 
 /** A type that represents the state of an enemy, which is stored in the {@link THREE.Object3D.userData} property in the 3D model of the enemy. */
 export type EnemyUserData = {
-    name: string
+    name: EnemyName
     time: number
     hp: number
     update: () => void

@@ -1,11 +1,9 @@
-import * as THREE from "three"
 import { ObjectPool } from "./webglUtil"
 import { onBeforeRender } from "../hooks"
 import { subscribe } from "../saveData"
 import { domStore } from "../dom"
 import { call, ObjectKeys } from "../util"
 import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise"
-import * as constants from "../constants"
 import models from "../models"
 
 /**
@@ -55,7 +53,7 @@ export default () => {
         if (!addedNews) { return }
         startTime = Date.now()
         pool.visible = true
-        domStore.getState().showNews(constants.newsList[addedNews])
+        domStore.getState().showNews(addedNews)
         setTimeout(() => { pool.visible = false }, 10000)
     })
 

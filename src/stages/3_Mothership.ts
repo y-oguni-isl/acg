@@ -22,7 +22,7 @@ const Mothership: StageDefinition = {
     visible: () => (getState().availableNews.aliensComing ?? false) && getState().upgrades["ATK×2"] > 0,
     createEnemyPools: () => {
         const alive = webgl.createMothership().onAllocate((copy): EnemyUserData => ({
-            name: "Planet",
+            name: "Mothership",
             time: 0,
             hp: 1200000 * getState().getExplorationLv() * (500 ** getState().transcendence),
             update: () => { /* skip */ },

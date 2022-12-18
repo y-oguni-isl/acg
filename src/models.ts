@@ -3,6 +3,7 @@ import { ObjectFromEntries, ObjectValues } from "./util";
 import * as THREE from "three"
 import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils"
+import { i18nextT } from "./dom/i18n";
 
 const loadingMessage = {} as Record<string, string>
 const setLoadingMessage = (key: string, message: string) => {
@@ -23,9 +24,9 @@ const removeLoadingMessage = (key: string) => {
 /** Downloads and parses a .gltf (text) or .glb (binary) file. The `filepath` argument is relative to the public/ folder. */
 export const loadGLTF = async (filepath: string): Promise<THREE.Object3D> => {
     if (!getRenderingOption(filepath)) { return new THREE.Object3D() }
-    setLoadingMessage(filepath, `Downloading ${filepath} (0/pending)`)
+    setLoadingMessage(filepath, i18nextT("Downloading {{filepath}} (pending)", { filepath }))
     const obj = (await new Promise<GLTF>((resolve, reject) => new GLTFLoader().load(filepath, resolve, (xhr) => {
-        setLoadingMessage(filepath, `Downloading ${filepath} (${xhr.loaded}/${xhr.total})`)
+        setLoadingMessage(filepath, i18nextT("Downloading {{filepath}} ({{loaded}}/{{total}})", { filepath, loaded: xhr.loaded, total: xhr.total }))
     }, reject)))
         .scene.children[0]!.children[0]!
     removeLoadingMessage(filepath)
@@ -47,7 +48,7 @@ const filenames = [
 // Parallel download all models
 const models = await Promise.all(filenames.map((name) => (async () => [name, await loadGLTF(`models/${name}`)] as const)()))
 
-setLoadingMessage("loadingModels", `Loading models...`)
+setLoadingMessage("loadingModels", i18nextT("Loading models..."))
 await new Promise((resolve) => setTimeout(resolve, 0)) // Make the browser to render the changes in the DOM
 
 export default ObjectFromEntries(models.map(([k, v]) => [

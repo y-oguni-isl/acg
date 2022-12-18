@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-[linear-gradient(white,rgb(225,225,225)_100%)]">
+<html lang="en" class="h-full bg-gray-700">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -8,16 +8,7 @@
     <link rel="stylesheet" href="./node_modules/@tabler/icons/iconfont/tabler-icons.min.css">
     <link rel="stylesheet" href="./style.scss">
 </head>
-<body class="pl-[20vw] pr-[20vw] pt-[35vh] text-lg select-none">
-    <h2 class="text-amber-600 text-3xl mb-4 font-bold">
-        <i class="ti ti-alert-triangle"></i>
-        Game Opened in Another Tab!
-    </h2>
-    <p class="mb-8 text-gray-700">
-        This game uses auto-save and will not work correctly if it is open in more than one browser tab. Please close the game on any other tabs and try again.
-    </p>
-    <button class="px-4" onclick="location.href = './'"><i class="ti ti-arrow-back"></i> Go back</button>
-    <div class="absolute left-2 bottom-2 text-gray-500">Icon font: <a href="https://github.com/tabler/tabler-icons" class="underline">Tabler-icons</a></div>
-    <script type="module" src="./src/dom/buttonAnimation.ts"></script>
+<body class="pl-[20vw] pr-[20vw] pt-[35vh] text-lg select-none overflow-hidden [&_button]:bg-gray-600">
+    <script type="module" src="./tab_already_open.tsx"></script>
 </body>
 </html>

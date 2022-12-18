@@ -4,7 +4,7 @@
 
 import type { ComponentChildren } from "preact"
 import { useEffect, useState } from "preact/hooks"
-import { useEventListener, useInterval } from "usehooks-ts"
+import { useEventListener } from "usehooks-ts"
 import { useStore } from "zustand"
 import { onUpdate } from "../hooks"
 import { createStore } from "../util"
@@ -49,7 +49,7 @@ export const Tooltip = (props: { class?: string, filter: (key: Element) => boole
         ...(mouseX < window.innerWidth / 2 ?
             { left: `${mouseX + 50}px`, top: `${mouseY}px` } :
             { right: `${window.innerWidth - mouseX + 50}px`, top: `${mouseY}px` }),
-    }} class={"text-gray-100 absolute whitespace-nowrap px-6 py-1 backdrop-blur-3xl bg-[linear-gradient(240deg,rgba(31,37,46,0.4)_0%,rgba(30,36,44,0.4)_100%)] pointer-events-none rounded-sm [font-size:80%] [-webkit-text-stroke:5px_rgba(255,255,255,0.15)] [transition:transform_0.1s_ease-out] " + (props.class ?? "")}>
+    }} class={"text-gray-100 absolute whitespace-nowrap px-6 py-1 backdrop-blur-3xl bg-[linear-gradient(240deg,rgba(31,37,46,0.4)_0%,rgba(30,36,44,0.4)_100%)] select-none pointer-events-none rounded-sm [font-size:80%] [-webkit-text-stroke:5px_rgba(255,255,255,0.15)] [transition:transform_0.1s_ease-out] " + (props.class ?? "")}>
         {content}
     </div>
 }

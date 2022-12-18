@@ -19,9 +19,9 @@ export const store = createPersistingStore(localStorageKey, 8, {
     items: {} as Partial<Record<constants.ItemName, number>>,
     /** The number of upgrades purchased. Use getUpgrades() to get the number of upgrades that takes the weather effect into account. */
     upgrades: Object.fromEntries(constants.upgradeNames.map((name) => [name, 0])) as Record<constants.UpgradeName, number>,
-    /** The tutorial in `availableTutorials - completedTutorials` with the lowest index in {@link constants.tutorialHTML} is displayed to the player. */
+    /** The tutorial in `availableTutorials - completedTutorials` with the lowest index in `tutorialNames` is displayed to the player. */
     completedTutorials: {} as SerializableSet<constants.TutorialName>,
-    /** The tutorial in `availableTutorials - completedTutorials` with the lowest index in {@link constants.tutorialHTML} is displayed to the player. */
+    /** The tutorial in `availableTutorials - completedTutorials` with the lowest index in `tutorialNames` is displayed to the player. */
     availableTutorials: {} as SerializableSet<constants.TutorialName>,
     /** The list of published news. */
     availableNews: {} as SerializableSet<constants.NewsName>,

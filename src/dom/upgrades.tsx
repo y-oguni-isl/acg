@@ -7,6 +7,7 @@ import shallow from "zustand/shallow"
 import { removeTooltip, setTooltip } from "./tooltip"
 import { onBeforeRender } from "../hooks"
 import { Button, FrostedGlassWindow } from "./components"
+import { useTranslation } from "./i18n"
 
 /** Constructs the css property to animate the background color of the buttons in the "Upgrades" window. */
 const buildProgressBarStyle = (name: constants.UpgradeName, rowNumber: number) => {
@@ -29,11 +30,12 @@ const buildProgressBarStyle = (name: constants.UpgradeName, rowNumber: number) =
 
 /** The list of upgrades shown at the left top corner. */
 const Upgrades = (props: { class?: string }) => {
+    const { t } = useTranslation()
     const upgrades = useStore(store, (s) => ObjectEntries(s.upgrades)
         .filter((_, i, arr) => i < 2 || arr[i - 1]![1] > 0 || arr[i - 2]![1] > 0)
         .map(([k]) => k), shallow)
     return <FrostedGlassWindow visible={true} transitionDurationSec={0.6} class={"pr-3 pl-4 pt-1 pb-3 " + (props.class ?? "")}>
-        <h2 class="mb-2 tracking-wide"><i class="ti ti-chevrons-up" /> Upgrades</h2>
+        <h2 class="mb-2 tracking-wide"><i class="ti ti-chevrons-up" /> {t("Upgrades")}</h2>
         <div class="[&>*:not(:last-child)]:mb-1">
             {upgrades.map((name, i) => <Row key={name} name={name} rowNumber={i} />)}
         </div>
@@ -42,6 +44,7 @@ const Upgrades = (props: { class?: string }) => {
 
 /** The button in the "Upgrades" window */
 const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
+    const { t } = useTranslation()
     const buyUpgrade = useStore(store, (s) => s.buyUpgrade)
     const weather = useStore(store, (s) => s.getWeather())
     const price = useStore(store, (s) => constants.price(props.name, s))
@@ -83,7 +86,7 @@ const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
                 placeholder4: "ti-circle-dotted",
                 placeholder5: "ti-circle-dotted",
                 placeholder6: "ti-circle-dotted",
-            } satisfies Record<constants.UpgradeName, string>)[props.name]} />{props.name}</>}</span>
+            } satisfies Record<constants.UpgradeName, string>)[props.name]} />{t(props.name)}</>}</span>
             <span class="float-right tracking-tight">{count}{debuff !== 0 && <b class="text-red-400"> ({debuff})</b>}</span>
         </div>
     </Button>
@@ -91,6 +94,7 @@ const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
 
 /** Renders the contents of the tooltip that is shown when the mouse cursor is over the one of the buttons in the "Upgrades" window. */
 const TooltipContent = (props: { name: constants.UpgradeName }) => {
+    const { t } = useTranslation()
     const price = useStore(store, (s) => constants.price(props.name, s))
     const atk = useStore(store, (s) => constants.getAtk(s)[props.name])
     const interval = useStore(store, (s) => constants.getInterval(s)[props.name])
@@ -99,12 +103,12 @@ const TooltipContent = (props: { name: constants.UpgradeName }) => {
     const vacuumGain = useStore(store, (s) => constants.getVacuumGain(s).toFixed(2))
 
     return <table>
-        <tr><td class="font-bold tracking-wider pr-2 text-right">Price</td><td><i class="ti ti-moneybag" /> {money} / {price}</td></tr>
+        <tr><td class="font-bold tracking-wider pr-2 text-right">{t("Price")}</td><td><i class="ti ti-moneybag" /> {money} / {price}</td></tr>
         {!isUpgradeNameHidden && <>
-            {atk && <tr><td class="tracking-wider text-right pr-2">Damage</td><td><i class="ti ti-swords" /> {atk}</td></tr>}
-            {interval && <tr><td class="tracking-wider text-right pr-2">Interval</td><td><i class="ti ti-hourglass" /> {interval}</td></tr>}
-            {props.name === "Missile" && <tr><td class="tracking-wider text-right pr-2">Ammo</td><td><i class="ti ti-notes" /> <i class="ti ti-settings" />×1000 / shot</td></tr>}
-            {props.name === "Vacuum" && <tr><td class="tracking-wider text-right pr-2">Items</td><td><i class="ti ti-notes" /> ×{vacuumGain}</td></tr>}
+            {atk && <tr><td class="tracking-wider text-right pr-2">{t("Damage")}</td><td><i class="ti ti-swords" /> {atk}</td></tr>}
+            {interval && <tr><td class="tracking-wider text-right pr-2">{t("Interval")}</td><td><i class="ti ti-hourglass" /> {interval}</td></tr>}
+            {props.name === "Missile" && <tr><td class="tracking-wider text-right pr-2">{t("Ammo")}</td><td><i class="ti ti-notes" /> <i class="ti ti-settings" />×1000 / shot</td></tr>}
+            {props.name === "Vacuum" && <tr><td class="tracking-wider text-right pr-2">{t("Items")}</td><td><i class="ti ti-notes" /> ×{vacuumGain}</td></tr>}
         </>}
     </table>
 }

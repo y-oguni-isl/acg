@@ -5,6 +5,8 @@ import Modal from "react-modal"
 import { useBoolean } from "usehooks-ts"
 import { removeTooltip, setTooltip } from "./tooltip"
 import { forwardRef } from 'preact/compat'
+import ja_JP from "./locales/ja-JP"
+import i18next from "i18next"
 
 /** A subtype of HTMLDialogElement to reference a <{@link Dialog}>. */
 export type DialogRef = Pick<HTMLDialogElement, "showModal" | "close">
@@ -23,7 +25,7 @@ export const Dialog = (props: { ref_: MutableRef<DialogRef | null>, class?: stri
         props.ref_.current = { showModal: open.setTrue, close }
     }, [props.ref_])
     return <Modal
-        isOpen={open.value}
+        react-i18next isOpen={open.value}
         closeTimeoutMS={300}
         onRequestClose={close}
         className={"absolute outline-none top-1/2 left-1/2 right-auto bottom-auto mr-[-50%] [max-width:90vw] [max-height:90vh] overflow-auto " + (props.class ?? "")}>{
@@ -44,6 +46,7 @@ export const FrostedGlassWindow = (props: { class?: string, visible: boolean, tr
 export const Button = forwardRef((props: {
     class?: string
     onClick?: JSXInternal.MouseEventHandler<HTMLDivElement>
+    onMouseOver?: JSXInternal.MouseEventHandler<HTMLDivElement>
     title?: preact.ComponentChildren
     children?: preact.ComponentChildren
     disabled?: boolean
@@ -52,6 +55,11 @@ export const Button = forwardRef((props: {
         ref={ref}
         class={`button inline-block text-center ${props.disabled ? "" : "pointer "}` + (props.class ?? "")}
         onClick={function (ev) { if (!props.disabled) { props.onClick?.call(this, ev) } }}
-        onMouseOver={props.title ? (ev) => { setTooltip(ev.currentTarget, props.title) } : undefined}
-        onMouseOut={props.title ? (ev) => { removeTooltip(ev.currentTarget) } : undefined}>{props.children}</div>
+        onMouseOver={function (ev) {
+            if (props.title) { setTooltip(ev.currentTarget, props.title) }
+            props.onMouseOver?.call(this, ev)
+        }}
+        onMouseOut={(ev) => {
+            if (props.title) { removeTooltip(ev.currentTarget) }
+        }}>{props.children}</div>
 })

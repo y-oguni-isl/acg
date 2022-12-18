@@ -100,17 +100,19 @@ input[type=checkbox], input[type=radio] {
     @apply accent-orange-600;
 }
 
-.game {
-    body,
-    button,
-    button:disabled,
-    label,
-    a,
-    input,
-    dialog::backdrop,
-    img {
-        cursor: none;
-    }
+html {
+    min-height: 100%;
+}
+
+html,
+button,
+button:disabled,
+label,
+a,
+input,
+dialog::backdrop,
+img {
+    cursor: none;
 }
 
 img {
