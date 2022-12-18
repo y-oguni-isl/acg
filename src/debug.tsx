@@ -72,8 +72,8 @@ export const Debugger = () => {
                 <h2>3D Models</h2>
                 You can move the camera by dragging the screen when the game is paused.
                 <div>
-                    {!paused && <Button class="px-2" onClick={() => { stop() }}>🛑 Pause</Button>}
-                    {paused && <Button class="px-2 ml-1" onClick={() => { resume() }}>▶️ Resume</Button>}
+                    {!paused && <Button class="px-2" onClick={() => { stop() }}><i class="ti ti-player-pause" /> Pause</Button>}
+                    {paused && <Button class="px-2" onClick={() => { resume() }}><i class="ti ti-player-play" /> Resume</Button>}
                 </div>
             </div>
 

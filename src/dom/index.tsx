@@ -369,7 +369,7 @@ const UI = () => {
 
         {/* Credits Dialog */}
         <Dialog ref_={creditDialog} class="p-5">
-            <h1 class="text-xl mb-2 tracking-wider w-full text-center">{t("Credits")}</h1>
+            <h1 class="text-xl mb-2 tracking-wider w-full text-center"><i class="ti ti-license mr-1" />{t("Credits")}</h1>
             <ul dangerouslySetInnerHTML={{ __html: creditHTML ?? "" }} class="w-full h-full block [&_li]:mb-2 [&_h2]:font-bold [&_a]:text-violet-300 select-text list-disc ml-5"></ul>
         </Dialog>
 
