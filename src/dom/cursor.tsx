@@ -62,10 +62,10 @@ export const Cursor = () => {
             width="100"
             height="100"
             style={position ? { left: position[0] - 54, top: position[1] - 52 } : {}}
-            class={"absolute z-[19] pointer-events-none mix-blend-plus-lighter" + (position ? "" : " hidden")} />
+            class={"absolute z-[29] pointer-events-none mix-blend-plus-lighter" + (position ? "" : " hidden")} />
         <img
             src={style === "default" ? cursorDefault : cursorPointer}
             style={position ? { left: position[0] - 10, top: position[1] - 4 } : {}}
-            class={"absolute z-20 pointer-events-none" + (position ? "" : " hidden")} />
+            class={"absolute z-30 pointer-events-none" + (position ? "" : " hidden")} />
     </>
 }

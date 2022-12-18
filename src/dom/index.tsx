@@ -11,7 +11,6 @@ import * as constants from "../constants"
 import shallow from "zustand/shallow"
 import { removeTooltip, setTooltip, Tooltip } from "./tooltip"
 import { Button, Dialog, DialogRef, FrostedGlassWindow } from "./components"
-import Modal from "react-modal"
 import "./buttonAnimation"
 import { displayLanguageStore, LanguageCode, useTranslation } from "./i18n"
 import { Cursor } from "./cursor"
@@ -447,11 +446,10 @@ const UI = () => {
         {/* FPS Counter */}
         {displayFPSCounter && <FPSCounter />}
 
-        <Tooltip class="z-30" filter={(key) => !key.matches(".left-pane *, .right-pane *")} />
+        <Tooltip class="z-40" filter={(key) => !key.matches(".left-pane *, .right-pane *")} />
     </>
 }
 
-Modal.setAppElement(document.querySelector("div#game")!)
 render(<UI />, document.querySelector("div#game")!)
 
 if (renderingOptionsStore.getState().reduceAnimations) {

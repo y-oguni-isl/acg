@@ -28,7 +28,9 @@ export const Dialog = (props: { ref_: MutableRef<DialogRef | null>, class?: stri
         react-i18next isOpen={open.value}
         closeTimeoutMS={300}
         onRequestClose={close}
-        className={"absolute outline-none top-1/2 left-1/2 right-auto bottom-auto mr-[-50%] [max-width:90vw] [max-height:90vh] overflow-auto " + (props.class ?? "")}>{
+        className={"absolute outline-none top-1/2 left-1/2 right-auto bottom-auto mr-[-50%] [max-width:90vw] [max-height:90vh] overflow-auto " + (props.class ?? "")}
+        appElement={document.querySelector("div#game")!}
+        parentSelector={() => document.querySelector("div#game")!}>{
             props.children as React.ReactNode
         }</Modal>
 }
