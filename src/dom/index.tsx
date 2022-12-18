@@ -17,7 +17,7 @@ import { displayLanguageStore, LanguageCode, useTranslation } from "./i18n"
 import { Cursor } from "./cursor"
 
 /** The setting values, which can be changed in the settings dialog. */
-export const domStore = createPersistingStore("acgDOMStore", 4, {
+export const settingsStore = createPersistingStore("acgDOMStore", 4, {
     news: null as constants.NewsName | null,
     usePowerSaveMode: true,
     displayFPSCounter: import.meta.env.DEV,
@@ -55,14 +55,14 @@ const Tutorial = () => {
 // Loading messages should not be persisted
 type EnemyStatus = { hp: number, name: constants.EnemyName, money: number, items: { readonly [k in constants.ItemName]?: number } }
 
-/** The current state of the DOM (HTML). Unlike {@link domStore}, this store manages data that should not be persisted in {@link localStorage}. */
+/** The global state of the DOM (HTML). */
 export const nonpersistentDOMStore = createStore("acgNonpersistentDOMStore", {
     enemyStatus: null as (EnemyStatus | null),
     powerSaveMode: false,
     updateFPSCounter: () => { },
 }, (set, get) => ({
     setEnemyStatus: (status: EnemyStatus) => { set({ enemyStatus: { ...status, hp: Math.max(0, Math.round(status.hp)) } }) },
-    updatePowerSaveModeState: () => { set({ powerSaveMode: domStore.getState().usePowerSaveMode && (document.visibilityState === "hidden" || !document.hasFocus()) }) },
+    updatePowerSaveModeState: () => { set({ powerSaveMode: settingsStore.getState().usePowerSaveMode && (document.visibilityState === "hidden" || !document.hasFocus()) }) },
     setFPSCounterCallback: (updateFPSCounter: () => void) => { set({ updateFPSCounter: updateFPSCounter }) }
 }))
 
@@ -158,7 +158,7 @@ const FPSCounter = () => {
 /** The root component */
 const UI = () => {
     const { t } = useTranslation()
-    const state = useStore(domStore)
+    const settings = useStore(settingsStore)
     const newsDialog = useRef<DialogRef>(null)
     const creditDialog = useRef<DialogRef>(null)
     const resetProgressDialog = useRef<DialogRef>(null)
@@ -174,7 +174,7 @@ const UI = () => {
     const duringStageTransition = useStore(store, (s) => s.stageTransitingTo !== null)
     const hasVacuum = useStore(store, (s) => s.upgrades.Vacuum > 0)
     const explorationLv = useStore(store, (s) => s.getExplorationLv())
-    const displayFPSCounter = useStore(domStore, (s) => s.displayFPSCounter)
+    const displayFPSCounter = useStore(settingsStore, (s) => s.displayFPSCounter)
     const canTranscend = useStore(store, (s) => s.canTranscend)
     const lang = useStore(displayLanguageStore, (s) => s.lang)
     const setLang = useStore(displayLanguageStore, (s) => s.setLang)
@@ -197,12 +197,12 @@ const UI = () => {
 
     // Show the news dialog when a news is set to `state.news`
     useEffect(() => {
-        if (state.news === null) { return }
+        if (settings.news === null) { return }
         setTimeout(() => {
             if (!newsDialog.current) { return }
             newsDialog.current.showModal()
         }, 2000)
-    }, [state.news])
+    }, [settings.news])
 
     return <>
         {/* Top-Left Pane */}
@@ -368,31 +368,31 @@ const UI = () => {
                     onMouseOver={(ev) => { setTooltip(ev.currentTarget, <span class="whitespace-pre">{t("Power Save Mode stops rendering the game,\nbut the game still runs in the background.")}</span>) }}
                     onMouseOut={(ev) => { removeTooltip(ev.currentTarget) }}>
                     <td class="pr-4 text-right"><i class="ti ti-zzz" /> {t("Power Save Mode")}</td>
-                    <td><label class="pointer"><input type="checkbox" checked={state.usePowerSaveMode} onChange={(ev) => { domStore.setState({ usePowerSaveMode: ev.currentTarget.checked }) }} /> {t("enabled")}</label></td>
+                    <td><label class="pointer"><input type="checkbox" checked={settings.usePowerSaveMode} onChange={(ev) => { settingsStore.setState({ usePowerSaveMode: ev.currentTarget.checked }) }} /> {t("enabled")}</label></td>
                 </tr>
                 <tr
                     onMouseOver={(ev) => { setTooltip(ev.currentTarget, <span class="whitespace-pre">{t("A FPS counter is added to the bottom-right\ncorner of the screen if enabled.")}</span>) }}
                     onMouseOut={(ev) => { removeTooltip(ev.currentTarget) }}>
                     <td class="pr-4 text-right"><i class="ti ti-device-watch" /> {t("FPS Counter")}</td>
-                    <td><label class="pointer"><input type="checkbox" checked={state.displayFPSCounter} onChange={(ev) => { domStore.setState({ displayFPSCounter: ev.currentTarget.checked }) }} /> {t("enabled")}</label></td>
+                    <td><label class="pointer"><input type="checkbox" checked={settings.displayFPSCounter} onChange={(ev) => { settingsStore.setState({ displayFPSCounter: ev.currentTarget.checked }) }} /> {t("enabled")}</label></td>
                 </tr>
                 <tr
                     onMouseOver={(ev) => { setTooltip(ev.currentTarget, <span class="whitespace-pre">{t("Choose a lower resolution\nif you're having performance issues.")}</span>) }}
                     onMouseOut={(ev) => { removeTooltip(ev.currentTarget) }}>
                     <td class="pr-4 text-right"><i class="ti ti-arrows-minimize" /> {t("Resolution")}</td>
                     <td class="[&>*:not(:first-child)]:ml-2">
-                        <label class="pointer"><input type="radio" name="resolution" checked={state.resolutionMultiplier === 1} onChange={(ev) => { domStore.setState({ resolutionMultiplier: 1 }) }} /> x1</label>
-                        <label class="pointer"><input type="radio" name="resolution" checked={state.resolutionMultiplier === Math.SQRT1_2} onChange={(ev) => { domStore.setState({ resolutionMultiplier: Math.SQRT1_2 }) }} /> x0.7</label>
-                        <label class="pointer"><input type="radio" name="resolution" checked={state.resolutionMultiplier === Math.SQRT1_2 ** 2} onChange={(ev) => { domStore.setState({ resolutionMultiplier: Math.SQRT1_2 ** 2 }) }} /> x0.5</label>
-                        <label class="pointer"><input type="radio" name="resolution" checked={state.resolutionMultiplier === Math.SQRT1_2 ** 3} onChange={(ev) => { domStore.setState({ resolutionMultiplier: Math.SQRT1_2 ** 3 }) }} /> x0.35</label>
-                        <label class="pointer"><input type="radio" name="resolution" checked={state.resolutionMultiplier === Math.SQRT1_2 ** 4} onChange={(ev) => { domStore.setState({ resolutionMultiplier: Math.SQRT1_2 ** 4 }) }} /> x0.25</label>
+                        <label class="pointer"><input type="radio" name="resolution" checked={settings.resolutionMultiplier === 1} onChange={(ev) => { settingsStore.setState({ resolutionMultiplier: 1 }) }} /> x1</label>
+                        <label class="pointer"><input type="radio" name="resolution" checked={settings.resolutionMultiplier === Math.SQRT1_2} onChange={(ev) => { settingsStore.setState({ resolutionMultiplier: Math.SQRT1_2 }) }} /> x0.7</label>
+                        <label class="pointer"><input type="radio" name="resolution" checked={settings.resolutionMultiplier === Math.SQRT1_2 ** 2} onChange={(ev) => { settingsStore.setState({ resolutionMultiplier: Math.SQRT1_2 ** 2 }) }} /> x0.5</label>
+                        <label class="pointer"><input type="radio" name="resolution" checked={settings.resolutionMultiplier === Math.SQRT1_2 ** 3} onChange={(ev) => { settingsStore.setState({ resolutionMultiplier: Math.SQRT1_2 ** 3 }) }} /> x0.35</label>
+                        <label class="pointer"><input type="radio" name="resolution" checked={settings.resolutionMultiplier === Math.SQRT1_2 ** 4} onChange={(ev) => { settingsStore.setState({ resolutionMultiplier: Math.SQRT1_2 ** 4 }) }} /> x0.25</label>
                     </td>
                 </tr>
                 <tr>
                     <td class="pr-4 text-right"><i class="ti ti-flame" /> {t("Quality")}</td>
                     <td class="[&>*:not(:first-child)]:ml-2">
-                        <label class="pointer"><input type="radio" name="quality" value="high" checked={state.quality === "high"} onChange={(ev) => { domStore.setState({ quality: ev.currentTarget.value as "high" | "standard" }) }} /> {t("High")}</label>
-                        <label class="pointer"><input type="radio" name="quality" value="standard" checked={state.quality === "standard"} onChange={(ev) => { domStore.setState({ quality: ev.currentTarget.value as "high" | "standard" }) }} /> {t("Standard")}</label>
+                        <label class="pointer"><input type="radio" name="quality" value="high" checked={settings.quality === "high"} onChange={(ev) => { settingsStore.setState({ quality: ev.currentTarget.value as "high" | "standard" }) }} /> {t("High")}</label>
+                        <label class="pointer"><input type="radio" name="quality" value="standard" checked={settings.quality === "standard"} onChange={(ev) => { settingsStore.setState({ quality: ev.currentTarget.value as "high" | "standard" }) }} /> {t("Standard")}</label>
                     </td>
                 </tr>
                 <tr>
@@ -402,16 +402,10 @@ const UI = () => {
                         <label class="pointer"><input type="radio" name="lang" value="ja-JP" checked={lang === "ja-JP"} onChange={(ev) => { setLang(ev.currentTarget.value as LanguageCode) }} /> 日本語</label>
                     </td>
                 </tr>
-
-                {/* todo */}
-                {/* <tr>
-                    <td class="pr-4 text-right">Sound Effect</td>
-                    <td><input type="range" class="w-32 align-middle" value={state.sfxVolume} min={0} max={1} step={0.05} onChange={(ev) => { domStore.setState({ sfxVolume: +ev.currentTarget.value }) }} /></td>
-                </tr>
                 <tr>
-                    <td class="pr-4 text-right">Background Music</td>
-                    <td><input type="range" class="w-32 align-middle" value={state.bgmVolume} min={0} max={1} step={0.05} onChange={(ev) => { domStore.setState({ bgmVolume: +ev.currentTarget.value }) }} /></td>
-                </tr> */}
+                    <td class="pr-4 text-right"><i class="ti ti-language-hiragana" /> {t("BGM Volume")}</td>
+                    <td><i class="ti ti-volume-2" /><input type="range" class="w-32 align-middle mx-2" value={settings.bgmVolume} min={0} max={1} step={0.05} onChange={(ev) => { settingsStore.setState({ bgmVolume: +ev.currentTarget.value }) }} /><i class="ti ti-volume" /></td>
+                </tr>
             </table>
             <div
                 class="pointer text-orange-300 hover:text-orange-400 mt-4"
@@ -424,10 +418,10 @@ const UI = () => {
         </Dialog>
 
         {/* Newspaper Dialog */}
-        <Dialog ref_={newsDialog} class="from-gray-200 to-gray-400 bg-gradient-to-b [box-shadow:0_0_5px_1px_#00000040] [border-radius:2px] w-[400px] h-[620px] p-5 box-border shadow-2xl select-none" onClose={() => { domStore.getState().hideNews() }}>
-            {state.news && <div class="[line-height:1.2] [font-size:12px] text-justify overflow-y-hidden h-full [font-family:KottaOne] [-webkit-text-stroke:3px_rgba(0,0,0,0.05)] text-gray-900">
-                <h2 class="text-lg tracking-wide font-bold mb-4 [border-bottom:3px_solid_rgb(130,130,130)] text-center">{t(`news-${state.news}-headline`)}</h2>
-                <span>{t(`news-${state.news}-text`)}</span>
+        <Dialog ref_={newsDialog} class="from-gray-200 to-gray-400 bg-gradient-to-b [box-shadow:0_0_5px_1px_#00000040] [border-radius:2px] w-[400px] h-[620px] p-5 box-border shadow-2xl select-none" onClose={() => { settingsStore.getState().hideNews() }}>
+            {settings.news && <div class="[line-height:1.2] [font-size:12px] text-justify overflow-y-hidden h-full [font-family:KottaOne] [-webkit-text-stroke:3px_rgba(0,0,0,0.05)] text-gray-900">
+                <h2 class="text-lg tracking-wide font-bold mb-4 [border-bottom:3px_solid_rgb(130,130,130)] text-center">{t(`news-${settings.news}-headline`)}</h2>
+                <span>{t(`news-${settings.news}-text`)}</span>
                 <span class="text-gray-500"> {randomText}</span>
             </div>}
             <Button class="sm:hidden absolute right-2 bottom-2 px-4" onClick={() => { newsDialog.current!.close() }}>Close</Button>

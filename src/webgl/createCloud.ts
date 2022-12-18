@@ -1,5 +1,5 @@
 import * as THREE from "three"
-import { domStore } from "../dom"
+import { settingsStore } from "../dom"
 import { onBeforeRender } from "../hooks"
 import { call } from "../util"
 import fragmentShader from "./createCloud.frag"
@@ -23,7 +23,7 @@ export default () => {
     ), { rotateX: -Math.PI / 2, scale: { setScalar: 4 }, position: { setY: -0.13 } })
 
     onBeforeRender.add((time, _, camera) => {
-        uniforms.highQuality.value = domStore.getState().quality === "high"
+        uniforms.highQuality.value = settingsStore.getState().quality === "high"
         uniforms.time.value = time
         uniforms.matrixWorld.value.copy(mesh.matrixWorld)
         uniforms.cameraPos.value.copy(camera.position)

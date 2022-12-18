@@ -1,7 +1,7 @@
 import { ObjectPool } from "./webglUtil"
 import { onBeforeRender } from "../hooks"
 import { subscribe } from "../saveData"
-import { domStore } from "../dom"
+import { settingsStore } from "../dom"
 import { call, ObjectKeys } from "../util"
 import { SimplexNoise } from "three/examples/jsm/math/SimplexNoise"
 import models from "../models"
@@ -53,7 +53,7 @@ export default () => {
         if (!addedNews) { return }
         startTime = Date.now()
         pool.visible = true
-        domStore.getState().showNews(addedNews)
+        settingsStore.getState().showNews(addedNews)
         setTimeout(() => { pool.visible = false }, 10000)
     })
 

@@ -23,7 +23,7 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js"
 import { onBeforeRender, onUpdate } from "./hooks"
 import { getState, subscribe } from "./saveData"
-import { domStore, nonpersistentDOMStore } from "./dom"
+import { settingsStore, nonpersistentDOMStore } from "./dom"
 import { call, ObjectEntries, ObjectFromEntries, ObjectValues, ObjectKeys } from "./util"
 import * as webgl from "./webgl"
 import { getRenderingOption, init3DModelDebugger } from "./debug"
@@ -36,7 +36,7 @@ import weapons from "./weapons"
 const renderer = new THREE.WebGLRenderer({ antialias: true })
 renderer.outputEncoding = THREE.sRGBEncoding
 renderer.setSize(window.innerWidth, window.innerHeight)
-renderer.setPixelRatio(window.devicePixelRatio * domStore.getState().resolutionMultiplier)
+renderer.setPixelRatio(window.devicePixelRatio * settingsStore.getState().resolutionMultiplier)
 document.body.appendChild(renderer.domElement)
 
 // Camera
@@ -106,13 +106,13 @@ window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight
     camera.updateProjectionMatrix()
     renderer.setSize(window.innerWidth, window.innerHeight)
-    renderer.setPixelRatio(window.devicePixelRatio * domStore.getState().resolutionMultiplier)
+    renderer.setPixelRatio(window.devicePixelRatio * settingsStore.getState().resolutionMultiplier)
     effectComposer.setSize(window.innerWidth, window.innerHeight)
-    effectComposer.setPixelRatio(window.devicePixelRatio * domStore.getState().resolutionMultiplier)
+    effectComposer.setPixelRatio(window.devicePixelRatio * settingsStore.getState().resolutionMultiplier)
 })
 
 // Update the renderer and effect composer when the screen resolution option is changed.
-domStore.subscribe((state, prev) => {
+settingsStore.subscribe((state, prev) => {
     if (state.resolutionMultiplier === prev.resolutionMultiplier) { return }
     renderer.setPixelRatio(window.devicePixelRatio * state.resolutionMultiplier)
     effectComposer.setPixelRatio(window.devicePixelRatio * state.resolutionMultiplier)
@@ -285,8 +285,13 @@ const audio = new Audio()
 audio.src = "./audio/Anttis instrumentals - Coming back home instrumental.mp3"  // Download the audio file after the game is started to improve startup time
 const playAudio = () => {
     audio.loop = true
+    audio.volume = settingsStore.getState().bgmVolume
     audio.play()
 }
+settingsStore.subscribe((state, prev) => {
+    if (state.bgmVolume === prev.bgmVolume) { return }
+    audio.volume = state.bgmVolume
+})
 window.addEventListener("click", playAudio)  // We need this because of the autoplay policy https://developer.mozilla.org/en-US/docs/Web/Media/Autoplay_guide
 window.addEventListener("keydown", playAudio)
 audio.addEventListener("load", () => { playAudio() })
