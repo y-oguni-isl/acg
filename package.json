@@ -8,6 +8,7 @@
   "packageManager": "yarn@4.0.0-rc.32",
   "scripts": {
     "start": "vite",
+    "start:prod": "vite build && python3 -m http.server --bind localhost --directory dist",
     "build": "vite build"
   },
   "keywords": [],
