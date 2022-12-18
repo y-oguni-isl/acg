@@ -21,7 +21,7 @@ import * as THREE from "three"
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js"
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js"
-import { onBeforeRender, onPreprocess, onUpdate } from "./hooks"
+import { onBeforeRender, onUpdate } from "./hooks"
 import { getState, subscribe } from "./saveData"
 import { domStore, nonpersistentDOMStore } from "./dom"
 import { call, ObjectEntries, ObjectFromEntries, ObjectValues, ObjectKeys } from "./util"
@@ -84,12 +84,13 @@ const scene = new THREE.Scene().add(
 // Postprocessing
 const effectComposer = new EffectComposer(renderer)
 const stageTransitionPass = webgl.createStageTransitionPass()
+let selectiveBloomPass: ReturnType<typeof webgl.createSelectiveBloomPass>
 {
     let renderPass: RenderPass
     for (const pass of [
         renderPass = new RenderPass(scene, camera),
         new UnrealBloomPass(new THREE.Vector2(256, 256), 0.2, 0, 0),
-        webgl.createSelectiveBloomPass(renderer, scene, camera, renderPass),
+        selectiveBloomPass = webgl.createSelectiveBloomPass(renderer, scene, camera, renderPass),
         webgl.createRainPass(getRenderingOption("rain.blur")),
         webgl.createJammingPass(),
         stageTransitionPass.pass,
@@ -213,7 +214,7 @@ onUpdate.add(() => {
 // 2. if not `powerSaveMode`:
 //    1. `onBeforeRender` event
 //    2. Move the camera
-//    3. `onPreprocess` event
+//    3. Preprocess the selective bloom pass
 //    4. render()
 {
     const isPaused = init3DModelDebugger(camera, renderer, scene)
@@ -259,8 +260,8 @@ onUpdate.add(() => {
         }
 
         if (render) {
-            // Fire the onPreprocess hook
-            onPreprocess.forEach((f) => f())
+            // Preprocess the selective bloom pass
+            selectiveBloomPass.preprocess()
 
             // Render the scene to the canvas
             effectComposer.render()

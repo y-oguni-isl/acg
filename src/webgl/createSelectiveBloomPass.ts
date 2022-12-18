@@ -3,7 +3,6 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import type { RenderPass } from "three/examples/jsm/postprocessing/RenderPass"
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass"
-import { onPreprocess } from "../hooks"
 import fragmentShader from "./createSelectiveBloomPass.frag"
 import vertexShader from "./createSelectiveBloomPass.vert"
 
@@ -56,24 +55,25 @@ export default (renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE
     additiveBlendingPass.needsSwap = true
 
     const black = new THREE.MeshBasicMaterial({ color: "black" })
-    onPreprocess.add(() => {
-        const originalMaterials = new Map<string, THREE.Material>()
-        scene.traverse((obj) => {
-            if (obj instanceof THREE.Mesh && !(obj.layers.isEnabled(bloomLayer) || obj.layers.isEnabled(bloomOnlyLayer))) {
-                originalMaterials.set(obj.uuid, obj.material)
-                obj.material = black
-            }
-        })
-        camera.layers.enableAll()
-        effectComposer.render()
-        scene.traverse((obj) => {
-            if (originalMaterials.has(obj.uuid)) {
-                (obj as THREE.Mesh).material = originalMaterials.get(obj.uuid)!
-                originalMaterials.delete(obj.uuid)
-            }
-        })
-    })
 
     window.addEventListener("resize", () => { effectComposer.setSize(window.innerWidth, window.innerHeight) })
-    return additiveBlendingPass
+    return Object.assign(additiveBlendingPass, {
+        preprocess: () => {
+            const originalMaterials = new Map<string, THREE.Material>()
+            scene.traverse((obj) => {
+                if (obj instanceof THREE.Mesh && !(obj.layers.isEnabled(bloomLayer) || obj.layers.isEnabled(bloomOnlyLayer))) {
+                    originalMaterials.set(obj.uuid, obj.material)
+                    obj.material = black
+                }
+            })
+            camera.layers.enableAll()
+            effectComposer.render()
+            scene.traverse((obj) => {
+                if (originalMaterials.has(obj.uuid)) {
+                    (obj as THREE.Mesh).material = originalMaterials.get(obj.uuid)!
+                    originalMaterials.delete(obj.uuid)
+                }
+            })
+        },
+    })
 }
