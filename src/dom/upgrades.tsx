@@ -73,8 +73,8 @@ const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
         }}>
         <div
             class="px-2"
-            onMouseEnter={() => { setTooltip(`left:upgrade-${props.name}`, <TooltipContent name={props.name} />) }}
-            onMouseLeave={() => { removeTooltip(`left:upgrade-${props.name}`) }}>
+            onMouseOver={() => { setTooltip(`left:upgrade-${props.name}`, <TooltipContent name={props.name} />) }}
+            onMouseOut={() => { removeTooltip(`left:upgrade-${props.name}`) }}>
             <span class="inline-block w-28 tracking-wider whitespace-nowrap">{isUpgradeNameHidden ? "???" : <><i class={"mr-1 ti " + ({
                 Laser: "ti-flare",
                 Autopilot: "ti-plane",

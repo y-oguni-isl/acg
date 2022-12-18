@@ -92,8 +92,8 @@ const Items = () => {
         <h2 class="mb-2 tracking-wide"><i class="ti ti-notes" /> Items</h2>
         <table class="w-full">{ObjectEntries(items).map(([k, v]) =>
             <tr class="border-b-2 border-b-gray-200 border-opacity-60"
-                onMouseEnter={() => { setTooltip(`left:item-${k}`, constants.flavorText[k]) }}
-                onMouseLeave={() => { removeTooltip(`left:item-${k}`) }}>
+                onMouseOver={() => { setTooltip(`left:item-${k}`, constants.flavorText[k]) }}
+                onMouseOut={() => { removeTooltip(`left:item-${k}`) }}>
                 <td><i class={k === "Food" ? "ti ti-meat" : "ti ti-settings"} /> {k}</td><td class="text-right">{v}</td>
             </tr>)}
         </table>
@@ -306,15 +306,15 @@ const UI = () => {
                 <span
                     class="pointer hover:text-white"
                     onClick={() => { optionsDialog.current!.showModal() }}
-                    onMouseEnter={() => { setTooltip("left:options", <>Settings</>) }}
-                    onMouseLeave={() => { removeTooltip("left:options") }}>
+                    onMouseOver={() => { setTooltip("left:options", <>Settings</>) }}
+                    onMouseOut={() => { removeTooltip("left:options") }}>
                     <i class="ti ti-tool" />
                 </span>
                 <span
                     class="pointer hover:text-white"
                     onClick={() => { creditDialog.current!.showModal() }}
-                    onMouseEnter={() => { setTooltip("left:license", <>License</>) }}
-                    onMouseLeave={() => { removeTooltip("left:license") }}>
+                    onMouseOver={() => { setTooltip("left:license", <>License</>) }}
+                    onMouseOut={() => { removeTooltip("left:license") }}>
                     <i class="ti ti-license" />
                 </span>
                 <span
@@ -326,8 +326,8 @@ const UI = () => {
                             // hashtags: "hashtags",
                         }).toString(), "", "width=600, height=480")?.focus()
                     }}
-                    onMouseEnter={() => { setTooltip("left:share", <>Tweet</>) }}
-                    onMouseLeave={() => { removeTooltip("left:share") }}>
+                    onMouseOver={() => { setTooltip("left:share", <>Tweet</>) }}
+                    onMouseOut={() => { removeTooltip("left:share") }}>
                     <i class="ti ti-brand-twitter" />
                 </span>
             </div>
@@ -373,18 +373,18 @@ const UI = () => {
                 <button
                     class="block w-full ![border-radius:2rem_0.5rem_2rem_0.5rem] text-center relative"
                     onClick={() => { getState().exploreNext() }}
-                    onMouseEnter={() => { setTooltip("right:explorationNext", <ExplorationNextTooltip />) }}
-                    onMouseLeave={() => { removeTooltip("right:explorationNext") }}>
+                    onMouseOver={() => { setTooltip("right:explorationNext", <ExplorationNextTooltip />) }}
+                    onMouseOut={() => { removeTooltip("right:explorationNext") }}>
                     <i class="ti ti-arrow-forward" /> Next
                     <span class="[font-size:80%] tracking-tighter absolute right-2"><i class="ti ti-meat ml-3 mr-1" />{constants.explorationCost(explorationLv)}</span>
                 </button>
-                {explorationLv >= 2 && <button
-                    class="block w-full ![border-radius:2rem_0.5rem_2rem_0.5rem] text-center mt-1"
+                <button
+                    class={"block w-full ![border-radius:2rem_0.5rem_2rem_0.5rem] text-center mt-1" + (explorationLv >= 2 ? "" : " hidden")}
                     onClick={() => { getState().explorePrev() }}
-                    onMouseEnter={() => { setTooltip("right:explorationPrev", <ExplorationPrevTooltip />) }}
-                    onMouseLeave={() => { removeTooltip("right:explorationPrev") }}>
+                    onMouseOver={() => { setTooltip("right:explorationPrev", <ExplorationPrevTooltip />) }}
+                    onMouseOut={() => { removeTooltip("right:explorationPrev") }}>
                     <i class="ti ti-arrow-back" /> Prev
-                </button>}
+                </button>
             </div>}
 
             {/* Tooltip */}
