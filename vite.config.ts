@@ -80,6 +80,7 @@ export default defineConfig({
             input: {
                 index: path.resolve(__dirname, "index.html"),
                 tab_already_open: path.resolve(__dirname, "tab_already_open.html"),
+                language_select: path.resolve(__dirname, "language_select.html"),
             },
         },
     },
