@@ -88,7 +88,8 @@ const EnemyStats = () => {
 /** The "Items" window */
 const Items = () => {
     const items = useStore(store, (s) => s.items)
-    return <FrostedGlassWindow visible={true} transitionDurationSec={0.8} class="pr-3 pl-4 pt-1 pb-3">
+    const hasVacuum = useStore(store, (s) => s.upgrades.Vacuum > 0)
+    return <FrostedGlassWindow visible={hasVacuum} transitionDurationSec={0.8} class="pr-3 pl-4 pt-1 pb-3">
         <h2 class="mb-2 tracking-wide"><i class="ti ti-notes" /> Items</h2>
         <table class="w-full">{ObjectEntries(items).map(([k, v]) =>
             <tr class="border-b-2 border-b-gray-200 border-opacity-60"
@@ -264,7 +265,7 @@ const UI = () => {
         {/* Top-Left Pane */}
         <div class={"absolute left-[-4px] top-2 w-44 sm:w-72 h-full [&>*]:mt-3 [transform:perspective(5cm)_rotateY(2deg)] " + (duringStageTransition ? " [&>*]:[transform:translateX(-400px)]" : "")}>
             <Upgrades />
-            {hasVacuum && <Items />}
+            <Items />
             <FrostedGlassWindow visible={canTranscend} transitionDurationSec={0.9} class="pr-3 pl-4 pt-1 pb-3 window--gold">
                 <h2><i class="ti ti-arrows-transfer-up" /> Transcendence</h2>
                 <p class="text-xs mb-2">
