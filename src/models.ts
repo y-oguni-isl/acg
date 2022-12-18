@@ -23,7 +23,10 @@ const removeLoadingMessage = (key: string) => {
 /** Downloads and parses a .gltf (text) or .glb (binary) file. The `filepath` argument is relative to the public/ folder. */
 export const loadGLTF = async (filepath: string): Promise<THREE.Object3D> => {
     if (!getRenderingOption(filepath)) { return new THREE.Object3D() }
-    const obj = (await new Promise<GLTF>((resolve, reject) => new GLTFLoader().load(filepath, resolve, (xhr) => { setLoadingMessage(filepath, `Loading ${filepath} (${xhr.loaded}/${xhr.total})`) }, reject)))
+    setLoadingMessage(filepath, `Downloading ${filepath} (0/pending)`)
+    const obj = (await new Promise<GLTF>((resolve, reject) => new GLTFLoader().load(filepath, resolve, (xhr) => {
+        setLoadingMessage(filepath, `Downloading ${filepath} (${xhr.loaded}/${xhr.total})`)
+    }, reject)))
         .scene.children[0]!.children[0]!
     removeLoadingMessage(filepath)
     return obj
