@@ -7,6 +7,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { useStore } from "zustand"
 import { createPersistingStore, createStore, ObjectEntries, ObjectKeys } from "./util"
 import { useToggle, useWindowSize } from "usehooks-ts"
+import { Button } from "./dom/components"
 
 const debuggerStore = createStore("acgDebugger", {
     paused: false,
@@ -43,7 +44,7 @@ export const Debugger = () => {
     if (windowSize.width < 680) { return <></> }
 
     return <div class="absolute right-56 bottom-1 [font-size:50%]">
-        <button class="[font-size:150%] [-webkit-text-stroke:3px_rgba(255,255,255,0.2)] mb-1 px-2" onClick={() => toggle()}>{opened ? "Close" : "Open"} Debugger</button>
+        <Button class="[font-size:150%] [-webkit-text-stroke:3px_rgba(255,255,255,0.2)] mb-1 px-2" onClick={() => toggle()}>{opened ? "Close" : "Open"} Debugger</Button>
         {opened && <>
             {/* DEBUG: Rendering options */}
             <div class="px-3 pt-1 pb-3 window">
@@ -54,9 +55,9 @@ export const Debugger = () => {
                         <span>{name}</span>
                     </label>)}
                 </div>
-                <button class="px-4 hover:bg-opacity-60" tabIndex={-1} onClick={() => { location.reload() }}>Apply</button>
-                <button class="px-4 hover:bg-opacity-60" tabIndex={-1} onClick={() => { ObjectKeys(renderingOptions).forEach((k) => setRenderingOption(k, true)) }}>Enable All</button>
-                <button class="px-4 hover:bg-opacity-60" tabIndex={-1} onClick={() => { ObjectKeys(renderingOptions).forEach((k) => setRenderingOption(k, false)) }}>Disable All</button>
+                <Button class="px-4 hover:bg-opacity-60" onClick={() => { location.reload() }}>Apply</Button>
+                <Button class="px-4 hover:bg-opacity-60" onClick={() => { ObjectKeys(renderingOptions).forEach((k) => setRenderingOption(k, true)) }}>Enable All</Button>
+                <Button class="px-4 hover:bg-opacity-60" onClick={() => { ObjectKeys(renderingOptions).forEach((k) => setRenderingOption(k, false)) }}>Disable All</Button>
             </div>
 
             {/* DEBUG: 3D model debugger */}
@@ -64,8 +65,8 @@ export const Debugger = () => {
                 <h2>[Debug] 3D Models</h2>
                 You can move the camera by dragging the screen while the game is paused.
                 <div>
-                    {!paused && <button class="px-2" onClick={() => { stop() }}>🛑 Pause</button>}
-                    {paused && <button class="px-2 ml-1" onClick={() => { resume() }}>▶️ Resume</button>}
+                    {!paused && <Button class="px-2" onClick={() => { stop() }}>🛑 Pause</Button>}
+                    {paused && <Button class="px-2 ml-1" onClick={() => { resume() }}>▶️ Resume</Button>}
                 </div>
             </div>
             <div class="px-3 pt-1 pb-3 window">

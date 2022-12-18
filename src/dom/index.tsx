@@ -12,7 +12,7 @@ import shallow from "zustand/shallow"
 import { removeTooltip, setTooltip, Tooltip } from "./tooltip"
 import cursorDefault from "../../cursor.png"
 import cursorPointer from "../../cursor-pointer.png"
-import { Dialog, DialogRef, FrostedGlassWindow } from "./components"
+import { Button, Dialog, DialogRef, FrostedGlassWindow } from "./components"
 import Modal from "react-modal"
 import "./buttonAnimation"
 import { useEventListener } from "usehooks-ts"
@@ -93,8 +93,8 @@ const Items = () => {
         <h2 class="mb-2 tracking-wide"><i class="ti ti-notes" /> Items</h2>
         <table class="w-full">{ObjectEntries(items).map(([k, v]) =>
             <tr class="border-b-2 border-b-gray-200 border-opacity-60"
-                onMouseOver={() => { setTooltip(`left:item-${k}`, constants.flavorText[k]) }}
-                onMouseOut={() => { removeTooltip(`left:item-${k}`) }}>
+                onMouseOver={(ev) => { setTooltip(ev.currentTarget, constants.flavorText[k]) }}
+                onMouseOut={(ev) => { removeTooltip(ev.currentTarget) }}>
                 <td><i class={k === "Food" ? "ti ti-meat" : "ti ti-settings"} /> {k}</td><td class="text-right">{v}</td>
             </tr>)}
         </table>
@@ -262,7 +262,7 @@ const UI = () => {
 
     return <>
         {/* Top-Left Pane */}
-        <div class={"absolute left-[-4px] top-2 w-44 sm:w-72 h-full [&>*]:mt-3 [transform:perspective(5cm)_rotateY(2deg)] " + (duringStageTransition ? " [&>*]:[transform:translateX(-400px)]" : "")}>
+        <div class={"left-pane absolute left-[-4px] top-2 w-44 sm:w-72 h-full [&>*]:mt-3 [transform:perspective(5cm)_rotateY(2deg)] " + (duringStageTransition ? " [&>*]:[transform:translateX(-400px)]" : "")}>
             {/* Upgrades */}
             <Upgrades />
 
@@ -276,7 +276,7 @@ const UI = () => {
                     You have reached the point of singularity and can transcended to a higher plane of existence.
                 </p>
                 {/* Higher plane of existence = enemies have more HP and money */}
-                <button class="w-full button--gold" tabIndex={-1} onClick={() => { transcendenceDialog.current?.showModal() }}><i class="ti ti-list" /> Show Bonus</button>
+                <Button class="w-full button--gold" onClick={() => { transcendenceDialog.current?.showModal() }}><i class="ti ti-list" /> Show Bonus</Button>
             </FrostedGlassWindow>
 
             {/* Small buttons (settings, license, and twitter) */}
@@ -284,15 +284,15 @@ const UI = () => {
                 <span
                     class="pointer hover:text-white px-2 py-1"
                     onClick={() => { optionsDialog.current!.showModal() }}
-                    onMouseOver={() => { setTooltip("left:options", <>Open Settings</>) }}
-                    onMouseOut={() => { removeTooltip("left:options") }}>
+                    onMouseOver={(ev) => { setTooltip(ev.currentTarget, <>Open Settings</>) }}
+                    onMouseOut={(ev) => { removeTooltip(ev.currentTarget) }}>
                     <i class="ti ti-tool" />
                 </span>
                 <span
                     class="pointer hover:text-white px-2 py-1"
                     onClick={() => { creditDialog.current!.showModal() }}
-                    onMouseOver={() => { setTooltip("left:license", <>Show License</>) }}
-                    onMouseOut={() => { removeTooltip("left:license") }}>
+                    onMouseOver={(ev) => { setTooltip(ev.currentTarget, <>Show License</>) }}
+                    onMouseOut={(ev) => { removeTooltip(ev.currentTarget) }}>
                     <i class="ti ti-license" />
                 </span>
                 <span
@@ -304,29 +304,28 @@ const UI = () => {
                             // hashtags: "hashtags",
                         }).toString(), "", "width=600, height=480")?.focus()
                     }}
-                    onMouseOver={() => { setTooltip("left:share", <>Tweet</>) }}
-                    onMouseOut={() => { removeTooltip("left:share") }}>
+                    onMouseOver={(ev) => { setTooltip(ev.currentTarget, <>Tweet</>) }}
+                    onMouseOut={(ev) => { removeTooltip(ev.currentTarget) }}>
                     <i class="ti ti-brand-twitter" />
                 </span>
             </FrostedGlassWindow>
 
             {/* Tooltip */}
-            <Tooltip filter={(key) => key.startsWith("left:")} />
+            <Tooltip filter={(key) => key.matches(".left-pane *")} />
         </div>
 
         {/* Top-Right pane */}
-        <div class={"absolute right-[-4px] top-2 min-w-[7rem] h-full sm:min-w-[13rem] [&>*]:mt-3 [transform:perspective(5cm)_rotateY(-2deg)]" + (duringStageTransition ? " [&>*]:[transform:translateX(400px)]" : "")}>
+        <div class={"right-pane absolute right-[-4px] top-2 min-w-[7rem] h-full sm:min-w-[13rem] [&>*]:mt-3 [transform:perspective(5cm)_rotateY(-2deg)]" + (duringStageTransition ? " [&>*]:[transform:translateX(400px)]" : "")}>
             {/* Stages */}
             <FrostedGlassWindow visible={ObjectValues(areStageNamesVisible).some((v) => v)} transitionDurationSec={0.6} class="pl-3 pr-4 pt-1 pb-3">
                 <h2 class="mb-2 tracking-wide"><i class="ti ti-map-2" /> Stages</h2>
                 <div class="[&>*:not(:last-child)]:mb-1">{ObjectKeys(stages).map((name) => <div class="relative">
-                    <button
-                        tabIndex={-1}
+                    <Button
                         class={"w-full ![border-radius:2rem_0.5rem_2rem_0.5rem]" + (stage === name ? " button--blue" : "")}
                         onClick={() => { getState().setStageTransitingTo(name) }}
                         disabled={!areStageNamesVisible[name] || stage === name}>
                         {areStageNamesVisible[name] ? name : "???"}
-                    </button>
+                    </Button>
                 </div>)}
                 </div>
             </FrostedGlassWindow>
@@ -348,25 +347,23 @@ const UI = () => {
             {/* Explore */}
             <FrostedGlassWindow visible={hasVacuum && stage !== "Mothership"} transitionDurationSec={1} class="pl-3 pr-4 pt-1 pb-3">
                 <h2 class="mb-2 tracking-wide"><i class="ti ti-route" /> Explore: <span class="tracking-tight">Lv. {explorationLv}</span></h2>
-                <button
+                <Button
                     class="block w-full ![border-radius:2rem_0.5rem_2rem_0.5rem] text-center relative"
                     onClick={() => { getState().exploreNext() }}
-                    onMouseOver={() => { setTooltip("right:explorationNext", <ExplorationNextTooltip />) }}
-                    onMouseOut={() => { removeTooltip("right:explorationNext") }}>
+                    title={<ExplorationNextTooltip />}>
                     <i class="ti ti-arrow-forward" /> Next
                     <span class="[font-size:80%] tracking-tighter absolute right-2"><i class="ti ti-meat ml-3 mr-1" />{constants.explorationCost(explorationLv)}</span>
-                </button>
-                <button
-                    class={"block w-full ![border-radius:2rem_0.5rem_2rem_0.5rem] text-center mt-1" + (explorationLv >= 2 ? "" : " hidden")}
+                </Button>
+                {explorationLv >= 2 && <Button
+                    class={"block w-full ![border-radius:2rem_0.5rem_2rem_0.5rem] text-center mt-1"}
                     onClick={() => { getState().explorePrev() }}
-                    onMouseOver={() => { setTooltip("right:explorationPrev", <ExplorationPrevTooltip />) }}
-                    onMouseOut={() => { removeTooltip("right:explorationPrev") }}>
+                    title={<ExplorationPrevTooltip />}>
                     <i class="ti ti-arrow-back" /> Prev
-                </button>
+                </Button>}
             </FrostedGlassWindow>
 
             {/* Tooltip */}
-            <Tooltip filter={(key) => key.startsWith("right:")} />
+            <Tooltip filter={(key) => key.matches(".right-pane *")} />
         </div>
 
         {/* Tutorial Message */}
@@ -386,11 +383,11 @@ const UI = () => {
         <Dialog class="p-5" ref_={resetProgressDialog}>
             <p>Are you sure you want to reset your save data?</p>
             <div class="float-right mt-4">
-                <button class="px-4 button--blue" onClick={() => {
+                <Button class="px-4 button--blue" onClick={() => {
                     deleteSaveData()
                     location.reload()
-                }}><i class="ti ti-check" /> Reset</button>
-                <button class="px-4 ml-2" onClick={() => { resetProgressDialog.current!.close() }}><i class="ti ti-x" /> Cancel</button>
+                }}><i class="ti ti-check" /> Reset</Button>
+                <Button class="px-4 ml-2" onClick={() => { resetProgressDialog.current!.close() }}><i class="ti ti-x" /> Cancel</Button>
             </div>
         </Dialog>
 
@@ -408,8 +405,8 @@ const UI = () => {
                     <li>Enemy×2</li>
                 </ul> */}
             <div class="float-right">
-                <button class="px-8 button--gold" onClick={() => { transcendenceDialog.current?.close(); getState().transcend() }}><i class="ti ti-check" /> Confirm</button>
-                <button class="px-8 ml-2 button--white" onClick={() => { transcendenceDialog.current?.close() }}><i class="ti ti-x" /> Cancel</button>
+                <Button class="px-8 button--gold" onClick={() => { transcendenceDialog.current?.close(); getState().transcend() }}><i class="ti ti-check" /> Confirm</Button>
+                <Button class="px-8 ml-2 button--white" onClick={() => { transcendenceDialog.current?.close() }}><i class="ti ti-x" /> Cancel</Button>
             </div>
         </Dialog>
 
@@ -424,34 +421,34 @@ const UI = () => {
             <h1 class="text-xl mb-2 tracking-wider w-full text-center"><i class="ti ti-tool" /> Settings</h1>
             <table>
                 <tr
-                    onMouseOver={() => { setTooltip(`center:power-save-mode`, <>Power Save Mode stops rendering the game,<br />but the game still runs in the background.</>) }}
-                    onMouseOut={() => { removeTooltip(`center:power-save-mode`) }}>
+                    onMouseOver={(ev) => { setTooltip(ev.currentTarget, <>Power Save Mode stops rendering the game,<br />but the game still runs in the background.</>) }}
+                    onMouseOut={(ev) => { removeTooltip(ev.currentTarget) }}>
                     <td class="pr-4 text-right"><i class="ti ti-zzz" /> Power Save Mode</td>
                     <td><label class="pointer"><input type="checkbox" checked={state.usePowerSaveMode} onChange={(ev) => { domStore.setState({ usePowerSaveMode: ev.currentTarget.checked }) }} /> enabled</label></td>
                 </tr>
                 <tr
-                    onMouseOver={() => { setTooltip(`center:fps-counter`, <>A FPS counter is added to the bottom-right<br />corner of the screen if enabled.</>) }}
-                    onMouseOut={() => { removeTooltip(`center:fps-counter`) }}>
+                    onMouseOver={(ev) => { setTooltip(ev.currentTarget, <>A FPS counter is added to the bottom-right<br />corner of the screen if enabled.</>) }}
+                    onMouseOut={(ev) => { removeTooltip(ev.currentTarget) }}>
                     <td class="pr-4 text-right"><i class="ti ti-device-watch" /> FPS Counter</td>
                     <td><label class="pointer"><input type="checkbox" checked={state.displayFPSCounter} onChange={(ev) => { domStore.setState({ displayFPSCounter: ev.currentTarget.checked }) }} /> enabled</label></td>
                 </tr>
                 <tr
-                    onMouseOver={() => { setTooltip(`center:resolution`, <>Choose a lower resolution <br />if you're having performance issues.</>) }}
-                    onMouseOut={() => { removeTooltip(`center:resolution`) }}>
+                    onMouseOver={(ev) => { setTooltip(ev.currentTarget, <>Choose a lower resolution <br />if you're having performance issues.</>) }}
+                    onMouseOut={(ev) => { removeTooltip(ev.currentTarget) }}>
                     <td class="pr-4 text-right"><i class="ti ti-arrows-minimize" /> Resolution</td>
                     <td class="[&>*:not(:first-child)]:ml-2">
-                        <label><input type="radio" name="resolution" checked={state.resolutionMultiplier === 1} onChange={(ev) => { domStore.setState({ resolutionMultiplier: 1 }) }} /> x1</label>
-                        <label><input type="radio" name="resolution" checked={state.resolutionMultiplier === Math.SQRT1_2} onChange={(ev) => { domStore.setState({ resolutionMultiplier: Math.SQRT1_2 }) }} /> x0.7</label>
-                        <label><input type="radio" name="resolution" checked={state.resolutionMultiplier === Math.SQRT1_2 ** 2} onChange={(ev) => { domStore.setState({ resolutionMultiplier: Math.SQRT1_2 ** 2 }) }} /> x0.5</label>
-                        <label><input type="radio" name="resolution" checked={state.resolutionMultiplier === Math.SQRT1_2 ** 3} onChange={(ev) => { domStore.setState({ resolutionMultiplier: Math.SQRT1_2 ** 3 }) }} /> x0.35</label>
-                        <label><input type="radio" name="resolution" checked={state.resolutionMultiplier === Math.SQRT1_2 ** 4} onChange={(ev) => { domStore.setState({ resolutionMultiplier: Math.SQRT1_2 ** 4 }) }} /> x0.25</label>
+                        <label class="pointer"><input type="radio" name="resolution" checked={state.resolutionMultiplier === 1} onChange={(ev) => { domStore.setState({ resolutionMultiplier: 1 }) }} /> x1</label>
+                        <label class="pointer"><input type="radio" name="resolution" checked={state.resolutionMultiplier === Math.SQRT1_2} onChange={(ev) => { domStore.setState({ resolutionMultiplier: Math.SQRT1_2 }) }} /> x0.7</label>
+                        <label class="pointer"><input type="radio" name="resolution" checked={state.resolutionMultiplier === Math.SQRT1_2 ** 2} onChange={(ev) => { domStore.setState({ resolutionMultiplier: Math.SQRT1_2 ** 2 }) }} /> x0.5</label>
+                        <label class="pointer"><input type="radio" name="resolution" checked={state.resolutionMultiplier === Math.SQRT1_2 ** 3} onChange={(ev) => { domStore.setState({ resolutionMultiplier: Math.SQRT1_2 ** 3 }) }} /> x0.35</label>
+                        <label class="pointer"><input type="radio" name="resolution" checked={state.resolutionMultiplier === Math.SQRT1_2 ** 4} onChange={(ev) => { domStore.setState({ resolutionMultiplier: Math.SQRT1_2 ** 4 }) }} /> x0.25</label>
                     </td>
                 </tr>
                 <tr>
                     <td class="pr-4 text-right"><i class="ti ti-flame" /> Quality</td>
                     <td class="[&>*:not(:first-child)]:ml-2">
-                        <label><input type="radio" name="quality" value="high" checked={state.quality === "high"} onChange={(ev) => { domStore.setState({ quality: ev.currentTarget.value as "high" | "standard" }) }} /> High</label>
-                        <label><input type="radio" name="quality" value="standard" checked={state.quality === "standard"} onChange={(ev) => { domStore.setState({ quality: ev.currentTarget.value as "high" | "standard" }) }} /> Standard</label>
+                        <label class="pointer"><input type="radio" name="quality" value="high" checked={state.quality === "high"} onChange={(ev) => { domStore.setState({ quality: ev.currentTarget.value as "high" | "standard" }) }} /> High</label>
+                        <label class="pointer"><input type="radio" name="quality" value="standard" checked={state.quality === "standard"} onChange={(ev) => { domStore.setState({ quality: ev.currentTarget.value as "high" | "standard" }) }} /> Standard</label>
                     </td>
                 </tr>
 
@@ -467,8 +464,8 @@ const UI = () => {
             </table>
             <div
                 class="pointer text-orange-300 hover:text-orange-400 mt-4"
-                onMouseOver={() => { setTooltip(`center:reset-progress`, <>Delete the save data and restart from the beginning.</>) }}
-                onMouseOut={() => { removeTooltip(`center:reset-progress`) }}
+                onMouseOver={(ev) => { setTooltip(ev.currentTarget, <>Delete the save data and restart from the beginning.</>) }}
+                onMouseOut={(ev) => { removeTooltip(ev.currentTarget) }}
                 onClick={() => {
                     optionsDialog.current?.close()
                     resetProgressDialog.current?.showModal()
@@ -485,7 +482,7 @@ const UI = () => {
                 <span>{state.news[1]}</span>
                 <span class="text-gray-500"> {randomText}</span>
             </div>}
-            <button class="sm:hidden absolute right-2 bottom-2 px-4" onClick={() => { newsDialog.current!.close() }}>Close</button>
+            <Button class="sm:hidden absolute right-2 bottom-2 px-4" onClick={() => { newsDialog.current!.close() }}>Close</Button>
         </Dialog>
 
         {/* Cursor */}
@@ -494,7 +491,7 @@ const UI = () => {
         {/* FPS Counter */}
         {displayFPSCounter && <FPSCounter />}
 
-        <Tooltip class="z-30" filter={(key) => key.startsWith("center:")} />
+        <Tooltip class="z-30" filter={(key) => !key.matches(".left-pane *, .right-pane *")} />
     </>
 }
 

@@ -1,4 +1,3 @@
-import * as THREE from "three"
 import { getState, store } from "../saveData"
 import * as constants from "../constants"
 import { useStore } from "zustand"
@@ -7,7 +6,7 @@ import { useRef, useLayoutEffect } from "preact/hooks"
 import shallow from "zustand/shallow"
 import { removeTooltip, setTooltip } from "./tooltip"
 import { onBeforeRender } from "../hooks"
-import { FrostedGlassWindow } from "./components"
+import { Button, FrostedGlassWindow } from "./components"
 
 /** Constructs the css property to animate the background color of the buttons in the "Upgrades" window. */
 const buildProgressBarStyle = (name: constants.UpgradeName, rowNumber: number) => {
@@ -49,7 +48,7 @@ const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
     const isUpgradeNameHidden = useStore(store, (s) => constants.isUpgradeNameHidden(props.name, s))
     const count = useStore(store, (s) => s.upgrades[props.name])
     const disabled = useStore(store, (s) => price > s.money || count >= constants.maxUpgrades)
-    const ref = useRef<HTMLButtonElement>(null)
+    const ref = useRef<HTMLDivElement>(null)
 
     useLayoutEffect(() => {
         const callback = () => {
@@ -62,7 +61,7 @@ const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
 
     const debuff = constants.weatherDebuff(props.name, weather)
 
-    return <button
+    return <Button
         ref={ref}
         class="relative block w-full drop-shadow-none border-[1px]"
         disabled={disabled}
@@ -72,8 +71,8 @@ const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
         }}>
         <div
             class="px-2"
-            onMouseOver={() => { setTooltip(`left:upgrade-${props.name}`, <TooltipContent name={props.name} />) }}
-            onMouseOut={() => { removeTooltip(`left:upgrade-${props.name}`) }}>
+            onMouseOver={(ev) => { setTooltip(ev.currentTarget, <TooltipContent name={props.name} />) }}
+            onMouseOut={(ev) => { removeTooltip(ev.currentTarget) }}>
             <span class="inline-block w-28 tracking-wider whitespace-nowrap">{isUpgradeNameHidden ? "???" : <><i class={"mr-1 ti " + ({
                 Laser: "ti-flare",
                 Autopilot: "ti-plane",
@@ -87,7 +86,7 @@ const Row = (props: { name: constants.UpgradeName, rowNumber: number }) => {
             } satisfies Record<constants.UpgradeName, string>)[props.name]} />{props.name}</>}</span>
             <span class="float-right tracking-tight">{count}{debuff !== 0 && <b class="text-red-400"> ({debuff})</b>}</span>
         </div>
-    </button>
+    </Button>
 }
 
 /** Renders the contents of the tooltip that is shown when the mouse cursor is over the one of the buttons in the "Upgrades" window. */

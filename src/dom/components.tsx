@@ -1,7 +1,10 @@
 import type { ComponentChildren } from "preact"
 import { MutableRef, useCallback, useEffect } from "preact/hooks"
+import { JSXInternal } from "preact/src/jsx"
 import Modal from "react-modal"
 import { useBoolean } from "usehooks-ts"
+import { removeTooltip, setTooltip } from "./tooltip"
+import { forwardRef } from 'preact/compat'
 
 /** A subtype of HTMLDialogElement to reference a <{@link Dialog}>. */
 export type DialogRef = Pick<HTMLDialogElement, "showModal" | "close">
@@ -36,3 +39,19 @@ export const FrostedGlassWindow = (props: { class?: string, visible: boolean, tr
         {props.visible && props.children}
     </div>
 }
+
+/** We don't use <button> because mouse events including mousehover and window.onclick do not fire on disabled buttons on Chrome. */
+export const Button = forwardRef((props: {
+    class?: string
+    onClick?: JSXInternal.MouseEventHandler<HTMLDivElement>
+    title?: preact.ComponentChildren
+    children?: preact.ComponentChildren
+    disabled?: boolean
+}, ref: React.ForwardedRef<HTMLDivElement>) => {
+    return <div
+        ref={ref}
+        class={`button inline-block text-center ${props.disabled ? "" : "pointer "}` + (props.class ?? "")}
+        onClick={function (ev) { if (!props.disabled) { props.onClick?.call(this, ev) } }}
+        onMouseOver={props.title ? (ev) => { setTooltip(ev.currentTarget, props.title) } : undefined}
+        onMouseOut={props.title ? (ev) => { removeTooltip(ev.currentTarget) } : undefined}>{props.children}</div>
+})

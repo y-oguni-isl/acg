@@ -3,37 +3,47 @@
  */
 
 import type { ComponentChildren } from "preact"
-import { useLayoutEffect, useState } from "preact/hooks"
-import { useEventListener } from "usehooks-ts"
+import { useEffect, useState } from "preact/hooks"
+import { useEventListener, useInterval } from "usehooks-ts"
 import { useStore } from "zustand"
+import { onUpdate } from "../hooks"
 import { createStore } from "../util"
 
 const store = createStore("tooltipStore", {
-    key: "",
+    key: null as Element | null,
     content: null as ComponentChildren,
     visible: false,
 }, () => { })
 
 /** Sets the tooltip text for the given key, overwriting any existing tooltip. */
-export const setTooltip = (key: string, content: ComponentChildren) => { store.setState({ key, content, visible: true }) }
+export const setTooltip = (key: Element, content: ComponentChildren) => { store.setState({ key, content, visible: true }) }
 
 /** Removes the tooltip text for the given key if the currently displayed tooltip's key matches the given key. */
-export const removeTooltip = (key: string) => {
+export const removeTooltip = (key: Element) => {
     if (store.getState().key === key) {
-        store.setState({ key: "", visible: false })
+        store.setState({ key: null, visible: false })
     }
 }
 
 /** This function renders the tooltip's text into the DOM. */
-export const Tooltip = (props: { class?: string, filter: (key: string) => boolean }) => {
+export const Tooltip = (props: { class?: string, filter: (key: Element) => boolean }) => {
     const [mouseX, setMouseX] = useState(0)
     const [mouseY, setMouseY] = useState(0)
-    const content = useStore(store, (s) => props.filter(s.key) ? s.content : null)
-    const visible = useStore(store, (s) => props.filter(s.key) && s.visible)
+    const content = useStore(store, (s) => s.key !== null && props.filter(s.key) ? s.content : null)
+    const visible = useStore(store, (s) => s.key !== null && props.filter(s.key) && s.visible)
     useEventListener("mousemove", (ev) => {
         setMouseX(ev.clientX)
         setMouseY(ev.clientY)
     })
+    useEffect(() => {
+        const callback = (t: number) => {
+            if (t % 3 === 0 && store.getState().key?.isConnected === false) {
+                removeTooltip(store.getState().key!)
+            }
+        }
+        onUpdate.add(callback)
+        return () => { onUpdate.delete(callback) }
+    }, [])
     return <div style={{
         transform: visible ? "translateY(0%) scaleY(100%)" : "translateY(-50%) scaleY(0%)",
         ...(mouseX < window.innerWidth / 2 ?
