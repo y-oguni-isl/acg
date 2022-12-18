@@ -100,19 +100,6 @@ const Items = () => {
     </FrostedGlassWindow>
 }
 
-/** The "transcend" (or "ascend") window */
-const Transcend = () => {
-    const canTranscend = useStore(store, (s) => s.canTranscend)
-    return <FrostedGlassWindow visible={canTranscend} transitionDurationSec={0.9} class="pr-3 pl-4 pt-1 pb-3 gold">
-        <h2><i class="ti ti-arrows-transfer-up" /> Transcendence</h2>
-        <p class="text-xs mb-2">
-            You have reached the point of singularity and can transcended to a higher plane of existence.
-        </p>
-        {/* Higher plane of existence = enemies have more HP and money */}
-        <button class="w-full" tabIndex={-1} onClick={() => { getState().transcend() }}><i class="ti ti-list" /> Show Bonus</button>
-    </FrostedGlassWindow>
-}
-
 /** The tooltip shown when the mouse cursor is on the "Prev" button in the "Exploration" window */
 const ExplorationPrevTooltip = () => {
     const explorationLv = useStore(store, (s) => s.getExplorationLv())
@@ -234,18 +221,19 @@ const UI = () => {
     const creditDialog = useRef<DialogRef>(null)
     const resetProgressDialog = useRef<DialogRef>(null)
     const optionsDialog = useRef<DialogRef>(null)
+    const transcendenceDialog = useRef<DialogRef>(null)
     const [creditHTML, setCreditHTML] = useState<string>("")
     const areStageNamesVisible = useStore(store, () => ObjectFromEntries(ObjectEntries(stages).map(([k, v]) => [k, v.visible()])), shallow)
     const weather = useStore(store, (s) => s.getWeather())
     const weatherEffectWillBeEnabledInLessThan = useStore(store, (s) => Math.ceil((s.weatherEffectWillBeEnabledInLessThan[s.stage] ?? Number.MAX_SAFE_INTEGER) / 60))
     const isWeatherSystemUnlocked = useStore(store, (s) => constants.isWeatherSystemUnlocked(s))
-    const transcending = useStore(store, (s) => s.transcending)
     const powerSaveMode = useStore(nonpersistentDOMStore, (s) => s.powerSaveMode)
     const stage = useStore(store, (s) => s.stage)
     const duringStageTransition = useStore(store, (s) => s.stageTransitingTo !== null)
     const hasVacuum = useStore(store, (s) => s.upgrades.Vacuum > 0)
     const explorationLv = useStore(store, (s) => s.getExplorationLv())
     const displayFPSCounter = useStore(domStore, (s) => s.displayFPSCounter)
+    const canTranscend = useStore(store, (s) => s.canTranscend)
 
     // Download the credit files in parallel
     useEffect(() => {
@@ -272,36 +260,19 @@ const UI = () => {
         }, 2000)
     }, [state.news])
 
-    // The "Transcending..." dialog
-    if (transcending) {
-        return <div class="absolute window w-full h-full">
-            <div class="m-auto w-fit h-fit text-center p-[30vh]">
-                <h2>Transcending...</h2>
-                <p class="my-4">
-                    Enemies in the next world will have 500x the HP and money.
-                </p>
-                {/*
-                TODO: The bonus for this ascension is .... A new stage will be unlocked at the next ascension.
-                Choose a bonus:
-                <ul class="list-disc ml-6">
-                    <li>ATK×2</li>
-                    <li>Enemy×2</li>
-                </ul> */}
-                <div class="float-right">
-                    <span class="gold"><button class="px-8" onClick={() => { getState().confirmTranscending() }}><i class="ti ti-check" /> Confirm</button></span>
-                    <button class="px-8 ml-2" onClick={() => { getState().cancelTranscending() }}><i class="ti ti-x" /> Cancel</button>
-                </div>
-            </div>
-            <Cursor />
-        </div>
-    }
-
     return <>
         {/* Top-Left Pane */}
         <div class={"absolute left-[-4px] top-2 w-44 sm:w-72 h-full [&>*]:mt-3 [transform:perspective(5cm)_rotateY(2deg)] " + (duringStageTransition ? " [&>*]:[transform:translateX(-400px)]" : "")}>
             <Upgrades />
             {hasVacuum && <Items />}
-            <Transcend />
+            <FrostedGlassWindow visible={canTranscend} transitionDurationSec={0.9} class="pr-3 pl-4 pt-1 pb-3 window--gold">
+                <h2><i class="ti ti-arrows-transfer-up" /> Transcendence</h2>
+                <p class="text-xs mb-2">
+                    You have reached the point of singularity and can transcended to a higher plane of existence.
+                </p>
+                {/* Higher plane of existence = enemies have more HP and money */}
+                <button class="w-full button--gold" tabIndex={-1} onClick={() => { transcendenceDialog.current?.showModal() }}><i class="ti ti-list" /> Show Bonus</button>
+            </FrostedGlassWindow>
             <FrostedGlassWindow visible={true} transitionDurationSec={1} class="pr-3 pl-4 py-1 window--oneline w-fit tracking-wide [&>*:not(:first-child)]:ml-5">
                 <span
                     class="pointer hover:text-white"
@@ -344,7 +315,7 @@ const UI = () => {
                 <div class="[&>*:not(:last-child)]:mb-1">{ObjectKeys(stages).map((name) => <div class="relative">
                     <button
                         tabIndex={-1}
-                        class={"w-full ![border-radius:2rem_0.5rem_2rem_0.5rem]" + (stage === name ? " button-primary" : "")}
+                        class={"w-full ![border-radius:2rem_0.5rem_2rem_0.5rem]" + (stage === name ? " button--blue" : "")}
                         onClick={() => { getState().setStageTransitingTo(name) }}
                         disabled={!areStageNamesVisible[name] || stage === name}>
                         {areStageNamesVisible[name] ? name : "???"}
@@ -408,11 +379,30 @@ const UI = () => {
         <Dialog class="p-5" ref_={resetProgressDialog}>
             <p>Are you sure you want to reset your save data?</p>
             <div class="float-right mt-4">
-                <button class="px-4 button-primary" onClick={() => {
+                <button class="px-4 button--blue" onClick={() => {
                     deleteSaveData()
                     location.reload()
                 }}><i class="ti ti-check" /> Reset</button>
                 <button class="px-4 ml-2" onClick={() => { resetProgressDialog.current!.close() }}><i class="ti ti-x" /> Cancel</button>
+            </div>
+        </Dialog>
+
+        {/* Transcendence Dialog */}
+        <Dialog ref_={transcendenceDialog} class="pt-8 px-8 pb-6 text-center dialog--gold">
+            <h1 class="text-xl mb-2 tracking-wider w-full text-center">Transcending...</h1>
+            <p class="mt-4 mb-6">
+                Enemies in the next world will have 500x the HP and money.
+            </p>
+            {/*
+                TODO: The bonus for this ascension is .... A new stage will be unlocked at the next ascension.
+                Choose a bonus:
+                <ul class="list-disc ml-6">
+                    <li>ATK×2</li>
+                    <li>Enemy×2</li>
+                </ul> */}
+            <div class="float-right">
+                <button class="px-8 button--gold" onClick={() => { transcendenceDialog.current?.close(); getState().transcend() }}><i class="ti ti-check" /> Confirm</button>
+                <button class="px-8 ml-2 button--white" onClick={() => { transcendenceDialog.current?.close() }}><i class="ti ti-x" /> Cancel</button>
             </div>
         </Dialog>
 

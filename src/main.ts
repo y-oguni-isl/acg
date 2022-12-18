@@ -222,8 +222,8 @@ onUpdate.add(() => {
     const prevTime = { render: 0, update: 0 }
     let updateCount = 0
     renderer.setAnimationLoop((time: number): void => {
-        const update = !getState().transcending && !isPaused()
-        const render = !getState().transcending && !nonpersistentDOMStore.getState().powerSaveMode
+        const update = !isPaused()
+        const render = !nonpersistentDOMStore.getState().powerSaveMode
 
         // FPS counter
         nonpersistentDOMStore.getState().updateFPSCounter()

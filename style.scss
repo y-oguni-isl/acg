@@ -23,7 +23,7 @@ input:not([type]),input[type=text] { @apply text-gray-700 pl-1; }
     -webkit-text-stroke: 5px rgba(255, 255, 255, 0.1);
     background: linear-gradient(240deg, rgba(55, 65, 81, 0.144) 0%, rgba(55, 65, 81, 0.4) 100%);
 
-    &.gold {
+    &.window--gold {
         @apply border-t-yellow-400 border-l-yellow-400 border-b-yellow-600 border-r-yellow-600;
         background: linear-gradient(240deg, rgba(226, 174, 1, 0.7) 0%, rgba(197, 178, 9, 0.5) 100%);
     }
@@ -56,13 +56,18 @@ button {
 
     &:disabled { @apply select-none pointer-events-none; }  // Without this line window.onmousemove doesn't fire on disabled buttons on Chrome 107 (not on Firefox)
 
-    &.button-primary {
+    &.button--blue {
         background: linear-gradient(240deg, rgb(0, 195, 195, 0.7) 0%, rgb(0, 234, 234, 0.7) 100%);
     }
 
-    .gold & {
+    &.button--gold {
         @apply border-t-yellow-400 border-l-yellow-400 border-b-yellow-600 border-r-yellow-600;
         background: linear-gradient(240deg, rgba(226, 166, 1, 0.856) 0%, rgba(255, 204, 0, 0.7) 100%);
+    }
+
+    &.button--white {
+        @apply border-t-gray-300 border-l-gray-300 border-b-gray-400 border-r-gray-400;
+        background: linear-gradient(240deg, rgba(164, 164, 164, 0.7) 0%, rgba(215, 215, 215, 0.856) 100%);
     }
 }
 
@@ -84,6 +89,10 @@ button {
     @apply text-gray-200 bg-gray-600 bg-opacity-80 select-none border-opacity-40 border-2 rounded-md border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600;
     &, .ReactModal__Overlay--after-open.ReactModal__Overlay--before-close & { transform: translate(-50%, -50%) scale(0%); }
     .ReactModal__Overlay--after-open & { transform: translate(-50%, -50%) scale(100%); }
+    &.dialog--gold {
+        @apply border-t-yellow-500 border-l-yellow-500 border-b-yellow-600 border-r-yellow-600;
+        background: linear-gradient(240deg, rgba(159, 122, 0, 0.9) 0%, rgba(169, 152, 7, 0.9) 100%);
+    }
 }
 
 input[type=checkbox], input[type=radio] {

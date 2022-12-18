@@ -31,8 +31,6 @@ export const store = createPersistingStore(localStorageKey, 8, {
     weatherEffectWillBeEnabledInLessThan: {} as Partial<Record<constants.StageName, number>>,
     /** True if the player can do (so-called) ascension or reincarnation. */
     canTranscend: false,
-    /** true if the ascension dialog is open. */
-    transcending: false,
     /** The number of times the player has done ascensions. */
     transcendence: 0,
     /** The number of times each enemy is killed. */
@@ -135,14 +133,10 @@ export const store = createPersistingStore(localStorageKey, 8, {
             addNews("ending1")
             set({ canTranscend: true })
         },
-        transcend: () => { set({ transcending: true }) },
-        cancelTranscending: () => { set({ transcending: false }) },
-        confirmTranscending: () => {
-            if (!get().transcending) { return }
+        transcend: () => {
             set({
                 stageTransitingTo: null,
                 stage: "Earth",
-                transcending: false,
                 transcendence: get().transcendence + 1,
                 canTranscend: false,
             })
