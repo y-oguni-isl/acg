@@ -1,4 +1,4 @@
-import { getRenderingOption } from "./debug";
+import { renderingOptionsStore } from "./debug";
 import { ObjectFromEntries, ObjectValues } from "./util";
 import * as THREE from "three"
 import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
@@ -23,7 +23,7 @@ const removeLoadingMessage = (key: string) => {
 
 /** Downloads and parses a .gltf (text) or .glb (binary) file. The `filepath` argument is relative to the public/ folder. */
 export const loadGLTF = async (filepath: string): Promise<THREE.Object3D> => {
-    if (!getRenderingOption(filepath)) { return new THREE.Object3D() }
+    if (!renderingOptionsStore.getState().getRenderingOption(filepath)) { return new THREE.Object3D() }
     setLoadingMessage(filepath, i18nextT("Downloading {{filepath}} (pending)", { filepath }))
     const obj = (await new Promise<GLTF>((resolve, reject) => new GLTFLoader().load(filepath, resolve, (xhr) => {
         setLoadingMessage(filepath, i18nextT("Downloading {{filepath}} ({{loaded}}/{{total}})", { filepath, loaded: xhr.loaded, total: xhr.total }))

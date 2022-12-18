@@ -26,7 +26,7 @@ import { getState, subscribe } from "./saveData"
 import { settingsStore, nonpersistentDOMStore } from "./dom"
 import { call, ObjectEntries, ObjectFromEntries, ObjectValues, ObjectKeys } from "./util"
 import * as webgl from "./webgl"
-import { getRenderingOption, init3DModelDebugger } from "./debug"
+import { init3DModelDebugger, renderingOptionsStore } from "./debug"
 import stages from "./stages"
 import { StageDefinition } from "./stages/types"
 import { StageName, updatePerSecond } from "./constants"
@@ -91,7 +91,7 @@ let selectiveBloomPass: ReturnType<typeof webgl.createSelectiveBloomPass>
         renderPass = new RenderPass(scene, camera),
         new UnrealBloomPass(new THREE.Vector2(256, 256), 0.2, 0, 0),
         selectiveBloomPass = webgl.createSelectiveBloomPass(renderer, scene, camera, renderPass),
-        webgl.createRainPass(getRenderingOption("rain.blur")),
+        webgl.createRainPass(renderingOptionsStore.getState().getRenderingOption("rain.blur")),
         webgl.createJammingPass(),
         stageTransitionPass.pass,
     ]) {

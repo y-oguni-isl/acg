@@ -3,7 +3,7 @@ import Upgrades from "./upgrades"
 import { useStore } from "zustand"
 import { deleteSaveData, getState, store } from "../saveData"
 import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks"
-import { Debugger } from "../debug"
+import { Debugger, renderingOptionsStore } from "../debug"
 import Autolinker from "autolinker"
 import stages from "../stages"
 import { ObjectEntries, ObjectFromEntries, ObjectKeys, ObjectValues, createPersistingStore, createStore } from "../util"
@@ -40,8 +40,10 @@ export const settingsStore = createPersistingStore("acgDOMStore", 4, {
 const tutorialIndices = new Map(constants.tutorialName.map((name, i) => [name, i]))
 
 const useFadeIn = () => {
+    const reduceAnimations = useStore(renderingOptionsStore, (s) => s.reduceAnimations)
     const loading = useBoolean(true)
     useTimeout(() => { loading.setFalse() }, 1500)
+    if (reduceAnimations) { return false }
     return loading.value
 }
 
@@ -451,3 +453,7 @@ const UI = () => {
 
 Modal.setAppElement(document.querySelector("div#game")!)
 render(<UI />, document.querySelector("div#game")!)
+
+if (renderingOptionsStore.getState().reduceAnimations) {
+    document.querySelector("div#game")!.style.transition = "none"
+}

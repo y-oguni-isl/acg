@@ -5,8 +5,8 @@ import Modal from "react-modal"
 import { useBoolean } from "usehooks-ts"
 import { removeTooltip, setTooltip } from "./tooltip"
 import { forwardRef } from 'preact/compat'
-import ja_JP from "./locales/ja-JP"
-import i18next from "i18next"
+import { useStore } from "zustand"
+import { renderingOptionsStore } from "../debug"
 
 /** A subtype of HTMLDialogElement to reference a <{@link Dialog}>. */
 export type DialogRef = Pick<HTMLDialogElement, "showModal" | "close">
@@ -35,8 +35,10 @@ export const Dialog = (props: { ref_: MutableRef<DialogRef | null>, class?: stri
 
 /** The small windows displayed at either side of the screen, e.g. upgrades, stages, etc. */
 export const FrostedGlassWindow = (props: { class?: string, visible: boolean, transitionDurationSec: number, children: preact.ComponentChildren }) => {
+    const reduceAnimations = useStore(renderingOptionsStore, (s) => s.reduceAnimations)
+
     return <div
-        style={{ transition: `transform ${props.transitionDurationSec}s ease-in-out` }}
+        style={{ transition: `transform ${reduceAnimations ? 0 : props.transitionDurationSec}s ease-in-out` }}
         class={props.visible ? ("window " + (props.class ?? "")) : ""}>
         {props.visible && props.children}
     </div>
