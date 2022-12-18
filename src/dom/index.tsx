@@ -280,23 +280,23 @@ const UI = () => {
             </FrostedGlassWindow>
 
             {/* Small buttons (settings, license, and twitter) */}
-            <FrostedGlassWindow visible={true} transitionDurationSec={1} class="pr-3 pl-4 py-1 window--oneline w-fit tracking-wide [&>*:not(:first-child)]:ml-5">
+            <FrostedGlassWindow visible={true} transitionDurationSec={1} class="[&>*:last-child]:pr-3 pl-2 window--oneline w-fit tracking-wide">
                 <span
-                    class="pointer hover:text-white"
+                    class="pointer hover:text-white px-2 py-1"
                     onClick={() => { optionsDialog.current!.showModal() }}
                     onMouseOver={() => { setTooltip("left:options", <>Open Settings</>) }}
                     onMouseOut={() => { removeTooltip("left:options") }}>
                     <i class="ti ti-tool" />
                 </span>
                 <span
-                    class="pointer hover:text-white"
+                    class="pointer hover:text-white px-2 py-1"
                     onClick={() => { creditDialog.current!.showModal() }}
                     onMouseOver={() => { setTooltip("left:license", <>Show License</>) }}
                     onMouseOut={() => { removeTooltip("left:license") }}>
                     <i class="ti ti-license" />
                 </span>
                 <span
-                    class="pointer hover:text-white"
+                    class="pointer hover:text-white px-2 py-1"
                     onClick={() => {
                         window.open("https://twitter.com/intent/tweet/?" + new URLSearchParams({
                             text: document.title,
