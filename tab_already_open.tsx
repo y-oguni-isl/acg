@@ -1,7 +1,7 @@
 import { render } from "preact"
 import { Cursor } from "./src/dom/cursor"
-import "./src/dom/buttonAnimation"
 import { useTranslation } from "./src/dom/i18n"
+import "./src/dom/buttonAnimation"
 
 const App = () => {
     const { t } = useTranslation()

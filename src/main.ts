@@ -2,17 +2,6 @@
  * This file is the entry point of the web page.
  */
 
-{
-    // Close other browser tabs
-    const broadcastChannel = new BroadcastChannel("acg")
-    broadcastChannel.addEventListener("message", (ev) => {
-        if (ev.data === "hello") {
-            location.href = "./tab_already_open.html"
-        }
-    })
-    broadcastChannel.postMessage("hello")
-}
-
 import "typed-query-selector"                  // Replaces document.querySelector(All)'s type with better ones.
 import "core-js/proposals/map-upsert-stage-2"  // Adds Map.emplace() https://github.com/tc39/proposal-upsert
 import "core-js/proposals/set-methods"         // Adds Set.intersection(), Set.union(), Set.difference(), etc. https://github.com/tc39/proposal-set-methods

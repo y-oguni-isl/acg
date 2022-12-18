@@ -64,7 +64,7 @@ export default {
     "Show Bonus": "ボーナスを表示",
     "Transcending...": "超越...",
     "BGM Volume": "BGMの音量",
-    "Choose a display language.": "表示言語を選択してください。",
+    "Choose a Display Language.": "表示言語を選択してください。",
     "Game Opened in Another Tab!": "ゲームが他のタブで開かれています！",
     "This game uses auto-save and will not function properly if it is open in multiple browser tabs. To avoid any issues, the game in this tab has been paused. Please close this tab and continue playing the game in the other tab.": "このゲームは自動セーブを採用しており、複数のブラウザタブで開かれると正しく機能しない可能性があります。問題を避けるため、このタブでのゲームは一時停止されました。このタブを閉じて、他のタブでゲームを続けてください。",
     "Resume the game on this tab": "このタブでゲームを再開する",

@@ -6,6 +6,6 @@
         "*.tsx": "${capture}.ts",
         "tsconfig.json": "tsconfig.*.json",
         "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml",
-        "*.html": "${capture}.tsx"
+        "*.html": "${capture}.ts,${capture}.tsx"
     }
 }

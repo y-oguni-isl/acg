@@ -63,7 +63,10 @@ export const createStore = <S, A>(name: string, initialState: S, actions: (
 ) => A) => fixZustandHMR(name, create<S & A>()((set, get) => ({ ...initialState, ...actions(set, get) })))
 
 /**
- * Works the same as the following code, but includes a fix for a problem where {@link localStorage}[name] can be changed after destroy(), and a fix for having to specify the types twice.
+ * Works the same as the following code, but includes:
+ * - a fix for a problem where {@link localStorage}[name] can be changed after destroy()
+ * - a fix for having to specify the types twice
+ * - an update to destroy erase data in localStorage
  * ```typescript
  * create<S & A>()(persist((get, set) => ({ ...initialState, ...actions } as S & A), { name, version }))
  * ```
@@ -83,6 +86,7 @@ export const createPersistingStore = <S, A>(name: string, version: number, initi
     store.destroy = () => {
         destroyed = true
         destroy()
+        delete localStorage[name]
     }
     return fixZustandHMR(name, store)
 }

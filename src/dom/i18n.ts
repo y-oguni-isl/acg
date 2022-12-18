@@ -9,11 +9,12 @@ export type LanguageCode = "en-US" | "ja-JP"
 
 /** The store to persist display language settings. */
 export const displayLanguageStore = createPersistingStore("acgI18Store", 0, {
+    chosenByUser: false,
     lang: "en-US" as LanguageCode
 }, (set) => ({
     setLang: (lang: LanguageCode) => {
         i18next.changeLanguage(lang)
-        set({ lang })
+        set({ chosenByUser: true, lang })
     },
 }))
 

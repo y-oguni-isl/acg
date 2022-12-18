@@ -46,6 +46,8 @@ button,
     @apply text-gray-200 tracking-wider backdrop-blur-3xl drop-shadow-lg select-none border-opacity-40 border-2 rounded-lg border-t-gray-400 border-l-gray-400 border-b-gray-600 border-r-gray-600;
     background: rgb(55, 65, 81, 0.7);
 
+    &.button--gray-600 { @apply bg-gray-600; }
+
     &:focus { @apply outline-none; }
 
     &:not(:disabled) {

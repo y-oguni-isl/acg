@@ -1,12 +1,11 @@
 import * as constants from "./constants"
+import { displayLanguageStore } from "./dom/i18n";
 import { createPersistingStore, ObjectEntries, SerializableSet } from "./util"
-
-const localStorageKey = "acgSaveData"
 
 const randomId = () => crypto.randomUUID?.() ?? `insecure-${[...Array(12)].map(() => Math.floor(Math.random() * 16).toString(16)).join('')}`
 
 /** This store maintains the game state. The values in the store is persisted in the {@link localStorage} by the persist() middleware. */
-export const store = createPersistingStore(localStorageKey, 8, {
+export const store = createPersistingStore("acgSaveData", 8, {
     /** The name of the stage currently selected. */
     stage: "Earth" as constants.StageName,
     /** When the player clicks the stage name at the top right corner, `stageTransitingTo` will be set to the stage name, the animation will be played, then the value of `stageTransitingTo` will be copied to `stage` and `stageTransitingTo` will become null. */
@@ -185,7 +184,7 @@ export type SaveData = ReturnType<typeof getState>
 /** Clears the {@link localStorage} to reset the game progress. */
 export const deleteSaveData = () => {
     store.destroy()
-    localStorage.removeItem(localStorageKey)
+    displayLanguageStore.destroy()
 }
 
 // Send analytics to balance the game 

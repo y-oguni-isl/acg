@@ -50,7 +50,7 @@ const Universe: StageDefinition = {
             name: "Weather Effect UFO",
             time: 0,
             hp: 300 * getState().upgrades.Laser,
-            update: () => { /* skip*/ },
+            update: () => { /* skip */ },
             onKilled: () => {
                 weatherDead.allocate().position.copy(copy.position)
                 getState().stopWeatherEffect()
