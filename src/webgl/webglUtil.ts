@@ -1,7 +1,7 @@
 import * as THREE from "three"
-import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils"
 import { onBeforeRender } from "../hooks"
 import { logObjectPoolSize } from "../debug"
+import { cloneObject3D } from "../models"
 
 export type ObjectPoolInstance<T extends THREE.Object3D> = T & {
     free: () => void
@@ -73,7 +73,7 @@ export class ObjectPool<T extends THREE.Object3D> extends THREE.Object3D<ObjectP
             }
 
             // NOTE: model.clone() doesn't work when the model has animations: https://discourse.threejs.org/t/skinnedmesh-cloning-issues/27551
-            const copy = SkeletonUtils.clone(this.#model) as ObjectPoolInstance<T>
+            const copy = cloneObject3D(this.#model) as ObjectPoolInstance<T>
             copy.free = () => {
                 if (copy.parent) { copy.removeFromParent() }
                 this.#pool.add(copy)

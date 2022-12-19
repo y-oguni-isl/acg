@@ -4,6 +4,7 @@ import * as THREE from "three"
 import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils"
 import { i18nextT } from "./dom/i18n";
+import { onBeforeRender } from "./hooks";
 
 const loadingMessage = {} as Record<string, string>
 const setLoadingMessage = (key: string, message: string) => {
@@ -21,15 +22,21 @@ const removeLoadingMessage = (key: string) => {
     div.innerText = ObjectValues(loadingMessage).join("\n")
 }
 
+/** A map to store GLTF to play animations. */
+const gltfMap = new WeakMap<THREE.Object3D, GLTF>()
+
 /** Downloads and parses a .gltf (text) or .glb (binary) file. The `filepath` argument is relative to the public/ folder. */
-export const loadGLTF = async (filepath: string): Promise<THREE.Object3D> => {
-    if (!renderingOptionsStore.getState().getRenderingOption(filepath)) { return new THREE.Object3D() }
+const loadGLTF = async (filepath: string): Promise<THREE.Object3D> => {
+    if (!renderingOptionsStore.getState().getRenderingOption(filepath)) {
+        return new THREE.Object3D()
+    }
     setLoadingMessage(filepath, i18nextT("Downloading {{filepath}} (pending)", { filepath }))
-    const obj = (await new Promise<GLTF>((resolve, reject) => new GLTFLoader().load(filepath, resolve, (xhr) => {
+    const gltf = (await new Promise<GLTF>((resolve, reject) => new GLTFLoader().load(filepath, resolve, (xhr) => {
         setLoadingMessage(filepath, i18nextT("Downloading {{filepath}} ({{loaded}}/{{total}})", { filepath, loaded: xhr.loaded, total: xhr.total }))
     }, reject)))
-        .scene.children[0]!.children[0]!
     removeLoadingMessage(filepath)
+    const obj = gltf.scene.children[0]!.children[0]!
+    gltfMap.set(obj, gltf)
     return obj
 }
 
@@ -51,11 +58,31 @@ const models = await Promise.all(filenames.map((name) => (async () => [name, awa
 setLoadingMessage("loadingModels", i18nextT("Loading models..."))
 await new Promise((resolve) => setTimeout(resolve, 0)) // Make the browser to render the changes in the DOM
 
+/** Clone the Object3D and plays the animation. */
+export const cloneObject3D = <T extends THREE.Object3D>(obj: T): T => {
+    const copy = SkeletonUtils.clone(obj)
+    const gltf = gltfMap.get(obj)
+    if (gltf) { gltfMap.set(copy, gltf) }
+
+    // Play animations
+    if (gltf && gltf.animations.length > 0) {
+        const animationMixer = new THREE.AnimationMixer(copy)
+        for (const animation of gltf.animations) {
+            animationMixer.clipAction(animation).play()
+        }
+        onBeforeRender.add((_, deltaTime) => {
+            animationMixer.update(deltaTime / 1000)
+        })
+    }
+
+    return copy as T
+}
+
 export default ObjectFromEntries(models.map(([k, v]) => [
     k,
     /** Clones the model. The model is resized if the height argument is non-null. */
     (height: number | null) => {
-        const copy = SkeletonUtils.clone(v)
+        const copy = cloneObject3D(v)
         if (height !== null) {
             copy.scale.multiplyScalar(height / new THREE.Box3().setFromObject(copy).getSize(new THREE.Vector3()).y)
         }
