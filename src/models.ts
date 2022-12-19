@@ -67,9 +67,7 @@ export const cloneObject3D = <T extends THREE.Object3D>(obj: T): T => {
     // Play animations
     if (gltf && gltf.animations.length > 0) {
         const animationMixer = new THREE.AnimationMixer(copy)
-        for (const animation of gltf.animations) {
-            animationMixer.clipAction(animation).play()
-        }
+        animationMixer.clipAction(gltf.animations[0]!).play()  // Play the first animation
         onBeforeRender.add((_, deltaTime) => {
             animationMixer.update(deltaTime / 1000)
         })
