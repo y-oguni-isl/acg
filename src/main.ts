@@ -10,16 +10,21 @@ import * as THREE from "three"
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js"
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js"
+import { SavePass } from "three/examples/jsm/postprocessing/SavePass"
+import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass"
+import { BlendShader } from "three/examples/jsm/shaders/BlendShader"
 import { onBeforeRender, onUpdate } from "./hooks"
 import { getState, subscribe } from "./saveData"
 import { settingsStore, nonpersistentDOMStore } from "./dom"
 import { call, ObjectEntries, ObjectFromEntries, ObjectValues, ObjectKeys } from "./util"
+import { forEachSystem } from "./webgl/webglUtil"
 import * as webgl from "./webgl"
 import { init3DModelDebugger, renderingOptionsStore } from "./debug"
 import stages from "./stages"
 import { StageDefinition } from "./stages/types"
 import { StageName, updatePerSecond } from "./constants"
 import weapons from "./weapons"
+import * as Quarks from "three.quarks"
 
 // Renderer
 const renderer = new THREE.WebGLRenderer({ antialias: true })
@@ -35,6 +40,16 @@ const camera = call(new THREE.PerspectiveCamera(70, window.innerWidth / window.i
 let airplane: ReturnType<typeof webgl.createAirplane>
 let weaponPools: ReturnType<typeof weapons[number]>[]
 let enemies: Record<StageName, ReturnType<StageDefinition["createEnemyPools"]>>
+
+// This code instantiates the particle system for explosions
+const batchSystem = new Quarks.BatchedParticleRenderer()
+let clock = new THREE.Clock()
+const loader = new Quarks.QuarksLoader(batchSystem)
+loader.setCrossOrigin("")
+const emitter = await loader.loadAsync("vfx/explosion.json")
+
+// Pause the effect here with webgl.forEachSystem
+forEachSystem(emitter, (obj) => { obj.system.pause() })
 
 /** The scene object, which contains all visible Three.js objects. */
 const scene = new THREE.Scene().add(
@@ -68,6 +83,9 @@ const scene = new THREE.Scene().add(
 
     // Particle systems
     await webgl.createLevelupAnimation(airplane),
+
+    batchSystem,
+    emitter,
 )
 
 // Postprocessing
@@ -76,10 +94,28 @@ const stageTransitionPass = webgl.createStageTransitionPass()
 let selectiveBloomPass: ReturnType<typeof webgl.createSelectiveBloomPass>
 {
     let renderPass: RenderPass
+
+    // Same with default
+    const renderTargetParameters = {
+        minFilter: THREE.LinearFilter,
+        magFilter: THREE.LinearFilter,
+        stencilBuffer: false
+    };
+
+    const savePass = new SavePass( new THREE.WebGLRenderTarget( window.innerWidth, window.innerHeight, renderTargetParameters ) )
+    const blendPass = new ShaderPass( BlendShader, 'tDiffuse1')
+    blendPass.uniforms.tDiffuse2!.value = savePass.renderTarget.texture
+    blendPass.uniforms.mixRatio!.value = 0.3
+
     for (const pass of [
         renderPass = new RenderPass(scene, camera),
         new UnrealBloomPass(new THREE.Vector2(256, 256), 0.2, 0, 0),
         selectiveBloomPass = webgl.createSelectiveBloomPass(renderer, scene, camera, renderPass),
+
+        blendPass,
+        savePass,
+        blendPass,
+
         webgl.createRainPass(renderingOptionsStore.getState().getRenderingOption("rain.blur")),
         webgl.createJammingPass(),
         stageTransitionPass.pass,
@@ -146,12 +182,31 @@ onUpdate.add((t) => { if (t % updatePerSecond === 0) { getState().countdown() } 
         for (const enemy of aliveEnemies) {
             if (enemy.position.x < -1 || enemy.userData.hp <= 0) {
                 if (enemy.userData.hp <= 0) {
+                    // Instantiate a 3D object for dead enemy. 
                     enemy.userData.onKilled()
+
+                    /* TODO: Move the emitter to enemy.position with `emitter.position.copy(enemy.position)` and play the effect with webgl.forEachSystem here
+                       1. Success but very strange(like motionless instead of animation), maybe some problem in batchSystem.update or it's interrupted by next frame or restart()
+                       2. Also it cannot be shown in multiple objects at the same time
+                    */
+                    emitter.position.copy(enemy.position).y
+                    batchSystem.update(clock.getDelta())
+                    forEachSystem(emitter, (obj) => {
+                        if (obj.system.time === 0 || obj.system.time >= obj.system.duration) {
+                            obj.system.restart()
+                        }
+                    })
+
+                    // Add possessions of the player.
                     getState().incrementKillCount(enemy.userData.name)
                     getState().addMoney(enemy.userData.money)
                     getState().addItems(enemy.userData.items)
                 }
+
+                // Remove the 3D object for the enemy alive.
                 enemy.free()
+
+                // Remove the 3D objects for weapons associated with the enemy.
                 weaponPools.forEach((w) => "onEnemyRemoved" in w && w.onEnemyRemoved(enemy))
             }
             enemy.userData.time++
@@ -230,7 +285,7 @@ onUpdate.add(() => {
         }
 
         if (!render) {
-            prevTime.render = Date.now()
+            prevTime.render = Date.now() 
         } else {
             // Fire the onBeforeRender hook
             const deltaTime = time - prevTime.render
