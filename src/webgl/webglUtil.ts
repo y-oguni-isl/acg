@@ -2,6 +2,7 @@ import * as THREE from "three"
 import { onBeforeRender } from "../hooks"
 import { logObjectPoolSize } from "../debug"
 import { cloneObject3D } from "../models"
+import * as Quarks from "three.quarks"
 
 export type ObjectPoolInstance<T extends THREE.Object3D> = T & {
     free: () => void
@@ -131,6 +132,19 @@ export const extendMaterial = (obj: THREE.Object3D, program: { uniforms?: Record
             if (program.fragmentShader?.trim()) {
                 shader.fragmentShader = shader.fragmentShader.replace(/void\s*main\s*\(\s*\)/, "void super()") + program.fragmentShader
             }
+        }
+    })
+}
+
+/**
+ * We need to call .restart() and .pause() on all ParticleEmitter in an animation (emitter) to start/pause it. To do so, this function traverses through the `emitter` and calls the callback `f` on each ParticleEmitter in it.
+ * To start an animation use `forEachSystem(emitter, (obj) => { obj.system.restart() })`.
+ * To pause an animation use `forEachSystem(emitter, (obj) => { obj.system.pause() })`.
+ */
+export const forEachSystem = (emitter: THREE.Object3D<THREE.Event>, f: (obj: Quarks.ParticleEmitter<THREE.Event>) => void) => {
+    emitter.traverse((obj) => {
+        if (obj instanceof Quarks.ParticleEmitter) {
+            f(obj)
         }
     })
 }

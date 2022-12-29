@@ -19,5 +19,5 @@ export { default as createRainPass } from "./createRainPass"
 export { default as createSelectiveBloomPass, enableSelectiveBloom } from "./createSelectiveBloomPass"
 export { default as createStageTransitionPass } from "./createStageTransitionPass"
 export { default as createUFOPool } from "./createUFOPool"
-export { ObjectPool, extendMaterial } from "./webglUtil"
+export { ObjectPool, extendMaterial, forEachSystem } from "./webglUtil"
 
