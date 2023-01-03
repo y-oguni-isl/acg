@@ -8,7 +8,137 @@
     <link rel="stylesheet" href="./node_modules/@tabler/icons/iconfont/tabler-icons.min.css">
     <link rel="stylesheet" href="./style.scss">
 </head>
-<body class="pl-[20vw] pr-[20vw] pt-[35vh] text-lg select-none overflow-hidden opacity-100 [transition:opacity_1s_ease-in-out]">
-    <script type="module" src="./language_select.tsx"></script>
+<body
+    class="pl-[20vw] pr-[20vw] pt-[35vh] text-lg select-none overflow-hidden opacity-100 [transition:opacity_1s_ease-in-out]">
+
+    <!-- <script type="module" src="./language_select.tsx"></script> -->
+   
+    <div id="app" class="absolute left-0 top-0">
+
+    <canvas id="glCanvas">
+           
+    <script id="vertex-shader" type="notjs">
+        #version 300 es
+        in vec4 pos;
+        void main() {
+            gl_Position = pos;
+        }
+    </script>
+
+    <script id="fragment-shader" type="notjs">
+        #version 300 es
+        precision mediump float;
+        out vec4 color_out;
+        uniform float u_time;
+        uniform vec2 u_resolution;
+
+        void main() {
+            float t = u_time*0.6;
+            vec2 uv = (-u_resolution.xy + 2.0 * gl_FragCoord.xy ) / u_resolution.y;
+            float s = 0.0, v = 0.0;
+            uv.x += sin(t) * .1;
+            uv *= mat2(cos(t), sin(t), -sin(t), cos(t));
+            vec3 col = vec3(0.0);
+            vec3 init = vec3(0.25, 0.25 + sin(t) * .2, t * .1);
+            for (int r = 0; r < 100; r++) 
+            {
+                vec3 p = init + s * vec3(uv, 0.1);
+                p.z = mod(p.z, 2.0);
+                for (int i=0; i < 10; i++){
+                    p = abs(p * 2.0) / dot(p, p) - 0.75;
+                }
+                v += length(p * p) * smoothstep(0.0, 0.5, 0.9 - s) * .002;
+                col +=  vec3(v * 0.1, 0.8 - s * 0.5, .7 + v * 0.1) * v * 0.01;
+                s += .01;
+            }
+            color_out = vec4(col, 1.0);
+        }
+    </script>
+
+    <script type="text/javascript">
+                function createProgram(gl, vertexSrc, fragmentSrc) {
+                    let vshd = gl.createShader(gl.VERTEX_SHADER);
+                    gl.shaderSource(vshd, vertexSrc);
+                    gl.compileShader(vshd);
+                    if (!gl.getShaderParameter(vshd, gl.COMPILE_STATUS))
+                        throw new Error("Unable to compile shader: " + gl.getShaderInfoLog(vshd));
+                    let fshd = gl.createShader(gl.FRAGMENT_SHADER);
+                    gl.shaderSource(fshd, fragmentSrc);
+                    gl.compileShader(fshd);
+                    if (!gl.getShaderParameter(fshd, gl.COMPILE_STATUS))
+                        throw new Error("Unable to compile shader: " + gl.getShaderInfoLog(fshd));
+                    let prog = gl.createProgram();
+                    gl.attachShader(prog, vshd);
+                    gl.attachShader(prog, fshd);
+                    gl.linkProgram(prog);
+                    if (!gl.getProgramParameter(prog, gl.LINK_STATUS))
+                        throw new Error("Unable to link program: " + gl.getProgramInfoLog(prog));
+                    return prog;
+                }
+
+                function init() {
+                    var c = document.getElementById("glCanvas");
+                    var gl = c.getContext('webgl2');
+                    if (!gl)
+                        throw new Error("WebGL unsupported!");
+
+                    gl.clearColor(0, 0, 0, 0);
+                    gl.clear(gl.COLOR_BUFFER_BIT);
+
+                    var vertexPosBuffer = gl.createBuffer();
+                    gl.bindBuffer(gl.ARRAY_BUFFER, vertexPosBuffer);
+                    var vertices = [
+                        -1, -1,
+                        1, -1,
+                        -1, 1,
+                        1, 1];
+                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+                    vertexPosBuffer.itemSize = 2;
+                    vertexPosBuffer.numItems = 4;
+
+                    // Create our shader program
+                    var vs = document.querySelector("#vertex-shader").text.trim();
+                    var fs = document.querySelector("#fragment-shader").text.trim();
+                    var program = createProgram(gl, vs, fs);
+                    gl.useProgram(program);
+
+                    // set resolution
+                    var resolutionUniformLocation = gl.getUniformLocation(program, "u_resolution");
+                    gl.uniform2f(resolutionUniformLocation, gl.canvas.width, gl.canvas.height)
+
+                    // Get and set vertex attribute
+                    program.vertexPosAttrib = gl.getAttribLocation(program, 'pos');
+                    // Remember to add and use u_time uniform in your shaders
+                    var u_time_loc = gl.getUniformLocation(program, "u_time");
+
+                    function render(ms_since_page_loaded) {
+                        gl.uniform1f(u_time_loc, ms_since_page_loaded * 0.001);
+                        gl.useProgram(program);
+                        gl.enableVertexAttribArray(program.vertexPosAttrib);
+                        gl.vertexAttribPointer(program.vertexPosAttrib, 2, gl.FLOAT, false, 0, 0);
+                        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+                        requestAnimationFrame(render);
+                    }
+
+                    // First render which will request animation
+                    render(0);
+
+                }
+                window.onload = init;
+                const resize = () => {
+                    var c = document.getElementById("glCanvas");
+                    var gl = c.getContext('webgl2');
+                    gl.canvas.width = window.innerWidth
+                    gl.canvas.height = window.innerHeight
+                    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
+                }
+                resize()
+                window.addEventListener("resize", resize)
+
+    </script>
+
+    </div>
+
 </body>
 </html>

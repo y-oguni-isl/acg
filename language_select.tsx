@@ -25,4 +25,5 @@ const App = () => {
     </>
 }
 
-render(<App />, document.body)
+// render(<App />, document.body)
+render(<App />, document.querySelector("div#app")!)
