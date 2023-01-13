@@ -7,16 +7,19 @@
     <title>Choose a Display Language - ACG Final Project</title>
     
     
-  <link rel="stylesheet" href="./assets/style.05f6d2d8.css">
+  <script type="module" crossorigin src="./assets/language_select.dc1b545a.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/cursor.b447bb1d.js">
+  <link rel="modulepreload" crossorigin href="./assets/debug.e462f3ae.js">
+  <link rel="stylesheet" href="./assets/cursor.c3a5dff0.css">
 </head>
 <body
     class="pl-[20vw] pr-[20vw] pt-[35vh] text-lg select-none overflow-hidden opacity-100 [transition:opacity_1s_ease-in-out]">
 
-    <!-- <script type="module" src="./language_select.tsx"></script> -->
+    
    
-    <div id="app" class="absolute left-0 top-0">
+    <div id="app" class="absolute left-0 top-0 z-20 w-full"></div>
 
-    <canvas id="glCanvas">
+    <canvas id="glCanvas" class="absolute left-0 top-0 w-full h-full">
            
     <script id="vertex-shader" type="notjs">
         #version 300 es
